@@ -1,0 +1,47 @@
+
+
+> web@0.1.0 build /Users/rowneth/Rasaswadaya/apps/web
+> next build
+
+ [33m[1m⚠[22m[39m Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of /Users/rowneth/package-lock.json as the root directory.
+ To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+ Detected additional lockfiles: 
+   * /Users/rowneth/Rasaswadaya/pnpm-lock.yaml
+
+   [1m[38;2;173;127;168m▲ Next.js 16.0.10[39m[22m (Turbopack)
+   - Environments: .env
+
+ [37m[1m [22m[39m Creating an optimized production build ...
+ [32m[1m✓[22m[39m Compiled successfully in 4.2s
+[?25l [37m[1m [22m[39m Running TypeScript  [36m.[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m..[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m...[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m.[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m..[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m...[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m.[39m[2K[1G[?25h[?25l [37m[1m [22m[39m Finished TypeScript in 1374.1ms  [36m.[39m[2K[1G[?25h [37m[1m [22m[39m Finished TypeScript in 1374.1ms     [32m[1m✓[22m[39m Finished TypeScript in 1374.1ms 
+[?25l [37m[1m [22m[39m Collecting page data using 9 workers  [36m.[39m[2K[1G [37m[1m [22m[39m Collecting page data using 9 workers  [36m..[39m[2K[1G[?25h [37m[1m [22m[39m Collecting page data using 9 workers in 273.1ms     [32m[1m✓[22m[39m Collecting page data using 9 workers in 273.1ms 
+[?25l [37m[1m [22m[39m Generating static pages using 9 workers (0/17)  [36m[    ][39m[2K[1G [37m[1m [22m[39m Generating static pages using 9 workers (0/17)  [36m[=   ][39m[2K[1G [37m[1m [22m[39m Generating static pages using 9 workers (7/17)  [36m[==  ][39m[2K[1G [37m[1m [22m[39m Generating static pages using 9 workers (7/17)  [36m[=== ][39m[2K[1G [37m[1m [22m[39m Generating static pages using 9 workers (7/17)  [36m[ ===][39m[2K[1G [37m[1m [22m[39m Generating static pages using 9 workers (7/17)  [36m[  ==][39m[2K[1G [37m[1m [22m[39m Generating static pages using 9 workers (7/17)  [36m[   =][39m[2K[1G [37m[1m [22m[39m Generating static pages using 9 workers (7/17)  [36m[    ][39m[2K[1G [37m[1m [22m[39m Generating static pages using 9 workers (7/17)  [36m[   =][39m[2K[1G [37m[1m [22m[39m Generating static pages using 9 workers (7/17)  [36m[  ==][39m[2K[1G [37m[1m [22m[39m Generating static pages using 9 workers (7/17)  [36m[ ===][39m[2K[1G [37m[1m [22m[39m Generating static pages using 9 workers (7/17)  [36m[====][39m[2K[1G [37m[1m [22m[39m Generating static pages using 9 workers (13/17)  [36m[=== ][39m[2K[1G [37m[1m [22m[39m Generating static pages using 9 workers (14/17)  [36m[==  ][39m[2K[1G [37m[1m [22m[39m Generating static pages using 9 workers (14/17)  [36m[=   ][39m[2K[1G [37m[1m [22m[39m Generating static pages using 9 workers (15/17)  [36m[    ][39m[2K[1G[?25h [32m[1m✓[22m[39m Generating static pages using 9 workers (17/17) in 3.0s
+[?25l [37m[1m [22m[39m Finalizing page optimization  [36m.[39m[2K[1G[?25h [37m[1m [22m[39m Finalizing page optimization in 10.3ms     [32m[1m✓[22m[39m Finalizing page optimization in 10.3ms 
+
+[4mRoute (app)[24m
+┌ ○ /
+├ ○ /_not-found
+├ ○ /artists
+├ ƒ /artists/[slug]
+├ ○ /auth/login
+├ ○ /auth/register
+├ ƒ /dashboard
+├ ƒ /dashboard/artist
+├ ƒ /dashboard/organizer
+├ ƒ /dashboard/organizer/create
+├ ○ /events
+├ ƒ /events/[slug]
+├ ○ /login
+├ ○ /marketplace
+├ ƒ /products/[id]
+├ ○ /profile
+├ ○ /signup
+└ ○ /test-db
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+[?25h

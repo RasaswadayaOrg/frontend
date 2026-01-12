@@ -1,0 +1,126 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  fullName  String
+  city      String?
+  interests String[] // Array of strings: ["Music", "Dance"]
+  role      Role     @default(USER)
+  
+  orders       Order[]
+  eventActions EventAction[]
+  store        Store?        // A user can own one store (optional)
+  artistProfile Artist?      // A user can be an artist
+  organizedEvents Event[]    // Events organized by this user
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Role {
+  USER
+  ADMIN
+  ORGANIZER
+  ARTIST
+}
+
+model Artist {
+  id        String   @id @default(uuid())
+  name      String
+  bio       String
+  photoUrl  String?
+  genre     String
+  
+  user      User?    @relation(fields: [userId], references: [id])
+  userId    String?  @unique
+  
+  events    Event[]
+}
+
+model Event {
+  id            String   @id @default(uuid())
+  title         String
+  description   String
+  imageUrl      String?
+  location      String?
+  city          String?
+  venue         String?
+  startTime     DateTime?
+  endTime       DateTime?
+  eventDate     DateTime? // Keeping this for compatibility with seed
+  capacity      Int?
+  category      String?
+  ticketLink    String?   // External URL
+  organizerInfo Json?    // Simple JSON for name/contact
+  
+  organizer     User?    @relation(fields: [organizerId], references: [id])
+  organizerId   String?
+  
+  artists       Artist[]
+  actions       EventAction[]
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model EventAction {
+  id        String   @id @default(uuid())
+  type      String   // "INTERESTED", "REMIND", "VIEW"
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  event     Event    @relation(fields: [eventId], references: [id])
+  eventId   String
+  
+  createdAt DateTime @default(now())
+}
+
+// --- Marketplace ---
+
+model Store {
+  id        String    @id @default(uuid())
+  name      String
+  owner     User      @relation(fields: [ownerId], references: [id])
+  ownerId   String    @unique
+  products  Product[]
+}
+
+model Product {
+  id          String      @id @default(uuid())
+  name        String
+  description String
+  price       Decimal
+  store       Store       @relation(fields: [storeId], references: [id])
+  storeId     String
+  orderItems  OrderItem[]
+}
+
+model Order {
+  id            String      @id @default(uuid())
+  user          User        @relation(fields: [userId], references: [id])
+  userId        String
+  status        String      // "PENDING", "COMPLETED", "CANCELLED"
+  total         Decimal
+  paymentMethod String      // "PAYHERE", "COD"
+  items         OrderItem[]
+  
+  createdAt     DateTime    @default(now())
+}
+
+model OrderItem {
+  id        String  @id @default(uuid())
+  order     Order   @relation(fields: [orderId], references: [id])
+  orderId   String
+  product   Product @relation(fields: [productId], references: [id])
+  productId String
+  quantity  Int
+  price     Decimal // Snapshot of price at time of order
+}
