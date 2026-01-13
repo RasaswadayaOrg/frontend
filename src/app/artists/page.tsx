@@ -1,22 +1,34 @@
 import { ImageWithFallback } from "../../components/ImageWithFallback";
 import Link from "next/link";
-import { Music, Search, Filter, ArrowLeft } from "lucide-react";
+import { Music, ArrowLeft } from "lucide-react";
 import { getArtists, getArtistsCount } from "../../lib/db";
 import { Pagination } from "../../components/Pagination";
+import { SearchInput } from "../../components/SearchInput";
+import { FilterList } from "../../components/FilterList";
 
-export default async function ArtistsPage(props: { searchParams: Promise<{ page?: string }> }) {
+export default async function ArtistsPage(props: { searchParams: Promise<{ page?: string; search?: string; genre?: string }> }) {
   const searchParams = await props.searchParams;
   const page = Number(searchParams.page) || 1;
+  const search = searchParams.search || "";
+  const genre = searchParams.genre || "";
   const limit = 8; // Adjust limit for meaningful pagination
+
   const [artists, totalArtists] = await Promise.all([
-      getArtists(limit, page),
-      getArtistsCount()
+      getArtists(limit, page, search, genre),
+      getArtistsCount(search, genre)
   ]);
   
   const totalPages = Math.ceil(totalArtists / limit);
 
-  // Group artists by genre (Note: This only groups from the current page, ideally we fetch genres separately)
-  const genres = [...new Set(artists.map((a: any) => a.genre).filter(Boolean))] as string[];
+  // Static genres for filter
+  const genres = [
+    { id: 'Kandyan Dance', name: 'Kandyan Dance' },
+    { id: 'Low Country', name: 'Low Country' },
+    { id: 'Traditional Music', name: 'Traditional Music' },
+    { id: 'Drumming', name: 'Drumming' },
+    { id: 'Sabaragamuwa', name: 'Sabaragamuwa' },
+    { id: 'Folk Music', name: 'Folk Music' },
+  ];
 
   return (
     <div className="space-y-8">
@@ -44,35 +56,16 @@ export default async function ArtistsPage(props: { searchParams: Promise<{ page?
         
         {/* Search */}
         <div className="flex gap-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Search artists..."
-              className="pl-10 pr-4 py-2 rounded-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-            />
-          </div>
-          <button className="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm font-medium hover:bg-slate-50 dark:hover:bg-zinc-700 transition-colors">
-            <Filter className="w-4 h-4" />
-            Filter
-          </button>
+          <SearchInput placeholder="Search artists..." />
         </div>
       </div>
 
       {/* Genre Filters */}
-      <div className="flex gap-3 overflow-x-auto pb-2">
-        <button className="flex-shrink-0 px-4 py-2 rounded-full bg-brand-600 text-white text-sm font-medium">
-          All Artists
-        </button>
-        {genres.map((genre) => (
-          <button
-            key={genre}
-            className="flex-shrink-0 px-4 py-2 rounded-full bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-sm font-medium hover:bg-slate-50 dark:hover:bg-zinc-700 transition-colors"
-          >
-            {genre}
-          </button>
-        ))}
-      </div>
+      <FilterList 
+        filters={genres}
+        paramName="genre"
+        allLabel="All Artists"
+      />
 
       {/* Artists Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">

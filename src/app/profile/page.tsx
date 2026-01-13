@@ -1,7 +1,7 @@
 "use client";
 
 import { User, MapPin, Bell, Heart, LogOut } from "lucide-react";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 
 export default function ProfilePage() {

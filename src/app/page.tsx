@@ -40,6 +40,9 @@ export default async function Home() {
     getTrendingEvents(3),
   ]);
 
+  // Select a featured artist for the AI recommendation (use the 4th one or fallback to 1st)
+  const featuredArtist = artists.length > 0 ? (artists[3] || artists[0]) : null;
+
   const categories = [
     { name: "Music", icon: Music, href: "/events?category=music", color: "bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400" },
     { name: "Dance", icon: Theater, href: "/events?category=dance", color: "bg-purple-100 text-purple-600 dark:bg-purple-900/40 dark:text-purple-400" },
@@ -67,6 +70,9 @@ export default async function Home() {
                isLoggedIn={isLoggedIn}
                city={session?.user?.city} // Might be undefined
              />
+             <div className="mt-4">
+                <AdPlaceholder size="medium" label="Sponsorship" />
+             </div>
           </div>
         </div>
       </section>
@@ -152,116 +158,194 @@ export default async function Home() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               
               {/* Card 1: Main Event Match */}
-              <Link href="/events/recommended-1" className="col-span-1 lg:col-span-1 bg-slate-900/50 border border-white/5 rounded-2xl overflow-hidden hover:border-purple-500/30 transition-all group relative">
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 to-purple-500"></div>
+              {events.length > 0 && (
+              <div className="lg:col-span-1 bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-2xl overflow-hidden hover:border-brand-500/30 transition-all group flex flex-col hover:shadow-[0_0_20px_-5px_rgba(124,58,237,0.15)] ring-1 ring-white/5">
+                {/* Tech Header */}
+                <div className="h-1 w-full bg-gradient-to-r from-brand-500 via-purple-500 to-indigo-500 opacity-70"></div>
                 
-                {/* Image Section */}
-                <div className="relative h-48 w-full group-hover:h-44 transition-all duration-300">
+                {/* Image Section - Split Layout */}
+                <Link href={`/events/${events[0].id}`} className="relative h-44 w-full overflow-hidden border-b border-white/5 block">
                    <ImageWithFallback 
-                     src="https://images.unsplash.com/photo-1543946602-a0ce26d9e6e0?q=80&w=800"
-                     alt="Classical Event"
+                     src={events[0].imageUrl || "https://images.unsplash.com/photo-1543946602-a0ce26d9e6e0?q=80&w=800"}
+                     alt={events[0].title}
                      fill
-                     className="object-cover"
+                     className="object-cover group-hover:scale-105 transition-transform duration-700"
                    />
-                   <div className="absolute inset-0 bg-gradient-to-t from-slate-900 to-transparent"></div>
-                   <div className="absolute bottom-3 left-3 right-3 flex justify-between items-end">
-                      <span className="px-2 py-1 bg-purple-500/90 backdrop-blur rounded text-[10px] font-bold text-white uppercase tracking-wider">Top Pick</span>
-                      <div className="flex items-center gap-1 px-2 py-1 bg-black/60 backdrop-blur rounded text-xs font-medium text-white">
-                         <Calendar className="w-3 h-3 text-indigo-400" />
-                         Next Weekend
-                      </div>
-                   </div>
-                </div>
-
-                {/* Content */}
-                <div className="p-5">
-                   <h3 className="text-xl font-bold text-white mb-2 group-hover:text-indigo-400 transition-colors">Sitar & Tabla Fusion Night</h3>
+                   <div className="absolute inset-0 bg-slate-900/20 group-hover:bg-transparent transition-colors"></div>
                    
-                   {/* AI Reasoning */}
-                   <div className="bg-indigo-950/30 rounded-lg p-3 mb-4 border border-indigo-500/10">
-                      <div className="flex items-start gap-2">
-                        <Bot className="w-4 h-4 text-indigo-400 mt-0.5 shrink-0" />
-                        <p className="text-xs text-indigo-200 leading-relaxed">
-                          <span className="font-semibold text-indigo-300">Why this matches:</span> You recently viewed "Classical Ragas" and this event features the same lead Sitarist, <strong>Mahesh Denipitiya</strong>.
-                        </p>
-                      </div>
-                   </div>
-
-                   <div className="flex items-center justify-between text-xs text-slate-500 border-t border-white/5 pt-3">
-                      <span>Colombo 07</span>
-                      <span className="flex items-center gap-1 hover:text-white transition-colors">
-                        View Details <ArrowRight className="w-3 h-3" />
+                   {/* Floating Badge */}
+                   <div className="absolute top-3 right-3">
+                      <span className="px-2 py-1 bg-slate-950/80 backdrop-blur border border-white/10 rounded text-[10px] font-bold text-white uppercase tracking-wider shadow-lg flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-brand-500 animate-pulse"></span>
+                        Top Pick
                       </span>
                    </div>
+                   
+                   {/* Date Pill */}
+                   <div className="absolute bottom-3 left-3">
+                      <div className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-950/90 backdrop-blur border border-white/10 rounded-full text-xs font-medium text-slate-300">
+                         <Calendar className="w-3 h-3 text-brand-400" />
+                         {new Date(events[0].eventDate).toLocaleDateString()}
+                      </div>
+                   </div>
+                </Link>
+
+                {/* Content Panel */}
+                <div className="p-5 flex flex-col flex-grow bg-gradient-to-b from-slate-900/50 to-slate-950/50">
+                   <Link href={`/events/${events[0].id}`}>
+                      <h3 className="text-lg font-bold text-white mb-3 group-hover:text-brand-400 transition-colors line-clamp-2 leading-tight">{events[0].title}</h3>
+                   </Link>
+                   
+                   {/* AI Tech Box */}
+                   <div className="bg-slate-950 rounded-lg p-3.5 border border-white/5 mb-4 group-hover:border-brand-500/20 transition-colors">
+                      <div className="flex items-start gap-2.5">
+                        <div className="w-4 h-4 rounded bg-brand-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                           <Bot className="w-2.5 h-2.5 text-brand-400" />
+                        </div>
+                        <div className="space-y-1">
+                           <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">AI Analysis</p>
+                           <p className="text-xs text-slate-300 leading-relaxed">
+                             Matches interest in <span className="text-brand-300 font-medium">{events[0].category || "culture"}</span>. High relevance score (98%).
+                           </p>
+                        </div>
+                      </div>
+                   </div>
+
+                   <div className="mt-auto pt-4 border-t border-white/5 flex items-center justify-between">
+                      <Link href={`/events/${events[0].id}`} className="text-xs font-medium text-slate-400 hover:text-white transition-colors flex items-center gap-1">
+                        Details <ArrowRight className="w-3 h-3" />
+                      </Link>
+                      <Link href={`/events/${events[0].id}`} className="text-xs bg-white/5 border border-white/10 text-white px-3 py-1.5 rounded-md font-bold hover:bg-white hover:text-slate-950 transition-all relative z-20">
+                        Book Now
+                      </Link>
+                   </div>
                 </div>
-              </Link>
-
-              {/* Card 3: Cultural Masterclass */}
-              <div className="lg:col-span-1 bg-gradient-to-br from-indigo-900/40 to-purple-900/40 border border-white/10 rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden">
-                 <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
-                 
-                 <div className="relative z-10">
-                    <div className="flex items-center justify-between mb-4">
-                       <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center text-white border border-white/10">
-                          <MessageSquare className="w-5 h-5" />
-                       </div>
-                       <span className="bg-purple-950/50 text-purple-200 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border border-purple-500/20">Masterclass</span>
-                    </div>
-
-                    <h3 className="text-xl font-bold text-white mb-2 leading-tight">Learn the 'Kohomba Kankariya'</h3>
-                    <p className="text-sm text-indigo-200 mb-6 leading-relaxed">
-                       A rare opportunity to learn the ritualistic history from Guru <strong className="text-white">Piyasara Shilpadipathi</strong>.
-                    </p>
-
-                    <div className="space-y-3 mb-6">
-                       <div className="flex items-center gap-3 text-xs text-slate-300">
-                          <div className="w-1.5 h-1.5 rounded-full bg-purple-400"></div>
-                          <span>2 Days Immersive Workshop</span>
-                       </div>
-                       <div className="flex items-center gap-3 text-xs text-slate-300">
-                          <div className="w-1.5 h-1.5 rounded-full bg-purple-400"></div>
-                          <span>Located at Chitrasena Kalayathanaya</span>
-                       </div>
-                    </div>
-                 </div>
-
-                 <button className="relative z-10 w-full py-3 bg-white text-indigo-950 font-bold rounded-xl hover:bg-indigo-50 transition-colors shadow-lg">
-                    Reserve Your Seat
-                 </button>
               </div>
+              )}
 
-              {/* Card 4: Personalized Artist Pick */}
-               <div className="bg-slate-900/50 border border-white/5 rounded-2xl p-5 flex flex-col relative overflow-hidden group hover:bg-slate-800/50 transition-colors">
-                  <div className="flex items-center justify-between mb-4 relative z-10">
-                    <span className="bg-indigo-950/50 text-indigo-300 px-3 py-1 rounded-full text-xs font-medium border border-indigo-500/20">Artist Match</span>
-                    <Bot className="w-4 h-4 text-indigo-500" />
-                 </div>
-
-                  <div className="relative w-full h-40 rounded-xl overflow-hidden mb-4 group-hover:scale-[1.02] transition-transform duration-500">
+              {/* Card 2: Secondary Event */}
+              {events.length > 1 && (
+              <div className="lg:col-span-1 bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-2xl overflow-hidden hover:border-purple-500/30 transition-all group flex flex-col hover:shadow-[0_0_20px_-5px_rgba(168,85,247,0.15)] ring-1 ring-white/5">
+                 {/* Tech Header */}
+                 <div className="h-1 w-full bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 opacity-70"></div>
+                 
+                 {/* Image Section - Split Layout */}
+                 <Link href={`/events/${events[1].id}`} className="relative h-44 w-full overflow-hidden border-b border-white/5 block">
                     <ImageWithFallback 
-                      src="https://images.unsplash.com/photo-1549834125-906c85a44004?q=80&w=800"
-                      alt="Artist"
-                      fill
-                      className="object-cover"
+                        src={events[1].imageUrl || "https://images.unsplash.com/photo-1514525253440-b393452e8d26?w=800"}
+                        alt={events[1].title}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-700"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
-                    <div className="absolute bottom-3 left-3">
-                         <h3 className="text-white font-bold text-lg">Nadeeka Guruge</h3>
-                         <p className="text-xs text-slate-300">Modern Folk Fusion</p>
-                    </div>
-                  </div>
-
-                  <div className="bg-indigo-950/20 rounded-lg p-3 border border-indigo-500/10">
-                     <p className="text-xs text-indigo-200 leading-relaxed">
-                        <span className="font-semibold text-indigo-400">Trending + Your Taste:</span> Since you enjoyed "Traditional Folk", you might love his fusion of folk melodies with modern composition.
-                     </p>
-                  </div>
+                    <div className="absolute inset-0 bg-slate-900/20 group-hover:bg-transparent transition-colors"></div>
                     
-                    <Link href="/artists/1" className="mt-4 flex items-center justify-between text-xs font-bold text-white bg-white/10 hover:bg-white/20 px-4 py-3 rounded-xl transition-all">
-                        View Profile
-                        <ArrowRight className="w-4 h-4" />
+                    {/* Floating Badge */}
+                    <div className="absolute top-3 right-3">
+                      <span className="px-2 py-1 bg-slate-950/80 backdrop-blur border border-white/10 rounded text-[10px] font-bold text-white uppercase tracking-wider shadow-lg flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse"></span>
+                        {events[1].category || 'Event'}
+                      </span>
+                   </div>
+
+                   {/* Date Pill */}
+                   <div className="absolute bottom-3 left-3">
+                      <div className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-950/90 backdrop-blur border border-white/10 rounded-full text-xs font-medium text-slate-300">
+                         <Calendar className="w-3 h-3 text-purple-400" />
+                         {new Date(events[1].eventDate).toLocaleDateString()}
+                      </div>
+                   </div>
+                 </Link>
+                 
+                 {/* Content Panel */}
+                 <div className="p-5 flex flex-col flex-grow bg-gradient-to-b from-slate-900/50 to-slate-950/50">
+                    <Link href={`/events/${events[1].id}`}>
+                       <h3 className="text-lg font-bold text-white mb-3 group-hover:text-purple-400 transition-colors line-clamp-2 leading-tight">{events[1].title}</h3>
                     </Link>
+                    
+                    {/* AI Tech Box */}
+                    <div className="bg-slate-950 rounded-lg p-3.5 border border-white/5 mb-4 group-hover:border-purple-500/20 transition-colors">
+                       <div className="flex items-start gap-2.5">
+                         <div className="w-4 h-4 rounded bg-purple-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                            <MessageSquare className="w-2.5 h-2.5 text-purple-400" />
+                         </div>
+                         <div className="space-y-1">
+                            <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Recommendation</p>
+                            <p className="text-xs text-slate-300 leading-relaxed line-clamp-2">
+                               {events[1].description}
+                            </p>
+                         </div>
+                       </div>
+                    </div>
+
+                    <div className="mt-auto pt-4 border-t border-white/5 flex items-center justify-between">
+                       <Link href={`/events/${events[1].id}`} className="text-xs font-medium text-slate-400 hover:text-white transition-colors flex items-center gap-1">
+                          Details <ArrowRight className="w-3 h-3" />
+                       </Link>
+                       <Link href={`/events/${events[1].id}`} className="text-xs bg-white/5 border border-white/10 text-white px-3 py-1.5 rounded-md font-bold hover:bg-white hover:text-slate-950 transition-all relative z-20">
+                         Book Now
+                       </Link>
+                    </div>
+                 </div>
+              </div>
+              )}
+
+              {/* Card 3: Personalized Artist Pick */}
+              {featuredArtist && (
+               <div className="lg:col-span-1 bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-2xl overflow-hidden hover:border-pink-500/30 transition-all group flex flex-col hover:shadow-[0_0_20px_-5px_rgba(236,72,153,0.15)] ring-1 ring-white/5">
+                 <div className="h-1 w-full bg-gradient-to-r from-pink-500 via-rose-500 to-red-500 opacity-70"></div>
+                 
+                 <div className="relative h-44 w-full overflow-hidden border-b border-white/5">
+                    <Link href={`/artists/${featuredArtist.id}`} className="block w-full h-full">
+                        <ImageWithFallback 
+                            src={featuredArtist.photoUrl || "https://images.unsplash.com/photo-1549834125-906c85a44004?q=80&w=800"}
+                            alt={featuredArtist.name}
+                            fill
+                            className="object-cover group-hover:scale-105 transition-transform duration-700"
+                        />
+                        <div className="absolute inset-0 bg-slate-900/20 group-hover:bg-transparent transition-colors"></div>
+                    </Link>
+                    
+                    <div className="absolute top-3 right-3 pointer-events-none">
+                      <span className="px-2 py-1 bg-slate-950/80 backdrop-blur border border-white/10 rounded text-[10px] font-bold text-white uppercase tracking-wider shadow-lg">
+                        Artist Match
+                      </span>
+                   </div>
+                 </div>
+                 
+                 <div className="p-5 flex flex-col flex-grow bg-gradient-to-b from-slate-900/50 to-slate-950/50">
+                    <Link href={`/artists/${featuredArtist.id}`}>
+                       <h3 className="text-lg font-bold text-white mb-3 group-hover:text-pink-400 transition-colors line-clamp-1 leading-tight">{featuredArtist.name}</h3>
+                    </Link>
+                    
+                    <div className="bg-slate-950 rounded-lg p-3.5 border border-white/5 mb-4 group-hover:border-pink-500/20 transition-colors">
+                       <div className="flex items-start gap-2.5">
+                         <div className="w-4 h-4 rounded bg-pink-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                            <Mic2 className="w-2.5 h-2.5 text-pink-400" />
+                         </div>
+                         <div className="space-y-1">
+                            <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Trending + Taste</p>
+                            <p className="text-xs text-slate-300 leading-relaxed">
+                               Based on your recent activity, we think you'll love this artist!
+                            </p>
+                         </div>
+                       </div>
+                    </div>
+
+                    <div className="mt-auto pt-4 border-t border-white/5 flex items-center justify-between">
+                       <span className="flex items-center gap-2 text-[10px] font-medium text-pink-300 bg-pink-500/10 px-2 py-1 rounded border border-pink-500/10">
+                          <span className="relative flex h-1.5 w-1.5">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-pink-500"></span>
+                          </span>
+                          Rising Star
+                       </span>
+                       <Link href={`/artists/${featuredArtist.id}`} className="text-xs bg-white/5 border border-white/10 text-white px-3 py-1.5 rounded-md font-bold hover:bg-white hover:text-slate-950 transition-all relative z-20">
+                         Profile
+                       </Link>
+                    </div>
+                 </div>
                </div>
+              )}
 
             </div>
           </div>
