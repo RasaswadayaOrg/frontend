@@ -1,18 +1,31 @@
 import { ImageWithFallback } from "../../components/ImageWithFallback";
 import Link from "next/link";
-import { Calendar, MapPin, Users, Filter, Search, ArrowLeft } from "lucide-react";
+import { Calendar, MapPin, ArrowLeft, Users } from "lucide-react";
 import { getEvents, getEventsCount } from "../../lib/db";
 import { Pagination } from "../../components/Pagination";
+import { SearchInput } from "../../components/SearchInput";
+import { FilterList } from "../../components/FilterList";
 
-export default async function EventsPage(props: { searchParams: Promise<{ page?: string }> }) {
+export default async function EventsPage(props: { searchParams: Promise<{ page?: string; search?: string; category?: string }> }) {
   const searchParams = await props.searchParams;
   const page = Number(searchParams.page) || 1;
+  const search = searchParams.search || "";
+  const category = searchParams.category || "";
   const limit = 8;
+
   const [events, totalEvents] = await Promise.all([
-      getEvents(limit, page),
-      getEventsCount()
+      getEvents(limit, page, undefined, search, category),
+      getEventsCount(search, category)
   ]);
   const totalPages = Math.ceil(totalEvents / limit);
+
+  const categories = [
+    { id: 'Festival', name: 'Festival' },
+    { id: 'Performance', name: 'Performance' },
+    { id: 'Exhibition', name: 'Exhibition' },
+    { id: 'Workshop', name: 'Workshop' },
+    { id: 'Concert', name: 'Concert' },
+  ];
 
   return (
     <div className="space-y-8">
@@ -40,20 +53,15 @@ export default async function EventsPage(props: { searchParams: Promise<{ page?:
         
         {/* Search & Filter */}
         <div className="flex gap-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Search events..."
-              className="pl-10 pr-4 py-2 rounded-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-            />
-          </div>
-          <button className="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm font-medium hover:bg-slate-50 dark:hover:bg-zinc-700 transition-colors">
-            <Filter className="w-4 h-4" />
-            Filter
-          </button>
+           <SearchInput placeholder="Search events..." />
         </div>
       </div>
+
+      <FilterList 
+        filters={categories}
+        paramName="category"
+        allLabel="All Events"
+      />
 
       {/* Events Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
