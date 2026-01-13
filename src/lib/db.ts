@@ -32,9 +32,11 @@ async function fetchData(endpoint: string, params: Record<string, any> = {}) {
 
 // --- Events ---
 
-export async function getEvents(limit = 4, page = 1, city?: string) {
+export async function getEvents(limit = 4, page = 1, city?: string, search?: string, category?: string) {
   const params: any = { limit, page };
   if (city) params.city = city;
+  if (search) params.search = search;
+  if (category) params.category = category;
   
   const data = await fetchData('/events', params);
   if (!data || !data.success) return [];
@@ -47,9 +49,24 @@ export async function getEvents(limit = 4, page = 1, city?: string) {
   }));
 }
 
-export async function getEventsCount() {
-    const data = await fetchData('/events', { limit: 1 });
+export async function getEventsCount(search?: string, category?: string) {
+    const params: any = { limit: 1 };
+    if (search) params.search = search;
+    if (category) params.category = category;
+
+    const data = await fetchData('/events', params);
     return data?.pagination?.total || 0;
+}
+
+export async function getEvent(id: string) {
+    const data = await fetchData(`/events/${id}`);
+    if (!data || !data.success) return null;
+    return {
+        ...data.data,
+        eventDate: new Date(data.data.eventDate),
+        startTime: data.data.startTime ? data.data.startTime : undefined,
+        endTime: data.data.endTime ? data.data.endTime : undefined
+    };
 }
 
 export async function getTrendingEvents(limit = 3, city?: string) {
@@ -92,14 +109,22 @@ export async function getMyReminders(token: string) {
 
 // --- Artists ---
 
-export async function getArtists(limit = 3, page = 1) {
-    const data = await fetchData('/artists', { limit, page });
+export async function getArtists(limit = 3, page = 1, search?: string, genre?: string) {
+    const params: any = { limit, page };
+    if (search) params.search = search;
+    if (genre) params.genre = genre;
+
+    const data = await fetchData('/artists', params);
     if (!data || !data.success) return [];
     return data.data;
 }
 
-export async function getArtistsCount() {
-    const data = await fetchData('/artists', { limit: 1 });
+export async function getArtistsCount(search?: string, genre?: string) {
+    const params: any = { limit: 1 };
+    if (search) params.search = search;
+    if (genre) params.genre = genre;
+
+    const data = await fetchData('/artists', params);
     return data?.pagination?.total || 0;
 }
 
@@ -129,8 +154,12 @@ export async function getStore(id: string) {
 
 // --- Products ---
 
-export async function getProducts(limit = 6, page = 1) {
-    const data = await fetchData('/products', { limit, page });
+export async function getProducts(limit = 6, page = 1, search?: string, category?: string) {
+    const params: any = { limit, page };
+    if (search) params.search = search;
+    if (category) params.category = category;
+
+    const data = await fetchData('/products', params);
     if (!data || !data.success) return [];
 
     return data.data.map((p: any) => ({
@@ -140,8 +169,12 @@ export async function getProducts(limit = 6, page = 1) {
     }));
 }
 
-export async function getProductsCount() {
-    const data = await fetchData('/products', { limit: 1 });
+export async function getProductsCount(search?: string, category?: string) {
+    const params: any = { limit: 1 };
+    if (search) params.search = search;
+    if (category) params.category = category;
+
+    const data = await fetchData('/products', params);
     return data?.pagination?.total || 0;
 }
 
@@ -171,14 +204,22 @@ export async function getStoreProductsCount(storeId: string) {
 
 // --- Academies ---
 
-export async function getAcademies(limit = 100, page = 1) {
-    const data = await fetchData('/academies', { limit, page });
+export async function getAcademies(limit = 100, page = 1, search?: string, type?: string) {
+    const params: any = { limit, page };
+    if (search) params.search = search;
+    if (type) params.type = type;
+
+    const data = await fetchData('/academies', params);
     if (!data || !data.success) return [];
     return data.data;
 }
 
-export async function getAcademiesCount() {
-    const data = await fetchData('/academies', { limit: 1 });
+export async function getAcademiesCount(search?: string, type?: string) {
+    const params: any = { limit: 1 };
+    if (search) params.search = search;
+    if (type) params.type = type;
+
+    const data = await fetchData('/academies', params);
     return data?.pagination?.total || 0;
 }
 

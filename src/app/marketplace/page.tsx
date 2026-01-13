@@ -1,19 +1,24 @@
 import { ImageWithFallback } from "../../components/ImageWithFallback";
 import Link from "next/link";
-import { ShoppingBag, Filter, Search, Star, ArrowLeft } from "lucide-react";
+import { ShoppingBag, Star, ArrowLeft } from "lucide-react";
 import { getProducts, getProductsCount, getCategories } from "../../lib/db";
 import { AdPlaceholder } from "../../components/AdPlaceholder";
 // import type { Product } from "@prisma/client";
 import { AddToCartButton } from "../../components/AddToCartButton";
 import { Pagination } from "../../components/Pagination";
+import { SearchInput } from "../../components/SearchInput";
+import { FilterList } from "../../components/FilterList";
 
-export default async function MarketplacePage(props: { searchParams: Promise<{ page?: string }> }) {
+export default async function MarketplacePage(props: { searchParams: Promise<{ page?: string; search?: string; category?: string }> }) {
   const searchParams = await props.searchParams;
   const page = Number(searchParams.page) || 1;
+  const search = searchParams.search || "";
+  const category = searchParams.category || "";
   const limit = 12;
+
   const [products, total, categories] = await Promise.all([
-    getProducts(limit, page),
-    getProductsCount(),
+    getProducts(limit, page, search, category),
+    getProductsCount(search, category),
     getCategories(),
   ]);
   const totalPages = Math.ceil(total / limit);
@@ -44,32 +49,20 @@ export default async function MarketplacePage(props: { searchParams: Promise<{ p
         
         {/* Search */}
         <div className="flex gap-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Search products..."
-              className="pl-10 pr-4 py-2 rounded-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 w-64"
-            />
-          </div>
+          <SearchInput placeholder="Search products..." />
         </div>
       </div>
 
       {/* Categories */}
-      <div className="flex gap-3 overflow-x-auto pb-2">
-        <button className="flex-shrink-0 px-4 py-2 rounded-full bg-brand-600 text-white text-sm font-medium">
-          All
-        </button>
-        {categories.map((cat: { id: string; name: string; iconUrl?: string }) => (
-          <button
-            key={cat.id}
-            className="flex-shrink-0 px-4 py-2 rounded-full bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-sm font-medium hover:bg-slate-50 dark:hover:bg-zinc-700 transition-colors"
-          >
-            <span className="mr-2">{cat.iconUrl}</span>
-            {cat.name}
-          </button>
-        ))}
-      </div>
+      <FilterList 
+        filters={categories.map((c: any) => ({ 
+            id: c.name, // Using name as ID for consistency with other filters or if backend expects name
+            name: c.name,
+            icon: c.iconUrl 
+        }))} 
+        paramName="category"
+        allLabel="All"
+      />
 
       {/* Ad Space */}
       <div className="w-full">

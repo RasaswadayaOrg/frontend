@@ -1,28 +1,38 @@
 import { ImageWithFallback } from "../../components/ImageWithFallback";
 import Link from "next/link";
-import { School, Search, Filter, ArrowLeft, MapPin, ArrowRight } from "lucide-react";
+import { School, ArrowLeft, MapPin, ArrowRight, Filter } from "lucide-react";
 import { getAcademies, getAcademiesCount } from "../../lib/db";
 import { Pagination } from "../../components/Pagination";
+import { SearchInput } from "../../components/SearchInput";
+import { FilterList } from "../../components/FilterList";
 
 export const metadata = {
   title: "Music Academies | Rasas",
   description: "Find the best music and dance academies in Sri Lanka.",
 };
 
-export default async function AcademiesPage(props: { searchParams: Promise<{ page?: string }> }) {
+export default async function AcademiesPage(props: { searchParams: Promise<{ page?: string; search?: string; type?: string }> }) {
   const searchParams = await props.searchParams;
   const page = Number(searchParams.page) || 1;
+  const search = searchParams.search;
+  const type = searchParams.type;
+
   const limit = 6;
   const [academies, total] = await Promise.all([
-      getAcademies(limit, page),
-      getAcademiesCount()
+      getAcademies(limit, page, search, type),
+      getAcademiesCount(search, type)
   ]);
   const totalPages = Math.ceil(total / limit);
   
-  // Extract unique types for filters (this won't work perfectly with pagination unless we fetch all types separately, but for mock data it's fine)
-  // For now, I'll allow it to just show types from current page or fetch a dedicated getAcademyTypes() if I had one. 
-  // Let's assume we want to keep it simple.
-  const academyTypes = [...new Set(academies.map((a: any) => a.type).filter(Boolean))] as string[];
+  // Mock categories or fetch them.
+  const academyTypes = [
+    { id: "Music", name: "Music" },
+    { id: "Dance", name: "Dance" },
+    { id: "Theatre", name: "Theatre" },
+    { id: "Art", name: "Art" },
+    { id: "Percussion", name: "Percussion" },
+    { id: "Vocals", name: "Vocals" }
+  ];
 
   return (
     <div className="space-y-8">
@@ -49,38 +59,20 @@ export default async function AcademiesPage(props: { searchParams: Promise<{ pag
         </div>
         
         {/* Search */}
-        <div className="flex gap-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Search academies..."
-              className="pl-10 pr-4 py-2 rounded-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-            />
-          </div>
-          <button className="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm font-medium hover:bg-slate-50 dark:hover:bg-zinc-700 transition-colors">
-            <Filter className="w-4 h-4" />
-            Filter
-          </button>
+        <div className="flex gap-3 w-full md:w-auto justify-end">
+          <SearchInput placeholder="Search academies..." />
         </div>
       </div>
 
       {/* Filters */}
-      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-        <button className="flex-shrink-0 px-4 py-2 rounded-full bg-brand-600 text-white text-sm font-medium">
-          All Academies
-        </button>
-        {academyTypes.map((type) => (
-          <button
-            key={type}
-            className="flex-shrink-0 px-4 py-2 rounded-full bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-sm font-medium hover:bg-slate-50 dark:hover:bg-zinc-700 transition-colors"
-          >
-            {type}
-          </button>
-        ))}
-      </div>
+      <FilterList 
+        filters={academyTypes} 
+        paramName="type"
+        allLabel="All Academies"
+      />
 
       {/* Main Grid */}
+      {academies.length > 0 ? (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {academies.map((academy: any) => (
                 <div key={academy.id} className="group flex flex-col bg-white dark:bg-zinc-900 rounded-2xl overflow-hidden border border-slate-200 dark:border-zinc-800 hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
@@ -132,6 +124,20 @@ export default async function AcademiesPage(props: { searchParams: Promise<{ pag
                 </div>
             ))}
         </div>
+      ) : (
+        <div className="py-20 text-center">
+            <div className="w-16 h-16 bg-slate-100 dark:bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                <School className="w-8 h-8 text-slate-400" />
+            </div>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">No academies found</h3>
+            <p className="text-slate-500 dark:text-zinc-400 mt-2">Try adjusting your filters or search terms</p>
+            {(search || type) && (
+                <Link href="/academies" className="inline-block mt-4 text-brand-600 font-medium hover:underline">
+                    Clear all filters
+                </Link>
+            )}
+        </div>
+      )}
 
       {/* Promotion / CTA (Styled to match container) */}
       <div className="relative rounded-3xl overflow-hidden bg-brand-900 text-white p-8 md:p-12 mt-12">

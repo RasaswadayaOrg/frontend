@@ -88,12 +88,12 @@ export default async function AcademyDetailPage(props: { params: Promise<{ id: s
                 <div>
                     <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">Courses Offered</h2>
                     <div className="grid sm:grid-cols-2 gap-4">
-                        {academy.courses && academy.courses.map((course: string, idx: number) => (
+                        {academy.courses && academy.courses.map((course: any, idx: number) => (
                             <div key={idx} className="flex items-center gap-3 p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm hover:border-brand-500/50 transition-colors">
                                 <div className="w-10 h-10 rounded-full bg-brand-50 dark:bg-brand-900/20 flex items-center justify-center text-brand-600 dark:text-brand-400 font-bold text-lg">
-                                    {course.charAt(0)}
+                                    {course.name ? course.name.charAt(0) : 'C'}
                                 </div>
-                                <span className="font-semibold text-slate-900 dark:text-white">{course}</span>
+                                <span className="font-semibold text-slate-900 dark:text-white">{course.name || 'Unnamed Course'}</span>
                             </div>
                         ))}
                     </div>

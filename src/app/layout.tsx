@@ -19,7 +19,7 @@ const abhayaLibre = Abhaya_Libre({
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import { FloatingChatBot } from "../components/FloatingChatBot";
-import { AuthProvider } from "../context/AuthContext";
+import { AuthProvider } from "@/context/AuthContext";
 import AuthModal from "../components/AuthModal";
 
 export const metadata: Metadata = {
