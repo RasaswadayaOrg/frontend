@@ -3,6 +3,7 @@
 import { useAuth } from "@/context/AuthContext";
 import { useState } from "react";
 import { ArrowLeft } from "lucide-react";
+import { SignupFlow } from "./SignupFlow";
 
 interface AuthViewProps {
   isModal?: boolean;
@@ -10,8 +11,9 @@ interface AuthViewProps {
 }
 
 export function AuthView({ isModal = false, onClose }: AuthViewProps) {
-  const { login } = useAuth();
-  const [view, setView] = useState<'options' | 'email_signup'>('options');
+  const { login, loginWithGoogle } = useAuth();
+  const [view, setView] = useState<'options' | 'email_signup' | 'full_signup'>('options');
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   
   // Mock form state
   const [formData, setFormData] = useState({
@@ -25,6 +27,30 @@ export function AuthView({ isModal = false, onClose }: AuthViewProps) {
     login({ firstName: formData.firstName });
     if (onClose) onClose();
   };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      setIsGoogleLoading(true);
+      await loginWithGoogle();
+    } catch (error) {
+      console.error('Google sign-in failed:', error);
+    } finally {
+      setIsGoogleLoading(false);
+    }
+  };
+
+  // Show full signup flow with location and preferences
+  if (view === 'full_signup') {
+    return (
+      <SignupFlow 
+        isModal={isModal}
+        onComplete={() => {
+          if (onClose) onClose();
+        }}
+        onBack={() => setView('options')}
+      />
+    );
+  }
 
   if (view === 'email_signup') {
     return (
@@ -111,13 +137,13 @@ export function AuthView({ isModal = false, onClose }: AuthViewProps) {
 
           <div className="space-y-3 pt-4">
             <button
-              onClick={() => setView('email_signup')}
+              onClick={() => setView('full_signup')}
               className="w-full py-2.5 px-4 bg-violet-600 hover:bg-violet-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
             >
               Sign up with Email
             </button>
             <button
-              onClick={() => login()} // Mock login
+              onClick={() => setView('full_signup')}
               className="w-full py-2.5 px-4 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-700 text-zinc-900 dark:text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
