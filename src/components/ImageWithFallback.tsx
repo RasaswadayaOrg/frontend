@@ -16,11 +16,16 @@ export function ImageWithFallback({
   alt, 
   ...props 
 }: ImageWithFallbackProps) {
-  const [imgSrc, setImgSrc] = useState(src);
+  // Hardcoded image override for Nanda Malini
+  const effectiveSrc = (typeof src === 'string' && src.includes('nettv4u.com/imagine/21-05-2023/nanda-malani.jpg')) 
+    ? '/nanda_malini.jpeg'
+    : src;
+
+  const [imgSrc, setImgSrc] = useState(effectiveSrc);
 
   useEffect(() => {
-    setImgSrc(src);
-  }, [src]);
+    setImgSrc(effectiveSrc);
+  }, [effectiveSrc]);
 
   return (
     <Image

@@ -30,6 +30,23 @@ async function fetchData(endpoint: string, params: Record<string, any> = {}) {
   }
 }
 
+// Helper to manually override event data (Temporary fix for specific events)
+function overrideEventData(event: any) {
+  if (!event) return event;
+  const idStr = String(event.id);
+  
+  // Override for Event 002
+  if (idStr === 'event-002' || idStr === '002' || idStr === '2') {
+    return {
+      ...event,
+      title: "Deva The Deva Live in Colombo",
+      imageUrl: "/deva_event.avif",
+      // Ensure description or other fields are appropriate if needed, or leave as is.
+    };
+  }
+  return event;
+}
+
 // --- Events ---
 
 export async function getEvents(limit = 4, page = 1, city?: string, search?: string, category?: string) {
@@ -41,12 +58,15 @@ export async function getEvents(limit = 4, page = 1, city?: string, search?: str
   const data = await fetchData('/events', params);
   if (!data || !data.success) return [];
   
-  return data.data.map((event: any) => ({
-    ...event,
-    eventDate: new Date(event.eventDate),
-    startTime: event.startTime ? event.startTime : undefined,
-    endTime: event.endTime ? event.endTime : undefined
-  }));
+  return data.data.map((event: any) => {
+    const fixedEvent = overrideEventData(event);
+    return {
+      ...fixedEvent,
+      eventDate: new Date(fixedEvent.eventDate),
+      startTime: fixedEvent.startTime ? fixedEvent.startTime : undefined,
+      endTime: fixedEvent.endTime ? fixedEvent.endTime : undefined
+    };
+  });
 }
 
 export async function getEventsCount(search?: string, category?: string) {
@@ -61,11 +81,14 @@ export async function getEventsCount(search?: string, category?: string) {
 export async function getEvent(id: string) {
     const data = await fetchData(`/events/${id}`);
     if (!data || !data.success) return null;
+    
+    const fixedEvent = overrideEventData(data.data);
+    
     return {
-        ...data.data,
-        eventDate: new Date(data.data.eventDate),
-        startTime: data.data.startTime ? data.data.startTime : undefined,
-        endTime: data.data.endTime ? data.data.endTime : undefined
+        ...fixedEvent,
+        eventDate: new Date(fixedEvent.eventDate),
+        startTime: fixedEvent.startTime ? fixedEvent.startTime : undefined,
+        endTime: fixedEvent.endTime ? fixedEvent.endTime : undefined
     };
 }
 
@@ -85,12 +108,15 @@ export async function getTrendingEvents(limit = 3, city?: string) {
    }
 
    if (!data || !data.success) return [];
-   return data.data.map((event: any) => ({
-    ...event,
-    eventDate: new Date(event.eventDate),
-    startTime: event.startTime,
-    endTime: event.endTime
-  }));
+   return data.data.map((event: any) => {
+    const fixedEvent = overrideEventData(event);
+    return {
+      ...fixedEvent,
+      eventDate: new Date(fixedEvent.eventDate),
+      startTime: fixedEvent.startTime,
+      endTime: fixedEvent.endTime
+    };
+  });
 }
 
 export async function getMyReminders(token: string) {
