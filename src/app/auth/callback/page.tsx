@@ -37,7 +37,14 @@ export default function AuthCallbackPage() {
               role: result.user.role,
             };
             localStorage.setItem("rasas_user", JSON.stringify(user));
-            router.push("/dashboard");
+            
+            // Check if user is new (no city set = hasn't completed preferences)
+            // If new user, redirect to complete signup preferences
+            if (!result.user.city) {
+              router.push("/auth/complete-profile");
+            } else {
+              router.push("/dashboard");
+            }
           } else {
             router.push("/auth/login?error=sync_failed");
           }
