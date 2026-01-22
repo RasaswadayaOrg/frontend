@@ -132,11 +132,10 @@ export function SignupFlow({ onComplete, onBack, isModal = false }: SignupFlowPr
   const handleGoogleSignIn = async () => {
     try {
       setIsGoogleLoading(true);
-      setError(null);
-      await loginWithGoogle();
-      setAuthType("google");
-      // After Google auth, move to location step
-      setCurrentStep("location");
+  setError(null);
+  await loginWithGoogle();
+  setAuthType("google");
+  // Do NOT move to location step here; wait for OAuth callback
     } catch (error) {
       console.error("Google sign-in failed:", error);
       setError("Google sign-in failed. Please try again.");
@@ -217,8 +216,8 @@ export function SignupFlow({ onComplete, onBack, isModal = false }: SignupFlowPr
         setCurrentStep("complete");
         setTimeout(() => {
           onComplete?.();
-          // Navigate to dashboard after signup
-          router.push("/dashboard");
+          // Navigate to home page after signup
+          router.push("/");
         }, 2000);
       } else {
         console.error("Failed to save preferences:", prefsResult.error);
@@ -226,7 +225,7 @@ export function SignupFlow({ onComplete, onBack, isModal = false }: SignupFlowPr
         setCurrentStep("complete");
         setTimeout(() => {
           onComplete?.();
-          router.push("/dashboard");
+          router.push("/");
         }, 2000);
       }
     } catch (error) {
@@ -235,7 +234,7 @@ export function SignupFlow({ onComplete, onBack, isModal = false }: SignupFlowPr
       setCurrentStep("complete");
       setTimeout(() => {
         onComplete?.();
-        router.push("/dashboard");
+        router.push("/");
       }, 2000);
     } finally {
       setIsSubmitting(false);
@@ -644,10 +643,10 @@ export function SignupFlow({ onComplete, onBack, isModal = false }: SignupFlowPr
             })}
           </div>
           <button
-            onClick={() => router.push("/dashboard")}
+            onClick={() => router.push("/")}
             className="mt-6 px-6 py-3 bg-violet-600 hover:bg-violet-700 text-white font-medium rounded-xl transition-colors inline-flex items-center gap-2"
           >
-            Go to Dashboard <ArrowRight size={18} />
+            Go to Home <ArrowRight size={18} />
           </button>
           <p className="text-xs text-zinc-400 mt-2">Redirecting automatically...</p>
         </div>
