@@ -43,7 +43,7 @@ export default function AuthCallbackPage() {
             if (!result.user.city) {
               router.push("/auth/complete-profile");
             } else {
-              router.push("/dashboard");
+              router.push("/");
             }
           } else {
             router.push("/auth/login?error=sync_failed");

@@ -158,7 +158,7 @@ export function SignupFlowPreferences({ onComplete }: SignupFlowPreferencesProps
         setCurrentStep("complete");
         setTimeout(() => {
           onComplete?.();
-          router.push("/dashboard");
+          router.push("/");
         }, 2000);
       } else {
         console.error("Failed to save preferences:", prefsResult.error);
@@ -166,7 +166,7 @@ export function SignupFlowPreferences({ onComplete }: SignupFlowPreferencesProps
         setCurrentStep("complete");
         setTimeout(() => {
           onComplete?.();
-          router.push("/dashboard");
+          router.push("/");
         }, 2000);
       }
     } catch (error: any) {
@@ -176,7 +176,7 @@ export function SignupFlowPreferences({ onComplete }: SignupFlowPreferencesProps
       setCurrentStep("complete");
       setTimeout(() => {
         onComplete?.();
-        router.push("/dashboard");
+        router.push("/");
       }, 2000);
     } finally {
       setIsSubmitting(false);
@@ -460,10 +460,10 @@ export function SignupFlowPreferences({ onComplete }: SignupFlowPreferencesProps
             })}
           </div>
           <button
-            onClick={() => router.push("/dashboard")}
+            onClick={() => router.push("/")}
             className="mt-6 px-6 py-3 bg-violet-600 hover:bg-violet-700 text-white font-medium rounded-xl transition-colors inline-flex items-center gap-2"
           >
-            Go to Dashboard <ArrowRight size={18} />
+            Go to Home <ArrowRight size={18} />
           </button>
           <p className="text-xs text-zinc-400 mt-2">Redirecting automatically...</p>
         </div>
