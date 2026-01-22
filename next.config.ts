@@ -61,6 +61,10 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'i.ytimg.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'nettv4u.com',
+      },
     ],
   },
 };
