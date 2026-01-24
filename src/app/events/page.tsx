@@ -1,9 +1,8 @@
 import { ImageWithFallback } from "../../components/ImageWithFallback";
 import Link from "next/link";
-import { Calendar, MapPin, ArrowLeft, Users } from "lucide-react";
+import { Calendar, MapPin, ArrowLeft } from "lucide-react";
 import { getEvents, getEventsCount } from "../../lib/db";
 import { Pagination } from "../../components/Pagination";
-import { SearchInput } from "../../components/SearchInput";
 import { FilterList } from "../../components/FilterList";
 
 export default async function EventsPage(props: { searchParams: Promise<{ page?: string; search?: string; category?: string }> }) {
@@ -51,10 +50,7 @@ export default async function EventsPage(props: { searchParams: Promise<{ page?:
           </p>
         </div>
         
-        {/* Search & Filter */}
-        <div className="flex gap-3">
-           <SearchInput placeholder="Search events..." />
-        </div>
+
       </div>
 
       <FilterList 
@@ -129,13 +125,6 @@ export default async function EventsPage(props: { searchParams: Promise<{ page?:
                     <MapPin className="w-4 h-4 flex-shrink-0" />
                     <span className="line-clamp-1">{event.location}</span>
                   </div>
-                  
-                  {event.capacity && (
-                    <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-zinc-400">
-                      <Users className="w-4 h-4 flex-shrink-0" />
-                      <span>{event.capacity.toLocaleString()} capacity</span>
-                    </div>
-                  )}
                 </div>
               </div>
             </Link>

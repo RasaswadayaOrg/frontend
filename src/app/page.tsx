@@ -26,6 +26,8 @@ import { getSession } from "../lib/auth";
 type Event = any;
 type Artist = any;
 
+export const dynamic = 'force-dynamic';
+
 export default async function Home() {
   const session = await getSession();
   const isLoggedIn = !!session?.token;
@@ -37,7 +39,7 @@ export default async function Home() {
     getArtists(4),
     getStores(4),
     getProducts(4),
-    getTrendingEvents(3),
+    getTrendingEvents(6),
   ]);
 
   // Select a featured artist for the AI recommendation (use the 4th one or fallback to 1st)
@@ -52,7 +54,7 @@ export default async function Home() {
   ];
 
   return (
-    <div className="space-y-12 pb-12">
+    <div className="home-container space-y-12 pb-12">
       
       {/* 1) Hero Section with Sidebar Ad */}
       <section className="container mx-auto px-4 mt-4">
@@ -467,7 +469,7 @@ export default async function Home() {
       </section>
 
       {/* 4) Market / Products Section */}
-      <section className="bg-slate-50 dark:bg-zinc-900/50 py-12">
+      <section className="py-12">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between mb-8">
             <div>
