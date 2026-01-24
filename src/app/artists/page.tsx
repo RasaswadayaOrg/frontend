@@ -3,7 +3,6 @@ import Link from "next/link";
 import { Music, ArrowLeft } from "lucide-react";
 import { getArtists, getArtistsCount } from "../../lib/db";
 import { Pagination } from "../../components/Pagination";
-import { SearchInput } from "../../components/SearchInput";
 import { FilterList } from "../../components/FilterList";
 
 export default async function ArtistsPage(props: { searchParams: Promise<{ page?: string; search?: string; genre?: string }> }) {
@@ -54,10 +53,7 @@ export default async function ArtistsPage(props: { searchParams: Promise<{ page?
           </p>
         </div>
         
-        {/* Search */}
-        <div className="flex gap-3">
-          <SearchInput placeholder="Search artists..." />
-        </div>
+
       </div>
 
       {/* Genre Filters */}

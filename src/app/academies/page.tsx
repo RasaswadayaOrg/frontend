@@ -3,7 +3,6 @@ import Link from "next/link";
 import { School, ArrowLeft, MapPin, ArrowRight, Filter } from "lucide-react";
 import { getAcademies, getAcademiesCount } from "../../lib/db";
 import { Pagination } from "../../components/Pagination";
-import { SearchInput } from "../../components/SearchInput";
 import { FilterList } from "../../components/FilterList";
 
 export const metadata = {
@@ -58,10 +57,7 @@ export default async function AcademiesPage(props: { searchParams: Promise<{ pag
           </p>
         </div>
         
-        {/* Search */}
-        <div className="flex gap-3 w-full md:w-auto justify-end">
-          <SearchInput placeholder="Search academies..." />
-        </div>
+
       </div>
 
       {/* Filters */}
