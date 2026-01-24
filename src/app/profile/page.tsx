@@ -8,10 +8,14 @@ import { fetchCurrentUser } from "@/app/actions/user";
 import { fetchUserPreferences } from "@/app/actions/preferences";
 import { updateUserLocation } from "@/app/actions/updateLocation";
 import { updateUserPreferences } from "@/app/actions/updatePreferences";
+import { fetchMyApplications } from "@/app/actions/roleApplication";
+import RoleApplicationForm from "@/components/RoleApplicationForm";
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<any>(null);
   const [preferences, setPreferences] = useState<any>(null);
+  const [applications, setApplications] = useState<any[]>([]);
+  const [applicationModal, setApplicationModal] = useState<"ARTIST" | "ORGANIZER" | null>(null);
   const [editing, setEditing] = useState(false);
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -26,6 +30,7 @@ export default function ProfilePage() {
       setSelectedInterests(prefs?.interests || []);
       setSelectedCategories(prefs?.categories || []);
     });
+    fetchMyApplications().then(setApplications);
   }, []);
   // Interests edit logic
   const allInterests = ['Music', 'Dance', 'Drama', 'Art', 'History'];
@@ -103,6 +108,9 @@ export default function ProfilePage() {
     router.push("/");
   };
 
+  const hasPendingArtist = applications?.some(a => a.role === 'ARTIST' && a.status === 'PENDING');
+  const hasPendingOrganizer = applications?.some(a => a.role === 'ORGANIZER' && a.status === 'PENDING');
+
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       <h1 className="text-3xl font-bold text-slate-900 dark:text-white">My Profile</h1>
@@ -154,6 +162,43 @@ export default function ProfilePage() {
               <LogOut className="w-4 h-4" />
               Sign Out
             </button>
+
+            {/* Role Applications */}
+            <div className="border-t border-slate-100 dark:border-zinc-800 pt-4 mt-4 space-y-2">
+               {profile?.role === 'USER' ? (
+                  <>
+                    {!hasPendingArtist ? (
+                        <button 
+                            onClick={() => setApplicationModal('ARTIST')}
+                            className="w-full py-2 px-4 text-xs font-medium text-purple-600 bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-xl transition-colors"
+                        >
+                           Become an Artist
+                        </button>
+                    ) : (
+                        <div className="w-full py-2 px-4 text-xs font-medium text-yellow-600 bg-yellow-50 border border-yellow-200 rounded-xl">
+                           Artist Application Pending
+                        </div>
+                    )}
+
+                    {!hasPendingOrganizer ? (
+                        <button 
+                             onClick={() => setApplicationModal('ORGANIZER')}
+                             className="w-full py-2 px-4 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl transition-colors"
+                        >
+                           Become an Organizer
+                        </button>
+                    ) : (
+                        <div className="w-full py-2 px-4 text-xs font-medium text-yellow-600 bg-yellow-50 border border-yellow-200 rounded-xl">
+                           Organizer Application Pending
+                        </div>
+                    )}
+                  </>
+               ) : profile?.role && profile.role !== 'ADMIN' && (
+                  <div className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-brand-50 text-brand-600 border border-brand-100">
+                    Role: {profile.role}
+                  </div>
+               )}
+            </div>
           </div>
         </div>
 
@@ -263,6 +308,17 @@ export default function ProfilePage() {
 
         </div>
       </div>
+
+      {applicationModal && (
+        <RoleApplicationForm
+          role={applicationModal}
+          onClose={() => setApplicationModal(null)}
+          onSuccess={() => {
+            fetchMyApplications().then(setApplications);
+            setApplicationModal(null);
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -49,7 +49,27 @@ function overrideEventData(event: any) {
 
 // --- Events ---
 
-export async function getEvents(limit = 4, page = 1, city?: string, search?: string, category?: string) {
+export interface EventType {
+  id: string;
+  title: string;
+  description: string;
+  imageUrl: string;
+  eventDate: Date;
+  startTime?: string;
+  endTime?: string;
+  location: string;
+  city: string;
+  price: number;
+  category: string;
+  organizerId: string;
+  organizer?: {
+    fullName: string;
+    profileImage?: string;
+  };
+  [key: string]: any;
+}
+
+export async function getEvents(limit = 4, page = 1, city?: string, search?: string, category?: string): Promise<EventType[]> {
   const params: any = { limit, page };
   if (city) params.city = city;
   if (search) params.search = search;
