@@ -7,11 +7,19 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
+        hostname: 'ui-avatars.com',
+      },
+      {
+        protocol: 'https',
         hostname: 'lh5.googleusercontent.com',
       },
       {
         protocol: 'https',
         hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'encrypted-tbn0.gstatic.com',
       },
       {
         protocol: 'https',
@@ -63,7 +71,11 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'nettv4u.com',
+        hostname: '*.fna.fbcdn.net',
+      },
+      {
+        protocol: 'https',
+        hostname: 'scontent.fcmb2-2.fna.fbcdn.net',
       },
     ],
   },

@@ -6,7 +6,6 @@ import { AdPlaceholder } from "../../components/AdPlaceholder";
 // import type { Product } from "@prisma/client";
 import { AddToCartButton } from "../../components/AddToCartButton";
 import { Pagination } from "../../components/Pagination";
-import { SearchInput } from "../../components/SearchInput";
 import { FilterList } from "../../components/FilterList";
 
 export default async function MarketplacePage(props: { searchParams: Promise<{ page?: string; search?: string; category?: string }> }) {
@@ -47,10 +46,7 @@ export default async function MarketplacePage(props: { searchParams: Promise<{ p
           </p>
         </div>
         
-        {/* Search */}
-        <div className="flex gap-3">
-          <SearchInput placeholder="Search products..." />
-        </div>
+
       </div>
 
       {/* Categories */}

@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { X } from "lucide-react";
-import { AuthView } from "./AuthView";
+import { AuthFlow } from "./AuthFlow";
 
 export default function AuthModal() {
   const { isAuthModalOpen, closeAuthModal } = useAuth();
@@ -22,7 +22,7 @@ export default function AuthModal() {
         >
             <X size={20} />
         </button>
-        <AuthView isModal onClose={closeAuthModal} />
+        <AuthFlow isModal onClose={closeAuthModal} onComplete={closeAuthModal} />
       </div>
     </div>
   );

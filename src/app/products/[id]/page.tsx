@@ -83,14 +83,14 @@ export default async function ProductDetailsPage(props: { params: Promise<{ id: 
         <div className="p-4 bg-slate-50 dark:bg-zinc-900 rounded-xl border border-slate-200 dark:border-zinc-800 flex items-center gap-3">
           <div className="w-10 h-10 bg-slate-200 dark:bg-zinc-800 rounded-full relative overflow-hidden">
              <ImageWithFallback 
-                src={product.store?.imageUrl || `https://placehold.co/400x400?text=${product.storeName.charAt(0)}`} 
-                alt={product.storeName}
+                src={product.store?.imageUrl || `https://placehold.co/400x400?text=${(product.storeName || 'S').charAt(0)}`} 
+                alt={product.storeName || "Store"}
                 fill
                 className="object-cover"
              />
           </div>
           <div>
-            <p className="text-sm font-medium text-slate-900 dark:text-white">Sold by <span className="font-bold">{product.storeName}</span></p>
+            <p className="text-sm font-medium text-slate-900 dark:text-white">Sold by <span className="font-bold">{product.storeName || "Unknown Store"}</span></p>
             <Link href={`/marketplace/stores/${product.storeId}`} className="text-xs text-brand-600 hover:underline">View Store</Link>
           </div>
         </div>
