@@ -7,6 +7,10 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
+        hostname: 'ui-avatars.com',
+      },
+      {
+        protocol: 'https',
         hostname: 'lh5.googleusercontent.com',
       },
       {
@@ -64,6 +68,14 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'i.ytimg.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.fna.fbcdn.net',
+      },
+      {
+        protocol: 'https',
+        hostname: 'scontent.fcmb2-2.fna.fbcdn.net',
       },
     ],
   },

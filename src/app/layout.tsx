@@ -16,11 +16,8 @@ const abhayaLibre = Abhaya_Libre({
   variable: "--font-abhaya"
 });
 
-import { Header } from "../components/Header";
-import { Footer } from "../components/Footer";
-import { FloatingChatBot } from "../components/FloatingChatBot";
 import { AuthProvider } from "@/context/AuthContext";
-import AuthModal from "../components/AuthModal";
+import { SiteLayout } from "../components/SiteLayout";
 
 export const metadata: Metadata = {
   title: "Rasaswadaya | Arts & Culture Hub",
@@ -33,20 +30,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="light">
+    <html lang="en" className="dark">
       <body className={`${inter.variable} ${outfit.variable} ${ibmPlex.variable} ${abhayaLibre.variable} font-sans bg-slate-50 dark:bg-zinc-900 text-slate-600 dark:text-zinc-400`}>
         
         <AuthProvider>
-          <Header />
-
-          {/* Main Content */}
-          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-10 min-h-screen">
+          <SiteLayout>
             {children}
-          </main>
-
-          <Footer />
-          <FloatingChatBot />
-          <AuthModal />
+          </SiteLayout>
         </AuthProvider>
 
       </body>
