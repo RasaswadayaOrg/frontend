@@ -19,7 +19,9 @@ export function ImageWithFallback({
   // Hardcoded image override for Nanda Malini
   const effectiveSrc = (typeof src === 'string' && src.includes('nettv4u.com/imagine/21-05-2023/nanda-malani.jpg')) 
     ? '/nanda_malini.jpeg'
-    : src;
+    : (typeof src === 'string' && src.includes('sinhabahu.jpg'))
+      ? '/sinhabahu.jpg'
+      : (src || fallbackSrc);
 
   const [imgSrc, setImgSrc] = useState(effectiveSrc);
 
