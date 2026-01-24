@@ -447,4 +447,37 @@ export async function getRecentActivity(limit = 10) {
     }
 }
 
+// --- Sponsored Ads ---
+
+export async function getSponsoredAds(limit = 20, page = 1, placement?: string, isActive?: boolean) {
+    const params: any = { limit, page };
+    if (placement) params.placement = placement;
+    if (isActive !== undefined) params.isActive = isActive;
+
+    const data = await fetchData('/admin/ads', params);
+    if (!data || !data.success) return [];
+    return data.data;
+}
+
+export async function getSponsoredAdsCount(placement?: string, isActive?: boolean) {
+    const params: any = { limit: 1 };
+    if (placement) params.placement = placement;
+    if (isActive !== undefined) params.isActive = isActive;
+
+    const data = await fetchData('/admin/ads', params);
+    return data?.pagination?.total || 0;
+}
+
+export async function getSponsoredAd(id: string) {
+    const data = await fetchData(`/admin/ads/${id}`);
+    if (!data || !data.success) return null;
+    return data.data;
+}
+
+export async function getActiveAdsForPlacement(placement: string) {
+    const data = await fetchData(`/admin/ads/placement/${placement}`);
+    if (!data || !data.success) return [];
+    return data.data;
+}
+
 export const prisma = {};

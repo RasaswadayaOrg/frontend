@@ -12,7 +12,8 @@ import {
   Users, 
   Settings, 
   LogOut,
-  Menu
+  Menu,
+  Image as ImageIcon
 } from "lucide-react";
 import { adminLogout } from "@/app/actions/adminAuth";
 import { useState } from "react";
@@ -23,6 +24,7 @@ const navigation = [
   { name: "Artists", href: "/admin/artists", icon: Mic2 },
   { name: "Academies", href: "/admin/academies", icon: School },
   { name: "Marketplace", href: "/admin/marketplace", icon: ShoppingBag },
+  { name: "Sponsored Ads", href: "/admin/sponsored", icon: ImageIcon },
   { name: "Users", href: "/admin/users", icon: Users },
   { name: "Settings", href: "/admin/settings", icon: Settings },
 ];

@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { HeroSlider } from "../components/HeroSlider";
 import { AdPlaceholder } from "../components/AdPlaceholder";
-import { getEvents, getArtists, getStores, getProducts, getTrendingEvents, getMyReminders } from "../lib/db";
+import { getEvents, getArtists, getStores, getProducts, getTrendingEvents, getMyReminders, getActiveAdsForPlacement } from "../lib/db";
 import { SidebarStats } from "../components/SidebarStats";
 import { getSession } from "../lib/auth";
 
@@ -34,12 +34,15 @@ export default async function Home() {
   const reminders = isLoggedIn ? await getMyReminders(session.token) : [];
   
   // Fetch real data from the database
-  const [events, artists, stores, products, trendingEvents] = await Promise.all([
+  const [events, artists, stores, products, trendingEvents, sidebarAds, bannerAds, seasonalAds] = await Promise.all([
     getEvents(6),
     getArtists(4),
     getStores(4),
     getProducts(4),
     getTrendingEvents(6),
+    getActiveAdsForPlacement('home-sidebar'),
+    getActiveAdsForPlacement('home-banner'),
+    getActiveAdsForPlacement('home-seasonal'),
   ]);
 
   // Select a featured artist for the AI recommendation (use the 4th one or fallback to 1st)
@@ -73,7 +76,7 @@ export default async function Home() {
                city={session?.user?.city} // Might be undefined
              />
              <div className="mt-4">
-                <AdPlaceholder size="medium" label="Sponsorship" />
+                <AdPlaceholder size="medium" label="Sponsorship" placement="home-sidebar" ad={sidebarAds[0] || null} />
              </div>
           </div>
         </div>
@@ -101,7 +104,7 @@ export default async function Home() {
       {/* Ad Section: Top Banner */}
       <section className="container mx-auto px-4">
          <div className="w-full">
-            <AdPlaceholder size="leaderboard" label="Sponsored Banner" />
+            <AdPlaceholder size="leaderboard" label="Sponsored Banner" placement="home-banner" ad={bannerAds[0] || null} />
          </div>
       </section>
 
@@ -458,14 +461,14 @@ export default async function Home() {
             </div>
 
             {/* Ad Space */}
-            <AdPlaceholder size="medium" label="Sponsor" />
+            <AdPlaceholder size="medium" label="Sponsor" placement="home-sidebar" ad={sidebarAds[1] || null} />
           </div>
         </div>
       </section>
 
       {/* Ad Section: Mid-Page Break */}
       <section className="container mx-auto px-4 py-4">
-         <AdPlaceholder size="leaderboard" label="Seasonal Promotion" className="bg-gradient-to-r from-violet-50 to-brand-50 dark:from-violet-950/30 dark:to-brand-950/30" />
+         <AdPlaceholder size="leaderboard" label="Seasonal Promotion" placement="home-seasonal" ad={seasonalAds[0] || null} className="bg-gradient-to-r from-violet-50 to-brand-50 dark:from-violet-950/30 dark:to-brand-950/30" />
       </section>
 
       {/* 4) Market / Products Section */}
