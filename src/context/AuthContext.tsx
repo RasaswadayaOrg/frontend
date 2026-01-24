@@ -10,32 +10,39 @@ type User = {
   email: string;
   avatarUrl?: string;
   role?: string;
+  city?: string;
 };
 
 type AuthContextType = {
   user: User | null;
   isLoading: boolean;
-  login: (details?: { firstName: string }) => void;
+  loginWithEmail: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   loginWithGoogle: () => Promise<void>;
   logout: () => void;
   isAuthModalOpen: boolean;
   openAuthModal: () => void;
   closeAuthModal: () => void;
+  refreshUser: () => void;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
-  useEffect(() => {
-    // Check local storage or cookie for session
+  const refreshUser = () => {
     const storedUser = localStorage.getItem("rasas_user");
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
+  };
+
+  useEffect(() => {
+    // Check local storage for session
+    refreshUser();
     setIsLoading(false);
 
     // Listen for auth state changes from Supabase (for OAuth callbacks)
@@ -55,6 +62,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               email: result.user.email,
               avatarUrl: result.user.avatarUrl,
               role: result.user.role,
+              city: result.user.city,
             };
             setUser(newUser);
             localStorage.setItem("rasas_user", JSON.stringify(newUser));
@@ -69,16 +77,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  const login = (details?: { firstName: string }) => {
-    // Mock login logic (for email/password, use server actions instead)
-    const mockUser = { 
-        id: "1", 
-        name: details?.firstName || "Rasas User", 
-        email: "user@rasas.lk" 
-    };
-    setUser(mockUser);
-    localStorage.setItem("rasas_user", JSON.stringify(mockUser));
-    setIsAuthModalOpen(false);
+  const loginWithEmail = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const res = await fetch(`${API_URL}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        return { success: false, error: data.message || "Invalid credentials" };
+      }
+
+      const { user: userData, token } = data;
+      
+      // Store user in state and localStorage
+      const newUser = {
+        id: userData.id,
+        name: userData.fullName || userData.email,
+        email: userData.email,
+        avatarUrl: userData.avatarUrl,
+        role: userData.role,
+        city: userData.city,
+      };
+      
+      setUser(newUser);
+      localStorage.setItem("rasas_user", JSON.stringify(newUser));
+      setIsAuthModalOpen(false);
+      
+      return { success: true };
+    } catch (error: any) {
+      console.error("Login error:", error);
+      return { success: false, error: error.message || "Login failed" };
+    }
   };
 
   const loginWithGoogle = async () => {
@@ -108,7 +141,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
     localStorage.removeItem("rasas_user");
     
-    // Clear session cookie (call server action)
+    // Clear session cookie
     document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
   };
 
@@ -120,12 +153,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       value={{
         user,
         isLoading,
-        login,
+        loginWithEmail,
         loginWithGoogle,
         logout,
         isAuthModalOpen,
         openAuthModal,
         closeAuthModal,
+        refreshUser,
       }}
     >
       {children}
