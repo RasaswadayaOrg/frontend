@@ -495,3 +495,129 @@ export async function updateUserRole(userId: string, role: string) {
     return { success: false, message: 'Failed to update user role' };
   }
 }
+
+// ============ SPONSORED ADS ============
+
+export async function createSponsoredAd(formData: FormData) {
+  const isAdmin = await verifyAdminSession();
+  if (!isAdmin) {
+    return { success: false, message: "Unauthorized" };
+  }
+
+  const adData = {
+    title: formData.get('title'),
+    imageUrl: formData.get('imageUrl'),
+    linkUrl: formData.get('linkUrl') || null,
+    placement: formData.get('placement'),
+    size: formData.get('size') || 'medium',
+    isActive: formData.get('isActive') === 'true',
+    startDate: formData.get('startDate') || null,
+    endDate: formData.get('endDate') || null,
+  };
+
+  try {
+    const res = await fetch(`${API_URL}/admin/ads`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(adData),
+    });
+
+    if (res.ok) {
+      revalidatePath('/admin/sponsored');
+      return { success: true };
+    } else {
+      const data = await res.json();
+      return { success: false, message: data.message || 'Failed to create sponsored ad' };
+    }
+  } catch (error) {
+    console.error('Create sponsored ad error:', error);
+    return { success: false, message: 'Failed to create sponsored ad' };
+  }
+}
+
+export async function updateSponsoredAd(adId: string, formData: FormData) {
+  const isAdmin = await verifyAdminSession();
+  if (!isAdmin) {
+    return { success: false, message: "Unauthorized" };
+  }
+
+  const adData = {
+    title: formData.get('title'),
+    imageUrl: formData.get('imageUrl'),
+    linkUrl: formData.get('linkUrl') || null,
+    placement: formData.get('placement'),
+    size: formData.get('size') || 'medium',
+    isActive: formData.get('isActive') === 'true',
+    startDate: formData.get('startDate') || null,
+    endDate: formData.get('endDate') || null,
+  };
+
+  try {
+    const res = await fetch(`${API_URL}/admin/ads/${adId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(adData),
+    });
+
+    if (res.ok) {
+      revalidatePath('/admin/sponsored');
+      return { success: true };
+    } else {
+      const data = await res.json();
+      return { success: false, message: data.message || 'Failed to update sponsored ad' };
+    }
+  } catch (error) {
+    console.error('Update sponsored ad error:', error);
+    return { success: false, message: 'Failed to update sponsored ad' };
+  }
+}
+
+export async function deleteSponsoredAd(adId: string) {
+  const isAdmin = await verifyAdminSession();
+  if (!isAdmin) {
+    return { success: false, message: "Unauthorized" };
+  }
+
+  try {
+    const res = await fetch(`${API_URL}/admin/ads/${adId}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (res.ok) {
+      revalidatePath('/admin/sponsored');
+      return { success: true };
+    } else {
+      const data = await res.json();
+      return { success: false, message: data.message || 'Failed to delete sponsored ad' };
+    }
+  } catch (error) {
+    console.error('Delete sponsored ad error:', error);
+    return { success: false, message: 'Failed to delete sponsored ad' };
+  }
+}
+
+export async function toggleSponsoredAdStatus(adId: string) {
+  const isAdmin = await verifyAdminSession();
+  if (!isAdmin) {
+    return { success: false, message: "Unauthorized" };
+  }
+
+  try {
+    const res = await fetch(`${API_URL}/admin/ads/${adId}/toggle`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (res.ok) {
+      revalidatePath('/admin/sponsored');
+      return { success: true };
+    } else {
+      const data = await res.json();
+      return { success: false, message: data.message || 'Failed to toggle ad status' };
+    }
+  } catch (error) {
+    console.error('Toggle ad status error:', error);
+    return { success: false, message: 'Failed to toggle ad status' };
+  }
+}
