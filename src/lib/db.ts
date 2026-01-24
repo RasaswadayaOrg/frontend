@@ -211,7 +211,9 @@ export async function getProduct(id: string) {
     const product = data.data;
     return {
         ...product,
-        store: product.store
+        price: Number(product.price),
+        store: product.store,
+        storeName: product.storeName || product.store?.name || "Unknown Store"
     };
 }
 
@@ -266,6 +268,183 @@ export async function getCategories() {
         { id: 'cat-4', name: 'Brassware', iconUrl: '🏺' },
         { id: 'cat-5', name: 'Batik', iconUrl: '🎨' },
     ];
+}
+
+// --- Admin Dashboard Stats ---
+
+export async function getAdminStats() {
+    try {
+        const data = await fetchData('/admin/stats');
+        if (!data || !data.success) {
+            // Fallback to individual endpoints
+            const [eventsData, artistsData, productsData, academiesData, storesData] = await Promise.all([
+                fetchData('/events', { limit: 1 }),
+                fetchData('/artists', { limit: 1 }),
+                fetchData('/products', { limit: 1 }),
+                fetchData('/academies', { limit: 1 }),
+                fetchData('/stores', { limit: 1 })
+            ]);
+            return {
+                totalUsers: 0,
+                totalEvents: eventsData?.pagination?.total || 0,
+                totalArtists: artistsData?.pagination?.total || 0,
+                totalProducts: productsData?.pagination?.total || 0,
+                totalAcademies: academiesData?.pagination?.total || 0,
+                totalOrders: 0,
+                totalRevenue: 0,
+                totalStores: storesData?.pagination?.total || storesData?.data?.length || 0
+            };
+        }
+        return data.data;
+    } catch (error) {
+        console.error('Error fetching admin stats:', error);
+        return {
+            totalUsers: 0,
+            totalEvents: 0,
+            totalArtists: 0,
+            totalProducts: 0,
+            totalAcademies: 0,
+            totalOrders: 0,
+            totalRevenue: 0,
+            totalStores: 0
+        };
+    }
+}
+
+// --- Users (Admin) ---
+
+export async function getUsers(limit = 20, page = 1, search?: string, role?: string) {
+    const params: any = { limit, page };
+    if (search) params.search = search;
+    if (role) params.role = role;
+
+    const data = await fetchData('/admin/users', params);
+    if (!data || !data.success) return [];
+    return data.data;
+}
+
+export async function getUsersCount(search?: string, role?: string) {
+    const params: any = { limit: 1 };
+    if (search) params.search = search;
+    if (role) params.role = role;
+
+    const data = await fetchData('/admin/users', params);
+    return data?.pagination?.total || 0;
+}
+
+export async function getUser(id: string) {
+    const data = await fetchData(`/users/${id}`);
+    if (!data || !data.success) return null;
+    return data.data;
+}
+
+// --- Orders (Admin) ---
+
+export async function getAdminOrders(limit = 20, page = 1, status?: string) {
+    const params: any = { limit, page };
+    if (status) params.status = status;
+
+    // Use admin endpoint
+    const data = await fetchData('/admin/orders', params);
+    if (!data || !data.success) return [];
+    return data.data;
+}
+
+export async function getAdminOrdersCount(status?: string) {
+    const params: any = { limit: 1 };
+    if (status) params.status = status;
+
+    // Use admin endpoint
+    const data = await fetchData('/admin/orders', params);
+    return data?.pagination?.total || 0;
+}
+
+export async function getOrders(limit = 20, page = 1, status?: string) {
+    const params: any = { limit, page };
+    if (status) params.status = status;
+
+    const data = await fetchData('/orders', params);
+    if (!data || !data.success) return [];
+    return data.data;
+}
+
+export async function getOrdersCount(status?: string) {
+    const params: any = { limit: 1 };
+    if (status) params.status = status;
+
+    const data = await fetchData('/orders', params);
+    return data?.pagination?.total || 0;
+}
+
+// --- Recent Activity (from various sources) ---
+
+export async function getRecentActivity(limit = 10) {
+    try {
+        // Try to fetch from admin activity endpoint first
+        const adminActivity = await fetchData('/admin/activity', { limit });
+        if (adminActivity?.success && adminActivity.data) {
+            return adminActivity.data;
+        }
+
+        // Fallback: Fetch recent data from multiple sources
+        const [recentEvents, recentArtists, recentAcademies] = await Promise.all([
+            fetchData('/events', { limit: 5 }),
+            fetchData('/artists', { limit: 5 }),
+            fetchData('/academies', { limit: 5 })
+        ]);
+
+        const activities: any[] = [];
+
+        // Add event activities
+        if (recentEvents?.success && recentEvents.data) {
+            recentEvents.data.forEach((event: any) => {
+                activities.push({
+                    id: `event-${event.id}`,
+                    type: 'event',
+                    user: event.organizer?.fullName || 'Organizer',
+                    action: 'created event',
+                    target: event.title,
+                    time: event.createdAt
+                });
+            });
+        }
+
+        // Add artist activities
+        if (recentArtists?.success && recentArtists.data) {
+            recentArtists.data.forEach((artist: any) => {
+                activities.push({
+                    id: `artist-${artist.id}`,
+                    type: 'artist',
+                    user: artist.name,
+                    action: 'joined the platform',
+                    target: artist.profession || 'Artist',
+                    time: artist.createdAt
+                });
+            });
+        }
+
+        // Add academy activities
+        if (recentAcademies?.success && recentAcademies.data) {
+            recentAcademies.data.forEach((academy: any) => {
+                activities.push({
+                    id: `academy-${academy.id}`,
+                    type: 'academy',
+                    user: academy.name,
+                    action: 'was registered',
+                    target: academy.type || 'Academy',
+                    time: academy.createdAt
+                });
+            });
+        }
+
+        // Sort by time and return limited results
+        return activities
+            .sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
+            .slice(0, limit);
+    } catch (error) {
+        console.error('Error fetching recent activity:', error);
+        return [];
+    }
 }
 
 export const prisma = {};
