@@ -150,22 +150,10 @@ export function SignupFlow({ onComplete, onBack, isModal = false }: SignupFlowPr
     setError(null);
     
     try {
-      // Register user with email
-      const result = await registerUser({
-        email: formData.email,
-        password: formData.password,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        fullName: `${formData.firstName} ${formData.lastName}`.trim(),
-        phone: formData.phone || undefined,
-      });
-
-      if (result.success) {
-        setAuthType("email");
-        setCurrentStep("location");
-      } else {
-        setError(result.error || "Registration failed. Please try again.");
-      }
+      // Just validate and store form data temporarily - DO NOT register yet
+      // Registration will happen after all steps are complete
+      setAuthType("email");
+      setCurrentStep("location");
     } catch (error: any) {
       console.error("Email signup failed:", error);
       setError(error.message || "Registration failed. Please try again.");
@@ -195,16 +183,32 @@ export function SignupFlow({ onComplete, onBack, isModal = false }: SignupFlowPr
     setError(null);
     
     try {
-      // First update user profile with city (this updates User table)
-      const profileResult = await updateUserProfile({
-        city: selectedCity,
+      // NOW register the user with ALL collected data
+      const registerResult = await registerUser({
+        email: formData.email,
+        password: formData.password,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        fullName: `${formData.firstName} ${formData.lastName}`.trim(),
+        phone: formData.phone || undefined,
+        city: selectedCity, // Include city from location step
       });
 
-      if (!profileResult.success) {
-        console.error("Failed to update profile:", profileResult.error);
+      if (!registerResult.success) {
+        throw new Error(registerResult.error || "Registration failed");
       }
 
-      // Then save cultural preferences (this updates UserPreference table)
+      // Store user in localStorage for AuthContext
+      const newUser = {
+        id: registerResult.user.id,
+        name: registerResult.user.fullName || registerResult.user.email,
+        email: registerResult.user.email,
+        role: registerResult.user.role,
+        city: registerResult.user.city,
+      };
+      localStorage.setItem("rasas_user", JSON.stringify(newUser));
+
+      // Then save cultural preferences (this creates UserPreference record)
       const prefsResult = await saveUserPreferences({
         city: selectedCity,
         categories: selectedCategories,
@@ -213,29 +217,21 @@ export function SignupFlow({ onComplete, onBack, isModal = false }: SignupFlowPr
 
       if (prefsResult.success) {
         console.log("All data saved successfully!");
-        setCurrentStep("complete");
-        setTimeout(() => {
-          onComplete?.();
-          // Navigate to home page after signup
-          router.push("/");
-        }, 2000);
       } else {
         console.error("Failed to save preferences:", prefsResult.error);
-        // Still complete the flow even if preferences fail to save
-        setCurrentStep("complete");
-        setTimeout(() => {
-          onComplete?.();
-          router.push("/");
-        }, 2000);
       }
-    } catch (error) {
-      console.error("Failed to save data:", error);
-      // Still complete the flow even if saving fails
+
+      // Complete signup
       setCurrentStep("complete");
       setTimeout(() => {
         onComplete?.();
-        router.push("/");
+        // Navigate to profile page after signup to show user data
+        router.push("/profile");
       }, 2000);
+      
+    } catch (error: any) {
+      console.error("Failed to complete signup:", error);
+      setError(error.message || "Failed to complete signup. Please try again.");
     } finally {
       setIsSubmitting(false);
     }

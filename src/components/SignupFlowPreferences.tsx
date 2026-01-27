@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { saveUserPreferences, updateUserProfile } from "@/app/actions/auth";
+import { saveUserPreferences } from "@/app/actions/auth";
 import { ArrowLeft, ArrowRight, Check, MapPin, Music, Theater, Palette, BookOpen, Mic2, Camera } from "lucide-react";
 
 // Sri Lankan cities
@@ -136,17 +136,7 @@ export function SignupFlowPreferences({ onComplete }: SignupFlowPreferencesProps
     setError(null);
     
     try {
-      // First update user profile with city (this updates User table)
-      const profileResult = await updateUserProfile({
-        city: selectedCity,
-      });
-
-      if (!profileResult.success) {
-        console.error("Failed to update profile:", profileResult.error);
-        setError(profileResult.error || "Failed to save profile");
-      }
-
-      // Then save cultural preferences (this updates UserPreference table)
+      // Save preferences and city (backend handles both User.city and UserPreference in one call)
       const prefsResult = await saveUserPreferences({
         city: selectedCity,
         categories: selectedCategories,
