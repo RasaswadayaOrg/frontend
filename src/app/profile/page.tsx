@@ -1,6 +1,6 @@
 "use client";
 
-import { User, MapPin, Bell, Heart, LogOut } from "lucide-react";
+import { User, MapPin, Bell, Heart, LogOut, Palette, CalendarDays } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -154,6 +154,24 @@ export default function ProfilePage() {
               <LogOut className="w-4 h-4" />
               Sign Out
             </button>
+            
+            <div className="mt-6 pt-6 border-t border-slate-200 dark:border-zinc-800 flex flex-col gap-3">
+              <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Role Applications</h3>
+              <button
+                className="flex items-center justify-center gap-2 w-full px-4 py-2.5 border border-purple-200 dark:border-purple-900/50 text-purple-700 dark:text-purple-400 rounded-xl hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all text-sm font-medium group"
+                onClick={() => router.push('/role-application/artist')}
+              >
+                <Palette className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                Request Artist Role
+              </button>
+              <button
+                className="flex items-center justify-center gap-2 w-full px-4 py-2.5 border border-amber-200 dark:border-amber-900/50 text-amber-700 dark:text-amber-400 rounded-xl hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-all text-sm font-medium group"
+                onClick={() => router.push('/role-application/organizer')}
+              >
+                <CalendarDays className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                Request Organizer Role
+              </button>
+            </div>
           </div>
         </div>
 
