@@ -38,6 +38,11 @@ export default function AuthCallbackPage() {
             };
             localStorage.setItem("rasas_user", JSON.stringify(user));
             
+            // Store JWT token if available
+            if (result.token) {
+              localStorage.setItem("rasas_token", result.token);
+            }
+            
             // Check if user is new (no city set = hasn't completed preferences)
             // If new user, redirect to complete signup preferences
             if (!result.user.city) {

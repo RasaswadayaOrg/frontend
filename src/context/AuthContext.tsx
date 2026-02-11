@@ -66,6 +66,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             };
             setUser(newUser);
             localStorage.setItem("rasas_user", JSON.stringify(newUser));
+            // Store token if available
+            if (result.token) {
+              localStorage.setItem("rasas_token", result.token);
+            }
             setIsAuthModalOpen(false);
           }
         }
@@ -105,6 +109,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       setUser(newUser);
       localStorage.setItem("rasas_user", JSON.stringify(newUser));
+      localStorage.setItem("rasas_token", token); // Store JWT token
       setIsAuthModalOpen(false);
       
       return { success: true };

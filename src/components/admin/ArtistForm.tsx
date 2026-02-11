@@ -17,11 +17,13 @@ export function ArtistForm({ initialData, isEdit = false }: ArtistFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  async function handleSubmit(formData: FormData) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
     setLoading(true);
     setError("");
 
     try {
+      const formData = new FormData(e.currentTarget);
       const result = isEdit && initialData?.id
         ? await updateArtist(initialData.id, formData)
         : await createArtist(formData);
@@ -40,7 +42,7 @@ export function ArtistForm({ initialData, isEdit = false }: ArtistFormProps) {
   }
 
   return (
-    <form action={handleSubmit} className="space-y-8">
+    <form onSubmit={handleSubmit} className="space-y-8">
       {error && (
         <div className="bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 p-4 rounded-lg text-sm">
           {error}

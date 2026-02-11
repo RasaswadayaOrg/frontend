@@ -1,7 +1,7 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 // Helper to fetch data
-async function fetchData(endpoint: string, params: Record<string, any> = {}) {
+async function fetchData(endpoint: string, params: Record<string, any> = {}, silent = false) {
   try {
     const url = new URL(`${API_URL}${endpoint}`);
     Object.keys(params).forEach(key => {
@@ -18,14 +18,18 @@ async function fetchData(endpoint: string, params: Record<string, any> = {}) {
     });
 
     if (!res.ok) {
-      console.error(`Error fetching ${endpoint}:`, res.status, res.statusText);
+      if (!silent) {
+        console.error(`Error fetching ${endpoint}:`, res.status, res.statusText);
+      }
       return null;
     }
 
     const json = await res.json();
     return json;
   } catch (error) {
-    console.error(`Fetch error for ${endpoint}:`, error);
+    if (!silent) {
+      console.error(`Fetch error for ${endpoint}:`, error);
+    }
     return null;
   }
 }
@@ -495,7 +499,8 @@ export async function getSponsoredAd(id: string) {
 }
 
 export async function getActiveAdsForPlacement(placement: string) {
-    const data = await fetchData(`/admin/ads/placement/${placement}`);
+    // Silent mode - ads endpoint may not exist yet
+    const data = await fetchData(`/admin/ads/placement/${placement}`, {}, true);
     if (!data || !data.success) return [];
     return data.data;
 }

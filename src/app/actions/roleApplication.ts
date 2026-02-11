@@ -5,61 +5,36 @@ import { cookies } from "next/headers";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
 export async function submitRoleApplication(formData: FormData) {
-  const sessionCookie = (await cookies()).get("session")?.value;
-  if (!sessionCookie) return { error: "Not authenticated" };
-
-  const { decrypt } = await import("@/lib/auth");
-  const session = await decrypt(sessionCookie);
-  const token = session?.token;
-
-  if (!token) return { error: "No token found" };
-
   try {
-      const res = await fetch(`${API_URL}/role-applications/apply`, {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          // Let fetch set the boundary
-        },
-        body: formData,
-      });
+    const sessionCookie = (await cookies()).get("session")?.value;
+    if (!sessionCookie) return { success: false, error: "Not authenticated" };
 
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: "Unknown server error" }));
-        return { error: err.error || "Failed to submit application" };
-      }
+    // Decrypt session to get JWT token
+    const { decrypt } = await import("@/lib/auth");
+    const session = await decrypt(sessionCookie);
+    const token = session?.token;
 
-      return { success: true, data: await res.json() };
-  } catch(e) {
-      console.error("Submit application error:", e);
-      return { error: "Network error occurred" };
-  }
-}
+    if (!token) return { success: false, error: "Invalid session" };
 
-export async function fetchMyApplications() {
-  const sessionCookie = (await cookies()).get("session")?.value;
-  if (!sessionCookie) return [];
-
-  const { decrypt } = await import("@/lib/auth");
-  const session = await decrypt(sessionCookie);
-  const token = session?.token;
-
-  if (!token) return [];
-
-  try {
-    const res = await fetch(`${API_URL}/role-applications/my-applications`, {
-      method: "GET",
+    const res = await fetch(`${API_URL}/role-applications/apply`, {
+      method: "POST",
       headers: {
         "Authorization": `Bearer ${token}`,
+         // Note: When sending FormData with fetch, do NOT set Content-Type header manually.
+         // The browser/fetch will set it with the correct boundary.
       },
+      body: formData,
     });
 
-    if (!res.ok) return [];
-    const json = await res.json();
-    // API returns array directly
-    return Array.isArray(json) ? json : [];
-  } catch (e) {
-    console.error("Fetch applications error:", e);
-    return [];
+    if (!res.ok) {
+      const errorData = await res.json();
+      return { success: false, error: errorData.error || "Failed to submit application" };
+    }
+
+    const data = await res.json();
+    return { success: true, data };
+  } catch (error: any) {
+    console.error("Submit application error:", error);
+    return { success: false, error: error.message || "Something went wrong" };
   }
 }
