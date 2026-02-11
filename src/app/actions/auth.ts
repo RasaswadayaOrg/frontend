@@ -166,7 +166,7 @@ export async function handleGoogleAuth(accessToken: string, refreshToken: string
 
     (await cookies()).set("session", session, { expires, httpOnly: true });
 
-    return { success: true, user };
+    return { success: true, user, token }; // Return token as well
   } catch (error: any) {
     console.error("Google auth error:", error);
     return { success: false, error: error.message };
