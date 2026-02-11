@@ -1,4 +1,7 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+// Use internal API URL for server-side rendering, public URL for client-side
+const API_URL = typeof window === 'undefined' 
+  ? (process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api')
+  : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api');
 
 // Helper to fetch data
 async function fetchData(endpoint: string, params: Record<string, any> = {}, silent = false) {
