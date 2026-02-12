@@ -7,18 +7,38 @@ export async function adminLogin(prevState: any, formData: FormData) {
   const username = formData.get("username") as string;
   const password = formData.get("password") as string;
 
-  if (username === "admin" && password === "admin") {
-    // Set cookie
-    (await cookies()).set("admin_session", "true", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-      maxAge: 60 * 60 * 24, // 1 day
+  try {
+    // Call backend API to authenticate admin
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/admin-login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email: username, password }),
     });
-    return { success: true };
-  }
 
-  return { success: false, message: "Invalid credentials" };
+    const data = await response.json();
+
+    if (response.ok && data.success) {
+      // Set cookie with user info
+      (await cookies()).set("admin_session", JSON.stringify({
+        userId: data.user.id,
+        email: data.user.email,
+        role: data.user.role
+      }), {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
+        maxAge: 60 * 60 * 24, // 1 day
+      });
+      return { success: true };
+    }
+
+    return { success: false, message: data.error || "Invalid credentials" };
+  } catch (error) {
+    console.error('Admin login error:', error);
+    return { success: false, message: "Login failed. Please try again." };
+  }
 }
 
 export async function adminLogout() {
@@ -28,5 +48,14 @@ export async function adminLogout() {
 
 export async function verifyAdmin() {
   const cookieStore = await cookies();
-  return cookieStore.has("admin_session");
+  const adminSession = cookieStore.get("admin_session");
+  
+  if (!adminSession) return false;
+  
+  try {
+    const session = JSON.parse(adminSession.value);
+    return session.role === "ADMIN";
+  } catch {
+    return false;
+  }
 }

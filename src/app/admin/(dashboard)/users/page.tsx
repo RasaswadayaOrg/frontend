@@ -1,6 +1,6 @@
 import { getUsers, getUsersCount } from "@/lib/db";
 import Link from "next/link";
-import { Search, Mail, MapPin, Shield } from "lucide-react";
+import { Search, Mail, MapPin, Shield, Clock } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { UserRoleSelect } from "@/app/admin/(dashboard)/users/UserRoleSelect";
 import { DeleteUserButton } from "@/app/admin/(dashboard)/users/DeleteUserButton";
@@ -10,6 +10,15 @@ export const dynamic = 'force-dynamic';
 export default async function AdminUsersPage() {
   const users = await getUsers(50, 1);
   const totalCount = await getUsersCount();
+
+  // Calculate pending applications counts
+  const pendingArtistCount = users.filter((u: any) => 
+    u.pendingApplications?.some((app: any) => app.role === 'ARTIST')
+  ).length;
+  
+  const pendingOrganizerCount = users.filter((u: any) => 
+    u.pendingApplications?.some((app: any) => app.role === 'ORGANIZER')
+  ).length;
 
   const roleColors: Record<string, string> = {
     USER: 'bg-slate-100 text-slate-800 dark:bg-slate-900/30 dark:text-slate-400',
@@ -37,7 +46,7 @@ export default async function AdminUsersPage() {
       </div>
 
       {/* User Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-7 gap-4">
         {['USER', 'ARTIST', 'ORGANIZER', 'STORE_OWNER', 'ADMIN'].map((role) => {
           const count = users.filter((u: any) => u.role === role).length;
           return (
@@ -55,6 +64,22 @@ export default async function AdminUsersPage() {
             </div>
           );
         })}
+        
+        <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border border-orange-300 dark:border-orange-700 rounded-xl p-4">
+          <div className="flex items-center gap-2">
+            <Clock className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+            <span className="text-xs font-medium text-orange-700 dark:text-orange-400">PENDING ARTIST</span>
+          </div>
+          <p className="text-2xl font-bold text-orange-900 dark:text-orange-300 mt-1">{pendingArtistCount}</p>
+        </div>
+
+        <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 dark:from-cyan-900/20 dark:to-cyan-800/20 border border-cyan-300 dark:border-cyan-700 rounded-xl p-4">
+          <div className="flex items-center gap-2">
+            <Clock className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
+            <span className="text-xs font-medium text-cyan-700 dark:text-cyan-400">PENDING ORGANIZER</span>
+          </div>
+          <p className="text-2xl font-bold text-cyan-900 dark:text-cyan-300 mt-1">{pendingOrganizerCount}</p>
+        </div>
       </div>
 
       <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-sm">
@@ -77,13 +102,19 @@ export default async function AdminUsersPage() {
                 <th className="px-6 py-4">Contact</th>
                 <th className="px-6 py-4">Location</th>
                 <th className="px-6 py-4">Role</th>
+                <th className="px-6 py-4">Status</th>
                 <th className="px-6 py-4">Joined</th>
                 <th className="px-6 py-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 dark:divide-zinc-800">
               {users.map((user: any) => (
-                <tr key={user.id} className="hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-colors">
+                <tr 
+                  key={user.id} 
+                  className={`hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-colors ${
+                    user.hasPendingApplication ? 'bg-orange-50/50 dark:bg-orange-900/10' : ''
+                  }`}
+                >
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
@@ -121,6 +152,23 @@ export default async function AdminUsersPage() {
                   <td className="px-6 py-4">
                     <UserRoleSelect userId={user.id} currentRole={user.role} />
                   </td>
+                  <td className="px-6 py-4">
+                    {user.hasPendingApplication ? (
+                      <div className="flex flex-col gap-1">
+                        {user.pendingApplications.map((app: any) => (
+                          <span 
+                            key={app.id}
+                            className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400 rounded-full w-fit"
+                          >
+                            <Clock className="w-3 h-3" />
+                            Pending {app.role}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-slate-400 text-xs">—</span>
+                    )}
+                  </td>
                   <td className="px-6 py-4 text-slate-500 whitespace-nowrap">
                     {formatDate(user.createdAt)}
                   </td>
@@ -139,7 +187,7 @@ export default async function AdminUsersPage() {
               ))}
               {users.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
+                  <td colSpan={7} className="px-6 py-12 text-center text-slate-500">
                     No users found.
                   </td>
                 </tr>
