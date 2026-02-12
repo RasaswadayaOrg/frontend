@@ -4,6 +4,15 @@ const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
   images: {
+    localPatterns: [
+      {
+        pathname: '/api/avatar',
+        search: '?**',
+      },
+      {
+        pathname: '/**',
+      },
+    ],
     remotePatterns: [
       {
         protocol: 'https',
@@ -44,6 +53,10 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'i.pinimg.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i.pravatar.cc',
       },
       {
         protocol: 'https',

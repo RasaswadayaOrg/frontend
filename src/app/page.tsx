@@ -69,14 +69,16 @@ export default async function Home() {
           
           {/* Right Sidebar Ad */}
           <div className="hidden lg:block lg:col-span-3">
-             <SidebarStats 
-               reminders={reminders} 
-               trendingEvents={trendingEvents} 
-               isLoggedIn={isLoggedIn}
-               city={session?.user?.city} // Might be undefined
-             />
-             <div className="mt-4">
-                <AdPlaceholder size="medium" label="Sponsorship" placement="home-sidebar" ad={sidebarAds[0] || null} />
+             <div className="flex flex-col" style={{ height: '500px' }}>
+               <SidebarStats 
+                 reminders={reminders} 
+                 trendingEvents={trendingEvents} 
+                 isLoggedIn={isLoggedIn}
+                 city={session?.user?.city} // Might be undefined
+               />
+               <div className="mt-2 flex-1 min-h-0">
+                  <AdPlaceholder size="medium" label="Sponsorship" placement="home-sidebar" ad={sidebarAds[0] || null} className="!h-full" />
+               </div>
              </div>
           </div>
         </div>

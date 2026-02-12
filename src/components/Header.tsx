@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Search, Bell, User, Menu, LogIn, Loader2, X } from "lucide-react";
+import { Search, Bell, User, Menu, LogIn, Loader2, X, LayoutDashboard } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useState, useEffect, useRef } from "react";
 import { getSearchSuggestions, type SearchSuggestionsResult } from "@/app/actions/search";
@@ -233,10 +233,19 @@ export function Header() {
           <div className="flex items-center gap-4 shrink-0">
             {user ? (
               <>
+                {user.role === 'artist' && (
+                  <Link 
+                    href="/artist-dashboard" 
+                    className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-brand-800/50 hover:bg-brand-800 rounded-full transition-colors text-brand-100 text-xs font-medium mr-2 border border-brand-500/30"
+                  >
+                    <LayoutDashboard className="w-3.5 h-3.5" />
+                    Switch to Artist Mode
+                  </Link>
+                )}
                 <button className="p-2 hover:bg-brand-500 rounded-full transition-colors">
                   <Bell className="w-5 h-5 text-white" />
                 </button>
-                <Link href="/profile" className="flex items-center gap-2 pl-2 pr-4 py-1.5 bg-brand-700/50 hover:bg-brand-500 rounded-full transition-colors">
+                <Link href={user.role === 'artist' ? "/artist-dashboard" : "/profile"} className="flex items-center gap-2 pl-2 pr-4 py-1.5 bg-brand-700/50 hover:bg-brand-500 rounded-full transition-colors">
                   <User className="w-4 h-4 text-white" />
                   <span className="text-white font-medium text-xs hidden sm:block">{user.name.split(' ')[0]}</span>
                 </Link>
