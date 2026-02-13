@@ -57,7 +57,7 @@ export default function UserDetailsModal({ userId, isOpen, onClose }: UserDetail
     setError(null);
     
     try {
-      const token = localStorage.getItem('rasas_token');
+      const token = localStorage.getItem('admin_token');
       const response = await fetch(`http://localhost:3001/api/admin/users/${userId}`, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -81,7 +81,7 @@ export default function UserDetailsModal({ userId, isOpen, onClose }: UserDetail
     setProcessingApplicationId(applicationId);
     
     try {
-      const token = localStorage.getItem('rasas_token');
+      const token = localStorage.getItem('admin_token');
       const response = await fetch(`http://localhost:3001/api/role-requests/${applicationId}/approve`, {
         method: 'POST',
         headers: {
@@ -122,7 +122,7 @@ export default function UserDetailsModal({ userId, isOpen, onClose }: UserDetail
     setProcessingApplicationId(selectedApplicationId);
     
     try {
-      const token = localStorage.getItem('rasas_token');
+      const token = localStorage.getItem('admin_token');
       const response = await fetch(`http://localhost:3001/api/role-requests/${selectedApplicationId}/reject`, {
         method: 'POST',
         headers: {

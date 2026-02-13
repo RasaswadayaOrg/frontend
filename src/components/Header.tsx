@@ -233,7 +233,7 @@ export function Header() {
           <div className="flex items-center gap-4 shrink-0">
             {user ? (
               <>
-                {user.role === 'artist' && (
+                {(user.role === 'artist' || user.role === 'ARTIST') && (
                   <Link 
                     href="/artist-dashboard" 
                     className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-brand-800/50 hover:bg-brand-800 rounded-full transition-colors text-brand-100 text-xs font-medium mr-2 border border-brand-500/30"
@@ -242,10 +242,19 @@ export function Header() {
                     Switch to Artist Mode
                   </Link>
                 )}
+                {(user.role === 'organizer' || user.role === 'ORGANIZER') && (
+                  <Link 
+                    href="/organizer-dashboard" 
+                    className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-brand-800/50 hover:bg-brand-800 rounded-full transition-colors text-brand-100 text-xs font-medium mr-2 border border-brand-500/30"
+                  >
+                    <LayoutDashboard className="w-3.5 h-3.5" />
+                    Switch to Organizer Mode
+                  </Link>
+                )}
                 <button className="p-2 hover:bg-brand-500 rounded-full transition-colors">
                   <Bell className="w-5 h-5 text-white" />
                 </button>
-                <Link href={user.role === 'artist' ? "/artist-dashboard" : "/profile"} className="flex items-center gap-2 pl-2 pr-4 py-1.5 bg-brand-700/50 hover:bg-brand-500 rounded-full transition-colors">
+                <Link href="/profile" className="flex items-center gap-2 pl-2 pr-4 py-1.5 bg-brand-700/50 hover:bg-brand-500 rounded-full transition-colors">
                   <User className="w-4 h-4 text-white" />
                   <span className="text-white font-medium text-xs hidden sm:block">{user.name.split(' ')[0]}</span>
                 </Link>
@@ -274,6 +283,26 @@ export function Header() {
           <Link href="/academies" className="hover:text-white/80 transition-colors">Academies</Link>
           <Link href="/marketplace" className="hover:text-white/80 transition-colors">Marketplace</Link>
           <Link href="/about" className="hover:text-white/80 transition-colors">About</Link>
+{/*           
+          {user && (user.role === 'ARTIST' || user.role === 'artist') && (
+            <Link 
+              href="/artist-dashboard" 
+              className="bg-white/10 hover:bg-white/20 text-white px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-colors border border-white/20 flex items-center gap-2"
+            >
+              <LayoutDashboard className="w-3.5 h-3.5" />
+              Artist Dashboard
+            </Link>
+          )}
+          
+           {user && (user.role === 'ORGANIZER' || user.role === 'organizer') && (
+            <Link 
+              href="/organizer-dashboard" 
+              className="bg-white/10 hover:bg-white/20 text-white px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-colors border border-white/20 flex items-center gap-2"
+            >
+              <LayoutDashboard className="w-3.5 h-3.5" />
+              Organizer Dashboard
+            </Link>
+          )} */}
         </div>
       </nav>
     </header>

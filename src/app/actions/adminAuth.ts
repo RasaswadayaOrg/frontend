@@ -31,7 +31,9 @@ export async function adminLogin(prevState: any, formData: FormData) {
         path: "/",
         maxAge: 60 * 60 * 24, // 1 day
       });
-      return { success: true };
+      
+      // Return token to be stored in localStorage by client
+      return { success: true, token: data.token };
     }
 
     return { success: false, message: data.error || "Invalid credentials" };
