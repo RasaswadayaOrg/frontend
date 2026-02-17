@@ -94,23 +94,9 @@ export function ProductForm({ initialData, isEdit = false }: ProductFormProps) {
           </div>
           
           <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl p-6 space-y-4 shadow-sm">
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Pricing & Inventory</h3>
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Inventory</h3>
             
-             <div className="grid grid-cols-2 gap-4">
-               <div className="space-y-2">
-                <label htmlFor="price" className="text-sm font-medium text-slate-700 dark:text-slate-300">Price (LKR)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  id="price"
-                  name="price"
-                  required
-                  defaultValue={initialData?.price}
-                  className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white"
-                  placeholder="2500.00"
-                />
-              </div>
-
+             <div className="grid grid-cols-1 gap-4">
                <div className="space-y-2">
                 <label htmlFor="stock" className="text-sm font-medium text-slate-700 dark:text-slate-300">Stock</label>
                 <input

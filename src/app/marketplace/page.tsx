@@ -67,7 +67,7 @@ export default async function MarketplacePage(props: { searchParams: Promise<{ p
 
       {/* Products Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {products.map((product: { id: string; name: string; description: string; price: number; storeId: string; storeName: string; store?: { name: string; id: string; ownerId: string } }) => (
+        {products.map((product: { id: string; name: string; description: string; storeId: string; storeName: string; store?: { name: string; id: string; ownerId: string } }) => (
           <Link
             key={product.id}
             href={`/products/${product.id}`}
@@ -91,9 +91,6 @@ export default async function MarketplacePage(props: { searchParams: Promise<{ p
               </h3>
               
               <div className="flex items-center justify-between">
-                <p className="text-lg font-bold text-amber-700 dark:text-amber-400">
-                  Rs. {product.price.toLocaleString()}
-                </p>
                 <AddToCartButton />
               </div>
             </div>

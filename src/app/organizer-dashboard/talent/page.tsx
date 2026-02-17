@@ -35,12 +35,12 @@ export default function TalentHuntPage() {
   ];
 
   const artists = [
-    { name: "Yohani De Silva", role: "Vocalist", rating: 4.9, location: "Colombo", price: "LKR 75k/event", genre: "Vocalist", availableDates: [addDays(new Date(), 2), addDays(new Date(), 5)] },
-    { name: "Ravi Shankar", role: "Sitar Player", rating: 4.9, location: "Colombo", price: "LKR 25k/hr", genre: "Sitar Player", availableDates: [addDays(new Date(), 1), addDays(new Date(), 3)] },
-    { name: "Bathiya N Santhush", role: "Pop Duo", rating: 4.8, location: "Colombo", price: "LKR 150k/event", genre: "Vocalist", availableDates: [addDays(new Date(), 4), addDays(new Date(), 7)] },
-    { name: "Amara Perera", role: "Kandyan Dancer", rating: 4.8, location: "Kandy", price: "LKR 15k/hr", genre: "Kandyan Dancer", availableDates: [addDays(new Date(), 1), addDays(new Date(), 2)] },
-    { name: "The Jazz Cats", role: "Jazz Band", rating: 5.0, location: "Negombo", price: "LKR 50k/hr", genre: "Jazz Band", availableDates: [addDays(new Date(), 3), addDays(new Date(), 6)] },
-    { name: "Saman & Sons", role: "Traditional Drummers", rating: 4.7, location: "Galle", price: "LKR 20k/hr", genre: "Traditional Drummers", availableDates: [addDays(new Date(), 2), addDays(new Date(), 8)] },
+    { name: "Yohani De Silva", role: "Vocalist", rating: 4.9, location: "Colombo", genre: "Vocalist", availableDates: [addDays(new Date(), 2), addDays(new Date(), 5)] },
+    { name: "Ravi Shankar", role: "Sitar Player", rating: 4.9, location: "Colombo", genre: "Sitar Player", availableDates: [addDays(new Date(), 1), addDays(new Date(), 3)] },
+    { name: "Bathiya N Santhush", role: "Pop Duo", rating: 4.8, location: "Colombo", genre: "Vocalist", availableDates: [addDays(new Date(), 4), addDays(new Date(), 7)] },
+    { name: "Amara Perera", role: "Kandyan Dancer", rating: 4.8, location: "Kandy", genre: "Kandyan Dancer", availableDates: [addDays(new Date(), 1), addDays(new Date(), 2)] },
+    { name: "The Jazz Cats", role: "Jazz Band", rating: 5.0, location: "Negombo", genre: "Jazz Band", availableDates: [addDays(new Date(), 3), addDays(new Date(), 6)] },
+    { name: "Saman & Sons", role: "Traditional Drummers", rating: 4.7, location: "Galle", genre: "Traditional Drummers", availableDates: [addDays(new Date(), 2), addDays(new Date(), 8)] },
   ];
 
   const filteredArtists = artists.filter((artist) => {
@@ -178,15 +178,13 @@ export default function TalentHuntPage() {
                   className="group bg-white dark:bg-zinc-900 rounded-2xl border border-neutral-200/60 dark:border-neutral-800/60 hover:border-neutral-300 dark:hover:border-neutral-700 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 overflow-hidden"
                 >
                   <div className="p-5">
-                    {/* Top row: avatar + price */}
+                    {/* Top row: avatar + rating */}
                     <div className="flex items-start justify-between mb-4">
                       <div className="relative w-14 h-14 rounded-2xl bg-neutral-100 dark:bg-neutral-800 overflow-hidden shadow-sm group-hover:shadow-md transition-shadow duration-300">
                         <ImageWithFallback src={`/api/avatar?name=${artist.name}`} alt={artist.name} fill className="object-cover" />
                       </div>
                       <div className="flex flex-col items-end gap-1.5">
-                        <span className="bg-brand-600 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold shadow-sm">
-                          {artist.price}
-                        </span>
+
                         <div className="flex items-center gap-1">
                           <Star className="w-3 h-3 text-amber-400 fill-current" />
                           <span className="text-xs font-bold text-neutral-900 dark:text-white">{artist.rating}</span>

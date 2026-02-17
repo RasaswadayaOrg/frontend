@@ -164,12 +164,6 @@ export default async function StorePage(props: { params: Promise<{ id: string }>
                     <h3 className="font-semibold text-sm mb-2 group-hover:text-brand-600 transition-colors line-clamp-2">
                         {product.name}
                     </h3>
-                    
-                    <div className="flex items-center justify-between">
-                        <p className="text-lg font-bold text-amber-700 dark:text-amber-400">
-                        Rs. {product.price.toLocaleString()}
-                        </p>
-                    </div>
                     </div>
                 </Link>
                 ))}
