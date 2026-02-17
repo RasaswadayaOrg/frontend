@@ -360,7 +360,7 @@ export async function getUsersCount(search?: string, role?: string) {
 }
 
 export async function getUser(id: string) {
-    const data = await fetchData(`/users/${id}`);
+    const data = await fetchData(`/admin/users/${id}`);
     if (!data || !data.success) return null;
     return data.data;
 }
