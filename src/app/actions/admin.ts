@@ -381,7 +381,6 @@ export async function createProduct(formData: FormData) {
   const productData = {
     name: formData.get('name'),
     description: formData.get('description'),
-    price: parseFloat(formData.get('price') as string),
     imageUrl: formData.get('imageUrl'),
     category: formData.get('category'),
     stock: parseInt(formData.get('stock') as string),
@@ -417,7 +416,6 @@ export async function updateProduct(productId: string, formData: FormData) {
   const productData = {
     name: formData.get('name'),
     description: formData.get('description'),
-    price: parseFloat(formData.get('price') as string),
     imageUrl: formData.get('imageUrl'),
     category: formData.get('category'),
     stock: parseInt(formData.get('stock') as string),

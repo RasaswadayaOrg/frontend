@@ -66,7 +66,6 @@ export interface EventType {
   endTime?: string;
   location: string;
   city: string;
-  price: number;
   category: string;
   organizerId: string;
   organizer?: {
@@ -217,7 +216,6 @@ export async function getProducts(limit = 6, page = 1, search?: string, category
 
     return data.data.map((p: any) => ({
         ...p,
-        price: Number(p.price),
         storeName: p.storeName || p.store?.name || "Unknown Store"
     }));
 }
@@ -238,7 +236,6 @@ export async function getProduct(id: string) {
     const product = data.data;
     return {
         ...product,
-        price: Number(product.price),
         store: product.store,
         storeName: product.storeName || product.store?.name || "Unknown Store"
     };
@@ -318,7 +315,6 @@ export async function getAdminStats() {
                 totalProducts: productsData?.pagination?.total || 0,
                 totalAcademies: academiesData?.pagination?.total || 0,
                 totalOrders: 0,
-                totalRevenue: 0,
                 totalStores: storesData?.pagination?.total || storesData?.data?.length || 0
             };
         }
@@ -332,7 +328,6 @@ export async function getAdminStats() {
             totalProducts: 0,
             totalAcademies: 0,
             totalOrders: 0,
-            totalRevenue: 0,
             totalStores: 0
         };
     }

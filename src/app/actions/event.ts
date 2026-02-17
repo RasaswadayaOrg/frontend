@@ -34,7 +34,6 @@ export async function createEvent(formData: FormData) {
         endTime: "21:00",
         category: "General",
         ticketLink: "",
-        price: 0,
         capacity: 100
     };
   

@@ -104,10 +104,6 @@ export default async function EventDetailsPage(props: { params: Promise<{ slug: 
                 <span className="text-slate-500 text-sm">Venue</span>
                     <span className="font-medium text-sm text-right max-w-[50%]">{event.location || 'TBA'}</span>
               </div>
-              <div className="flex justify-between py-2 border-b border-slate-100 dark:border-zinc-800">
-                <span className="text-slate-500 text-sm">Price</span>
-                <span className="font-medium text-sm">{event.ticketPrice > 0 ? `LKR ${event.ticketPrice.toLocaleString()}` : "Free"}</span>
-              </div>
             </div>
 
             <EventActions />

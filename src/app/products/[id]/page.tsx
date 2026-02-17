@@ -77,7 +77,6 @@ export default async function ProductDetailsPage(props: { params: Promise<{ id: 
             </div>
             <span className="text-slate-500">(24 reviews)</span>
           </div>
-          <p className="text-3xl font-bold text-brand-600">LKR {product.price.toLocaleString()}</p>
         </div>
 
         <div className="p-4 bg-slate-50 dark:bg-zinc-900 rounded-xl border border-slate-200 dark:border-zinc-800 flex items-center gap-3">

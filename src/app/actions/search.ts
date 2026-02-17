@@ -52,7 +52,7 @@ export async function getSearchSuggestions(query: string): Promise<SearchSuggest
         type: 'product', 
         url: `/products/${p.id}`,
         image: p.images?.[0],
-        subtitle: `LKR ${p.price}`
+        subtitle: p.category
       })),
       academies: academies.map((a: any) => ({ 
         id: a.id, 

@@ -52,10 +52,6 @@ export function BookingRequestModal({ isOpen, onClose, artist }: BookingModalPro
               <h4 className="font-semibold text-neutral-900 dark:text-white truncate">{artist?.name}</h4>
               <p className="text-xs text-brand-600 font-medium">{artist?.role}</p>
             </div>
-            <div className="text-right flex-shrink-0">
-              <div className="text-sm font-bold text-neutral-900 dark:text-white">{artist?.price}</div>
-              <div className="text-[10px] text-neutral-400 font-medium">base rate</div>
-            </div>
           </div>
         </div>
 
@@ -70,17 +66,7 @@ export function BookingRequestModal({ isOpen, onClose, artist }: BookingModalPro
             </select>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-medium text-neutral-500 mb-1.5">
-                <DollarSign className="w-3 h-3 inline mr-1" />Offered Fee
-              </label>
-              <input
-                type="text"
-                defaultValue={artist?.price}
-                className="w-full bg-neutral-50 dark:bg-zinc-800/50 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-brand-300 dark:focus:border-brand-700 transition-colors"
-              />
-            </div>
+          <div className="grid grid-cols-1 gap-3">
             <div>
               <label className="block text-xs font-medium text-neutral-500 mb-1.5">
                 <Clock className="w-3 h-3 inline mr-1" />Duration

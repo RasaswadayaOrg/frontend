@@ -85,7 +85,6 @@ export default async function AdminMarketplacePage() {
               <tr>
                 <th className="px-6 py-4">Product</th>
                 <th className="px-6 py-4">Category</th>
-                <th className="px-6 py-4">Price</th>
                 <th className="px-6 py-4">Stock</th>
                 <th className="px-6 py-4">Store</th>
                 <th className="px-6 py-4 text-right">Actions</th>
@@ -118,9 +117,6 @@ export default async function AdminMarketplacePage() {
                     ) : (
                       <span className="text-slate-400 italic">—</span>
                     )}
-                  </td>
-                  <td className="px-6 py-4 font-medium text-slate-900 dark:text-white">
-                    LKR {Number(product.price).toLocaleString()}
                   </td>
                   <td className="px-6 py-4">
                     <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
@@ -171,7 +167,6 @@ export default async function AdminMarketplacePage() {
               <tr>
                 <th className="px-6 py-4">Order ID</th>
                 <th className="px-6 py-4">Customer</th>
-                <th className="px-6 py-4">Total</th>
                 <th className="px-6 py-4">Status</th>
                 <th className="px-6 py-4">Date</th>
               </tr>
@@ -184,9 +179,6 @@ export default async function AdminMarketplacePage() {
                   </td>
                   <td className="px-6 py-4 text-slate-900 dark:text-white">
                     {order.user?.fullName || order.shippingAddress?.name || 'Customer'}
-                  </td>
-                  <td className="px-6 py-4 font-medium text-slate-900 dark:text-white">
-                    LKR {Number(order.totalPrice).toLocaleString()}
                   </td>
                   <td className="px-6 py-4">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${

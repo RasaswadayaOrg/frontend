@@ -28,7 +28,6 @@ export default function CreateEventPage() {
     time: "",
     venue: "",
     description: "",
-    ticketPrice: "",
     capacity: "",
   });
 
@@ -257,20 +256,7 @@ export default function CreateEventPage() {
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 />
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">Ticket Price (LKR)</label>
-                  <div className="relative">
-                    <Ticket className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
-                    <input
-                      type="number"
-                      placeholder="0 for Free"
-                      className={`${inputClass} pl-10`}
-                      value={formData.ticketPrice}
-                      onChange={(e) => setFormData({ ...formData, ticketPrice: e.target.value })}
-                    />
-                  </div>
-                </div>
+              <div className="grid grid-cols-1 gap-5">
                 <div>
                   <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">Capacity</label>
                   <div className="relative">

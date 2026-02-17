@@ -389,9 +389,6 @@ export default async function Home() {
                       fill
                       className="object-cover group-hover:scale-105 transition-transform duration-500"
                     />
-                    <div className="absolute top-3 right-3 bg-white/95 dark:bg-black/80 backdrop-blur px-3 py-1 rounded-lg text-xs font-bold shadow-sm">
-                      {event.ticketPrice > 0 ? `Rs. ${event.ticketPrice}` : 'Free'}
-                    </div>
                   </div>
                   <div className="p-5 flex flex-col flex-grow">
                     <div className="flex items-center gap-2 text-xs font-medium text-brand-600 mb-2">
@@ -506,7 +503,6 @@ export default async function Home() {
                 </div>
                 <div className="p-4">
                   <h4 className="font-semibold text-sm mb-1 line-clamp-1">{product.name}</h4>
-                  <p className="text-lg font-bold text-brand-600">Rs. {product.price.toLocaleString()}</p>
                 </div>
               </Link>
             ))}

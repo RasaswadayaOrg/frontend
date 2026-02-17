@@ -2,6 +2,8 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { ImageWithFallback } from "@/components/ImageWithFallback";
+import { FacebookConnect } from "./FacebookConnect";
+import { useState, useEffect } from "react";
 import {
   Camera,
   MapPin,
@@ -14,6 +16,40 @@ import {
 
 export function ArtistProfileEditor() {
   const { user } = useAuth();
+  const [artist, setArtist] = useState<any>(null);
+
+  useEffect(() => {
+    // Only fetch if we have a user and don't have artist data yet
+    if (user && !artist) {
+      const fetchArtist = async () => {
+         try {
+             const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+             const token = localStorage.getItem('rasas_token');
+             
+             if (!token) {
+               console.log("No token found, skipping artist fetch");
+               return;
+             }
+
+             const res = await fetch(`${API_URL}/artists/me`, {
+                 headers: {
+                     'Authorization': `Bearer ${token}`
+                 }
+             });
+             
+             if (res.ok) {
+                 const data = await res.json();
+                 setArtist(data);
+             } else {
+                 console.log("Artist profile not found for user, status:", res.status);
+             }
+         } catch (e) {
+             console.error("Failed to fetch artist profile:", e);
+         }
+      };
+      fetchArtist();
+    }
+  }, [user, artist]);
 
   const inputClass =
     "w-full bg-neutral-50 dark:bg-zinc-800/50 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-violet-300 dark:focus:border-violet-700 transition-colors";
@@ -142,9 +178,16 @@ export function ArtistProfileEditor() {
                   />
                 </div>
               </div>
+
             </div>
           </div>
         </div>
+
+        {/* Facebook Integration - always visible */}
+        <FacebookConnect 
+          artistId={artist?.id || null} 
+          isConnected={!!artist?.fbPageId} 
+        />
       </div>
     </div>
   );
