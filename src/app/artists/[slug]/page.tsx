@@ -1,5 +1,6 @@
 import { ArtistActions } from "../../../components/ArtistActions";
 import { ArtistPerformancesList } from "../../../components/ArtistPerformancesList";
+import { ArtistFeed } from "../../../components/ArtistFeed";
 import Link from "next/link";
 import { MapPin, Users, Calendar, ShoppingBag, Play, Music, ArrowLeft } from "lucide-react";
 import { getArtist } from "../../../lib/db";
@@ -101,6 +102,15 @@ export default async function ArtistProfilePage(props: { params: Promise<{ slug:
           <div className="space-y-6">
             <h3 className="text-xl font-bold">Upcoming Performances</h3>
             <ArtistPerformancesList events={artist.performances?.map((p: any) => p.event) || []} />
+          </div>
+
+          {/* Social Feed */}
+          <div className="space-y-6 mt-12">
+            <ArtistFeed 
+              artistId={artist.id} 
+              artistName={artist.name} 
+              artistAvatar={artist.photoUrl} 
+            />
           </div>
         </div>
       </div>

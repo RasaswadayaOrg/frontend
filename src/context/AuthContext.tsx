@@ -145,6 +145,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Clear local state
     setUser(null);
     localStorage.removeItem("rasas_user");
+    localStorage.removeItem("rasas_token");
     
     // Clear session cookie
     document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
