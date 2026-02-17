@@ -619,3 +619,72 @@ export async function toggleSponsoredAdStatus(adId: string) {
     return { success: false, message: 'Failed to toggle ad status' };
   }
 }
+
+// Organizers
+export async function createOrganizer(formData: FormData) {
+  const isAdmin = await verifyAdminSession();
+  if (!isAdmin) {
+    return { success: false, message: "Unauthorized" };
+  }
+
+  const organizerData = {
+    email: formData.get('email'),
+    password: formData.get('password'),
+    fullName: formData.get('fullName'),
+    phone: formData.get('phone'),
+    city: formData.get('city'),
+    avatarUrl: formData.get('avatarUrl')
+  };
+
+  try {
+    const res = await fetch(`${API_URL}/admin/organizers`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(organizerData)
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      revalidatePath('/admin/organizers');
+      return { success: true };
+    } else {
+      return { success: false, message: data.message || 'Failed to create organizer' };
+    }
+  } catch (error) {
+    console.error('Create organizer error:', error);
+    return { success: false, message: 'Failed to create organizer' };
+  }
+}
+
+export async function updateOrganizer(organizerId: string, formData: FormData) {
+  const isAdmin = await verifyAdminSession();
+  if (!isAdmin) {
+    return { success: false, message: "Unauthorized" };
+  }
+
+  const organizerData = {
+    fullName: formData.get('fullName'),
+    phone: formData.get('phone'),
+    city: formData.get('city'),
+    avatarUrl: formData.get('avatarUrl')
+  };
+
+  try {
+    const res = await fetch(`${API_URL}/admin/organizers/${organizerId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(organizerData)
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      revalidatePath('/admin/organizers');
+      return { success: true };
+    } else {
+      return { success: false, message: data.message || 'Failed to update organizer' };
+    }
+  } catch (error) {
+    console.error('Update organizer error:', error);
+    return { success: false, message: 'Failed to update organizer' };
+  }
+}
