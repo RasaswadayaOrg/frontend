@@ -135,7 +135,7 @@ export function Header() {
                               className="flex items-center gap-3 p-2 hover:bg-slate-50 dark:hover:bg-zinc-800 rounded-lg group"
                             >
                               <div className="relative w-10 h-10 rounded overflow-hidden bg-slate-100 flex-shrink-0">
-                                <ImageWithFallback src={item.image} alt={item.title} fill className="object-cover" />
+                                <ImageWithFallback src={item.image || ""} alt={item.title} fill className="object-cover" />
                               </div>
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate group-hover:text-brand-600 dark:group-hover:text-brand-400">{item.title}</p>
@@ -157,7 +157,7 @@ export function Header() {
                               className="flex items-center gap-3 p-2 hover:bg-slate-50 dark:hover:bg-zinc-800 rounded-lg group"
                             >
                               <div className="relative w-10 h-10 rounded-full overflow-hidden bg-slate-100 flex-shrink-0">
-                                <ImageWithFallback src={item.image} alt={item.title} fill className="object-cover" />
+                                <ImageWithFallback src={item.image || ""} alt={item.title} fill className="object-cover" />
                               </div>
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate group-hover:text-brand-600 dark:group-hover:text-brand-400">{item.title}</p>
@@ -179,7 +179,7 @@ export function Header() {
                               className="flex items-center gap-3 p-2 hover:bg-slate-50 dark:hover:bg-zinc-800 rounded-lg group"
                             >
                               <div className="relative w-10 h-10 rounded overflow-hidden bg-slate-100 flex-shrink-0">
-                                <ImageWithFallback src={item.image} alt={item.title} fill className="object-cover" />
+                                <ImageWithFallback src={item.image || ""} alt={item.title} fill className="object-cover" />
                               </div>
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate group-hover:text-brand-600 dark:group-hover:text-brand-400">{item.title}</p>
@@ -201,7 +201,7 @@ export function Header() {
                               className="flex items-center gap-3 p-2 hover:bg-slate-50 dark:hover:bg-zinc-800 rounded-lg group"
                             >
                               <div className="relative w-10 h-10 rounded overflow-hidden bg-slate-100 flex-shrink-0">
-                                <ImageWithFallback src={item.image} alt={item.title} fill className="object-cover" />
+                                <ImageWithFallback src={item.image || ""} alt={item.title} fill className="object-cover" />
                               </div>
                                <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate group-hover:text-brand-600 dark:group-hover:text-brand-400">{item.title}</p>
@@ -278,6 +278,7 @@ export function Header() {
       {/* Tier 2: Primary Nav */}
       <nav className="w-full bg-brand-700 text-white shadow-lg shadow-brand-900/20 hidden md:block">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-12 flex items-center gap-8 font-ui font-medium text-sm">
+          <Link href="/songs" className="hover:text-white/80 transition-colors">Songs</Link>
           <Link href="/events" className="hover:text-white/80 transition-colors">Events</Link>
           <Link href="/artists" className="hover:text-white/80 transition-colors">Artists</Link>
           <Link href="/academies" className="hover:text-white/80 transition-colors">Academies</Link>
