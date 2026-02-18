@@ -1,53 +1,27 @@
+"use client";
+
+import { useEffect, useState, useCallback } from "react";
 import { CreatePost } from "@/components/artist-dashboard/CreatePost";
 import { FeedPost } from "@/components/artist-dashboard/FeedPost";
+import { Loader2 } from "lucide-react";
 
-const POSTS = [
-  {
-    id: "1",
-    author: {
-      name: "Ravi Shankar",
-      handle: "ravimusic",
-      avatar: "https://i.pravatar.cc/150?u=ravi",
-      isVerified: true,
-    },
-    content:
-      "Excited to announce my collaboration with the National Symphony Orchestra! We will be exploring the fusion of Eastern and Western classical traditions. 🎻🕉️ #FusionMusic #Classical",
-    timestamp: "2 hours ago",
-    image:
-      "https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
-    likes: 124,
-    comments: 18,
-    collaborator: { name: "National Symphony", role: "Organizer" },
-  },
-  {
-    id: "2",
-    author: {
-      name: "Amara Perera",
-      handle: "amaradance",
-      avatar: "https://i.pravatar.cc/150?u=amara",
-    },
-    content:
-      "Just posted a new choreography video. Check it out and let me know what you think! Learning Kandyan dance has been a journey. 👇",
-    timestamp: "5 hours ago",
-    video: "https://youtube.com/watch?v=mock",
-    likes: 89,
-    comments: 12,
-  },
-  {
-    id: "3",
-    author: {
-      name: "Electronic Bates",
-      handle: "ebates",
-      avatar: "https://i.pravatar.cc/150?u=bates",
-      isVerified: true,
-    },
-    content:
-      "Looking for a vocalist for my upcoming track. Techno vibes. Hit me up if interested! 🎹🎤",
-    timestamp: "1 day ago",
-    likes: 45,
-    comments: 32,
-  },
-];
+interface Artist {
+  id: string;
+  name: string;
+  photoUrl?: string; 
+  // Add other fields as per backend response
+}
+
+interface Post {
+  id: string;
+  title?: string;
+  content?: string;
+  imageUrl?: string;
+  videoUrl?: string;
+  publishedAt: string;
+  likes?: number;
+  comments?: number;
+}
 
 const TRENDS = [
   { title: "#TraditionalArts", count: "12.5k posts" },
@@ -58,13 +32,109 @@ const TRENDS = [
 ];
 
 export default function ArtistFeedPage() {
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [artist, setArtist] = useState<Artist | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+
+  const fetchData = useCallback(async () => {
+    try {
+      const token = localStorage.getItem("rasas_token");
+      if (!token) {
+        setError("Not authenticated");
+        setLoading(false);
+        return;
+      }
+      
+      // 1. Fetch Artist
+      const artistRes = await fetch(`${API_URL}/artists/me`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (!artistRes.ok) {
+        setError("Failed to fetch artist profile");
+        setLoading(false);
+        return;
+      }
+      
+      const artistData = await artistRes.json();
+      setArtist(artistData);
+
+      // 2. Fetch Posts
+      const postsRes = await fetch(`${API_URL}/artists/${artistData.id}/posts`, {
+        headers: { Authorization: `Bearer ${token}` } // posts endpoint might be public, but send token anyway
+      });
+
+      if (postsRes.ok) {
+        const postsData = await postsRes.json();
+        setPosts(postsData);
+      }
+    } catch (err) {
+      console.error(err);
+      setError("Failed to load feed");
+    } finally {
+      setLoading(false);
+    }
+  }, [API_URL]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const handlePostCreated = () => {
+    fetchData();
+  };
+
+  if (loading && !posts.length) {
+      return (
+          <div className="flex justify-center items-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
+          </div>
+      );
+  }
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Feed Column */}
       <div className="lg:col-span-2 space-y-4">
-        <CreatePost />
-        {POSTS.map((post) => (
-          <FeedPost key={post.id} post={post} />
+        {/* Pass callback to refresh posts after creation */}
+        <CreatePost onPostCreated={handlePostCreated} />
+        
+        {error && <div className="text-red-500 bg-red-50 p-3 rounded-lg text-sm">{error}</div>}
+
+        {posts.length === 0 && !loading && !error && (
+            <div className="text-center py-8 text-neutral-500">
+                No posts yet. Create your first post above!
+            </div>
+        )}
+
+        {posts.map((post) => (
+          <FeedPost 
+            key={post.id} 
+            post={{
+                id: post.id,
+                author: {
+                    name: artist?.name || "Artist",
+                    handle: artist?.name?.toLowerCase().replace(/\s+/g, "") || "artist",
+                    avatar: artist?.photoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(artist?.name || "A")}&background=random`,
+                    isVerified: true
+                },
+                content: post.title ? `**${post.title}**\n\n${post.content || ''}` : (post.content || ''),
+                timestamp: new Date(post.publishedAt).toLocaleDateString(), 
+
+                // Use a helper to determine correct image URL
+                image: post.imageUrl ? (
+                    post.imageUrl.startsWith("http") 
+                        ? post.imageUrl 
+                        : `${API_URL.replace("/api", "")}${post.imageUrl}`
+                ) : undefined,
+                video: post.videoUrl,
+                likes: post.likes || 0,
+                comments: post.comments || 0,
+            }} 
+          />
         ))}
       </div>
 
