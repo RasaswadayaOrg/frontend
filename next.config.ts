@@ -19,6 +19,12 @@ const nextConfig: NextConfig = {
         hostname: 'www.facebook.com',
       },
       {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '3001',
+        pathname: '/**', // Allow all paths from localhost:3001
+      },
+      {
         protocol: 'https',
         hostname: 'ui-avatars.com',
       },

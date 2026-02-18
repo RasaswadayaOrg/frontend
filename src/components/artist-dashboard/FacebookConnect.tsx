@@ -1,14 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { Facebook, CheckCircle2, AlertCircle, Loader2, ExternalLink } from "lucide-react";
-
-interface FacebookPage {
-  id: string;
-  name: string;
-  accessToken: string;
-  category?: string;
-}
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect } from "react";
+import { Facebook, CheckCircle2, AlertCircle, Loader2, RefreshCw } from "lucide-react";
 
 interface FacebookConnectProps {
   artistId: string | null;
@@ -16,149 +10,141 @@ interface FacebookConnectProps {
 }
 
 export function FacebookConnect({ artistId, isConnected = false }: FacebookConnectProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
-  const [pages, setPages] = useState<FacebookPage[]>([]);
-  const [showPagePicker, setShowPagePicker] = useState(false);
-  const [selectedPage, setSelectedPage] = useState<FacebookPage | null>(null);
-  const [saving, setSaving] = useState(false);
-
+  
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+  const FB_APP_ID = process.env.NEXT_PUBLIC_FACEBOOK_APP_ID;
 
-  // Listen for the OAuth popup callback message
-  const handleMessage = useCallback(
-    (event: MessageEvent) => {
-      if (event.origin !== window.location.origin) return;
-
-      if (event.data.type === "FB_AUTH_SUCCESS") {
-        setLoading(false);
-        const receivedPages: FacebookPage[] = event.data.pages || [];
-        if (receivedPages.length === 0) {
-          setError("No Facebook Pages found on your account. You need a Facebook Page to connect.");
-          return;
-        }
-        setPages(receivedPages);
-        setShowPagePicker(true);
-      }
-
-      if (event.data.type === "FB_AUTH_ERROR") {
-        setLoading(false);
-        setError(event.data.error || "Facebook authorization failed.");
-      }
-    },
-    []
-  );
-
+  // 1. Handle OAuth Redirect Callback
   useEffect(() => {
-    window.addEventListener("message", handleMessage);
-    return () => window.removeEventListener("message", handleMessage);
-  }, [handleMessage]);
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      if (hash && hash.includes("access_token=")) {
+        const params = new URLSearchParams(hash.substring(1));
+        const accessToken = params.get("access_token");
+        
+        if (accessToken) {
+          handleFacebookCallback(accessToken);
+          window.history.replaceState(null, "", window.location.pathname);
+        }
+      }
+    };
+    
+    handleHashChange();
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
-  // Step 1: Open Facebook OAuth popup
-  const handleConnect = async () => {
-    setError("");
+  const handleFacebookCallback = async (token: string) => {
     setLoading(true);
-
-    try {
-      const token = localStorage.getItem("rasas_token");
-      const res = await fetch(`${API_URL}/artists/facebook/auth-url`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message || "Failed to start Facebook login");
-      }
-
-      const { authUrl } = await res.json();
-
-      // Open popup centered on screen
-      const width = 600;
-      const height = 700;
-      const left = window.screenX + (window.outerWidth - width) / 2;
-      const top = window.screenY + (window.outerHeight - height) / 2;
-
-      const popup = window.open(
-        authUrl,
-        "facebook-auth",
-        `width=${width},height=${height},left=${left},top=${top},scrollbars=yes`
-      );
-
-      if (!popup) {
-        setLoading(false);
-        setError("Popup was blocked. Please allow popups for this site and try again.");
-        return;
-      }
-
-      // Monitor if user closes the popup without finishing
-      const pollTimer = setInterval(() => {
-        if (popup.closed) {
-          clearInterval(pollTimer);
-          setLoading(false);
-        }
-      }, 500);
-    } catch (err: any) {
-      setLoading(false);
-      setError(err.message);
-    }
-  };
-
-  // Step 2: Save the selected page to the artist profile
-  const handleSelectPage = async (page: FacebookPage) => {
-    setSelectedPage(page);
-    setSaving(true);
     setError("");
 
-    let currentArtistId = artistId;
-
-    if (!currentArtistId) {
-      try {
-        const token = localStorage.getItem("rasas_token");
-        const res = await fetch(`${API_URL}/artists/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (res.ok) {
-          const data = await res.json();
-          currentArtistId = data.id;
-        }
-      } catch {}
-    }
-
-    if (!currentArtistId) {
-      setSaving(false);
-      setError("Artist profile not found. Please set up your artist profile first.");
-      return;
-    }
-
     try {
-      const token = localStorage.getItem("rasas_token");
-      const res = await fetch(`${API_URL}/artists/${currentArtistId}/facebook/select-page`, {
+      let currentArtistId = artistId;
+      const localToken = localStorage.getItem("rasas_token");
+      let authHeader = {};
+      if (localToken) authHeader = { Authorization: `Bearer ${localToken}` };
+
+      if (!currentArtistId) {
+          try {
+             const res = await fetch(`${API_URL}/artists/me`, {
+                headers: { ...authHeader },
+             });
+             if (res.ok) {
+                const data = await res.json();
+                currentArtistId = data.id;
+             }
+          } catch (e) {
+             console.error("Failed to fetch artist profile", e);
+          }
+      }
+
+      if (!currentArtistId) {
+         throw new Error("Artist profile not found. Please ensure you are logged in.");
+      }
+
+      const res = await fetch(`${API_URL}/artists/${currentArtistId}/connect-facebook-implicit`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          ...authHeader,
         },
-        body: JSON.stringify({
-          pageId: page.id,
-          pageAccessToken: page.accessToken,
-          pageName: page.name,
-        }),
+        body: JSON.stringify({ userAccessToken: token }),
       });
 
+      const data = await res.json();
+
       if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message || "Failed to connect page");
+        throw new Error(data.message || "Failed to connect Facebook");
       }
 
       setSuccess(true);
-      setShowPagePicker(false);
-      setTimeout(() => window.location.reload(), 2000);
+      router.refresh();
+      setTimeout(() => setSuccess(false), 5000);
+
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || "An error occurred during connection");
     } finally {
-      setSaving(false);
+      setLoading(false);
     }
+  };
+
+  const handleSync = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const localToken = localStorage.getItem("rasas_token");
+        let currentArtistId = artistId; 
+        // Logic to fetch artist ID if null is omitted for brevity since handleConnect does it too, 
+        // but ideally we should have it from props. Assuming props connect is mostly correct.
+        
+        if (!currentArtistId) {
+           setError("Artist ID missing");
+           setLoading(false);
+           return;
+        }
+
+        const res = await fetch(`${API_URL}/artists/${currentArtistId}/sync-facebook`, {
+           method: 'POST',
+           headers: {
+             'Authorization': `Bearer ${localToken}`
+           }
+        });
+
+        if (!res.ok) {
+            const data = await res.json();
+            throw new Error(data.message || "Sync failed");
+        }
+        
+        setSuccess(true);
+        setTimeout(() => setSuccess(false), 3000);
+        router.refresh();
+      } catch (e: any) {
+        setError(e.message);
+      } finally {
+        setLoading(false);
+      }
+  };
+
+
+  const handleConnect = () => {
+    if (!FB_APP_ID) {
+      setError("Facebook App ID is missing in configuration");
+      return;
+    }
+
+    setLoading(true);
+    const redirectUri = window.location.href.split('#')[0]; 
+    const scope = "pages_show_list,pages_read_engagement,pages_read_user_content,public_profile";
+    const state = Math.random().toString(36).substring(7);
+
+    const authUrl = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${FB_APP_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=${scope}&state=${state}`;
+    
+    window.location.href = authUrl;
   };
 
   return (
@@ -168,10 +154,10 @@ export function FacebookConnect({ artistId, isConnected = false }: FacebookConne
       </h3>
 
       <div className="bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 rounded-xl p-4">
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center flex-wrap gap-4">
           <div>
             <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
-              {isConnected ? "Connected to Facebook Page" : "Connect Your Facebook Page"}
+              {isConnected && !success ? "Connected to Facebook Page" : "Connect Your Facebook Page"}
             </p>
             <p className="text-xs text-blue-600 dark:text-blue-300 mt-1">
               {isConnected
@@ -181,13 +167,28 @@ export function FacebookConnect({ artistId, isConnected = false }: FacebookConne
           </div>
 
           {success ? (
-            <div className="flex items-center gap-2 text-green-600 font-medium text-sm">
+            <div className="flex items-center gap-2 text-green-600 font-medium text-sm animate-in fade-in zoom-in duration-300">
               <CheckCircle2 className="w-5 h-5" /> Connected!
             </div>
-          ) : isConnected ? (
-            <div className="flex items-center gap-2 text-green-600 font-medium text-sm">
-              <CheckCircle2 className="w-5 h-5" /> Connected
-            </div>
+          ) : isConnected && !loading ? (
+             <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 text-green-600 font-medium text-sm">
+                  <CheckCircle2 className="w-5 h-5" /> Active
+                </div>
+                 <button 
+                  onClick={handleConnect}
+                  className="text-xs text-blue-600 hover:text-blue-800 underline ml-2"
+                >
+                  Reconnect
+                </button>
+                <button 
+                  onClick={handleSync}
+                  className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 underline ml-2"
+                  disabled={loading}
+                >
+                  <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} /> Sync
+                </button>
+             </div>
           ) : (
             <button
               onClick={handleConnect}
@@ -205,70 +206,12 @@ export function FacebookConnect({ artistId, isConnected = false }: FacebookConne
         </div>
 
         {error && (
-          <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-xs rounded-lg flex items-start gap-2">
+          <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-xs rounded-lg flex items-start gap-2 animate-in slide-in-from-top-2">
             <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
             <span>{error}</span>
           </div>
         )}
       </div>
-
-      {/* Page Picker Modal */}
-      {showPagePicker && pages.length > 0 && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white dark:bg-zinc-900 w-full max-w-md rounded-2xl p-6 shadow-xl border border-neutral-200 dark:border-neutral-800">
-            <h3 className="text-lg font-bold mb-2 text-neutral-900 dark:text-white">
-              Select a Facebook Page
-            </h3>
-            <p className="text-xs text-neutral-500 mb-5">
-              Choose which page to sync posts from:
-            </p>
-
-            <div className="space-y-2 max-h-64 overflow-y-auto">
-              {pages.map((page) => (
-                <button
-                  key={page.id}
-                  onClick={() => handleSelectPage(page)}
-                  disabled={saving}
-                  className={`w-full flex items-center justify-between p-3.5 rounded-xl border transition-all text-left
-                    ${
-                      selectedPage?.id === page.id && saving
-                        ? "border-blue-400 bg-blue-50 dark:bg-blue-900/20"
-                        : "border-neutral-200 dark:border-zinc-700 hover:border-blue-300 hover:bg-blue-50/50 dark:hover:bg-blue-900/10"
-                    }
-                    disabled:opacity-60`}
-                >
-                  <div>
-                    <p className="text-sm font-medium text-neutral-900 dark:text-white">
-                      {page.name}
-                    </p>
-                    {page.category && (
-                      <p className="text-[11px] text-neutral-500 mt-0.5">{page.category}</p>
-                    )}
-                  </div>
-                  {selectedPage?.id === page.id && saving ? (
-                    <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
-                  ) : (
-                    <ExternalLink className="w-4 h-4 text-neutral-400" />
-                  )}
-                </button>
-              ))}
-            </div>
-
-            <div className="flex justify-end mt-5">
-              <button
-                onClick={() => {
-                  setShowPagePicker(false);
-                  setPages([]);
-                }}
-                disabled={saving}
-                className="px-4 py-2 text-sm text-neutral-600 hover:bg-neutral-100 dark:hover:bg-zinc-800 rounded-lg"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
