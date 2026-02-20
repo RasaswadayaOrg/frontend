@@ -688,3 +688,55 @@ export async function updateOrganizer(organizerId: string, formData: FormData) {
     return { success: false, message: 'Failed to update organizer' };
   }
 }
+
+// Posts
+export async function deletePost(postId: string) {
+  const isAdmin = await verifyAdminSession();
+  if (!isAdmin) {
+    return { success: false, message: "Unauthorized" };
+  }
+
+  try {
+    const res = await fetch(`${API_URL}/admin/posts/${postId}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (res.ok) {
+      revalidatePath('/admin/posts');
+      return { success: true };
+    } else {
+      const data = await res.json();
+      return { success: false, message: data.message || 'Failed to delete post' };
+    }
+  } catch (error) {
+    console.error('Delete post error:', error);
+    return { success: false, message: 'Failed to delete post' };
+  }
+}
+
+export async function updatePost(postId: string, postData: { title?: string; content?: string; imageUrl?: string; videoUrl?: string }) {
+  const isAdmin = await verifyAdminSession();
+  if (!isAdmin) {
+    return { success: false, message: "Unauthorized" };
+  }
+
+  try {
+    const res = await fetch(`${API_URL}/admin/posts/${postId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(postData),
+    });
+
+    if (res.ok) {
+      revalidatePath('/admin/posts');
+      return { success: true };
+    } else {
+      const data = await res.json();
+      return { success: false, message: data.message || 'Failed to update post' };
+    }
+  } catch (error) {
+    console.error('Update post error:', error);
+    return { success: false, message: 'Failed to update post' };
+  }
+}

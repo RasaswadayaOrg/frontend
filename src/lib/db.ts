@@ -503,4 +503,38 @@ export async function getActiveAdsForPlacement(placement: string) {
     return data.data;
 }
 
+// --- Admin Posts ---
+
+export interface AdminPostType {
+  id: string;
+  title: string | null;
+  content: string | null;
+  imageUrl: string | null;
+  videoUrl: string | null;
+  source: string;
+  externalId: string | null;
+  publishedAt: string;
+  createdAt: string;
+  updatedAt: string;
+  artistId: string;
+  artist: {
+    id: string;
+    name: string;
+    photoUrl: string | null;
+  } | null;
+  likesCount: number;
+  commentsCount: number;
+}
+
+export async function getAdminPosts(limit = 20, page = 1): Promise<{ posts: AdminPostType[]; pagination: { page: number; limit: number; total: number; totalPages: number } }> {
+  const data = await fetchData('/admin/posts', { limit, page });
+  if (!data || !data.success) return { posts: [], pagination: { page, limit, total: 0, totalPages: 0 } };
+  return data.data;
+}
+
+export async function getAdminPostsCount() {
+  const data = await fetchData('/admin/posts', { limit: 1, page: 1 });
+  return data?.data?.pagination?.total || 0;
+}
+
 export const prisma = {};
