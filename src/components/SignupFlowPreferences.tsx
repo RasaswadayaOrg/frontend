@@ -3,102 +3,78 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { saveUserPreferences, updateUserProfile } from "@/app/actions/auth";
-import { ArrowLeft, ArrowRight, Check, MapPin, Music, Theater, Palette, BookOpen, Mic2, Camera } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, MapPin, Music, Theater, PersonStanding } from "lucide-react";
 
-// Sri Lankan cities
-const SRI_LANKAN_CITIES = [
-  "Colombo",
-  "Kandy",
-  "Galle",
-  "Jaffna",
-  "Negombo",
+// All 25 Sri Lankan Districts
+const SRI_LANKAN_DISTRICTS = [
+  "Ampara",
   "Anuradhapura",
-  "Trincomalee",
-  "Batticaloa",
-  "Matara",
-  "Kurunegala",
-  "Ratnapura",
   "Badulla",
+  "Batticaloa",
+  "Colombo",
+  "Galle",
+  "Gampaha",
+  "Hambantota",
+  "Jaffna",
+  "Kalutara",
+  "Kandy",
+  "Kegalle",
+  "Kilinochchi",
+  "Kurunegala",
+  "Mannar",
+  "Matale",
+  "Matara",
+  "Monaragala",
+  "Mullaitivu",
   "Nuwara Eliya",
   "Polonnaruwa",
-  "Hambantota",
+  "Puttalam",
+  "Ratnapura",
+  "Trincomalee",
+  "Vavuniya",
 ];
 
-// Cultural event categories with examples
+// Cultural categories with sub-preferences
 const CULTURAL_CATEGORIES = [
   {
-    id: "traditional-music",
-    name: "Traditional Music",
+    id: "music",
+    name: "Music (සංගීතය)",
     icon: Music,
     color: "from-amber-500 to-orange-500",
     examples: [
-      { id: "kandyan-drums", name: "Kandyan Drums", image: "🥁" },
-      { id: "baila", name: "Baila & Kaffrinha", image: "🎺" },
-      { id: "nadagam", name: "Nadagam Songs", image: "🎵" },
-      { id: "viridu", name: "Viridu Poetry", image: "📜" },
+      { id: "classical-music", name: "Classical (ශාස්ත්‍රීය)", image: "🎶" },
+      { id: "folk-music", name: "Folk Music (ජන ගී)", image: "🪕" },
+      { id: "sarala-gee", name: "Sarala Gee (සරල ගී)", image: "🎵" },
+      { id: "fusion-modern", name: "Fusion / Modern", image: "🎸" },
+      { id: "instrumental", name: "Instrumental", image: "🥁" },
     ],
   },
   {
-    id: "classical-dance",
-    name: "Classical Dance",
+    id: "drama",
+    name: "Drama (නාට්‍ය කලාව)",
     icon: Theater,
-    color: "from-pink-500 to-rose-500",
-    examples: [
-      { id: "kandyan-dance", name: "Kandyan Dance", image: "💃" },
-      { id: "low-country", name: "Low Country Dance", image: "🎭" },
-      { id: "sabaragamuwa", name: "Sabaragamuwa Dance", image: "👯" },
-      { id: "devil-dance", name: "Devil Dance (Yakun Natima)", image: "😈" },
-    ],
-  },
-  {
-    id: "visual-arts",
-    name: "Visual Arts",
-    icon: Palette,
-    color: "from-violet-500 to-purple-500",
-    examples: [
-      { id: "batik", name: "Batik Art", image: "🎨" },
-      { id: "mask-carving", name: "Mask Carving", image: "🎭" },
-      { id: "wood-carving", name: "Wood Carving", image: "🪵" },
-      { id: "temple-paintings", name: "Temple Paintings", image: "🖼️" },
-    ],
-  },
-  {
-    id: "literature",
-    name: "Literature & Poetry",
-    icon: BookOpen,
-    color: "from-emerald-500 to-teal-500",
-    examples: [
-      { id: "sinhala-poetry", name: "Sinhala Poetry", image: "📝" },
-      { id: "tamil-literature", name: "Tamil Literature", image: "📚" },
-      { id: "folk-tales", name: "Folk Tales", image: "📖" },
-      { id: "jataka-stories", name: "Jataka Stories", image: "🪷" },
-    ],
-  },
-  {
-    id: "theater",
-    name: "Theater & Drama",
-    icon: Mic2,
     color: "from-blue-500 to-indigo-500",
     examples: [
-      { id: "kolam", name: "Kolam", image: "🎪" },
-      { id: "sokari", name: "Sokari", image: "🎭" },
-      { id: "modern-drama", name: "Modern Drama", image: "🎬" },
-      { id: "street-theater", name: "Street Theater", image: "🎤" },
+      { id: "stylized-drama", name: "Stylized (දෘශ්‍ය කාව්‍ය)", image: "🎭" },
+      { id: "realistic-drama", name: "Realistic (යථාර්ථවාදී)", image: "🎬" },
+      { id: "comedy-drama", name: "Comedy (හාස්‍ය)", image: "😂" },
+      { id: "street-drama", name: "Street Drama (වීදි නාට්‍ය)", image: "🎤" },
     ],
   },
   {
-    id: "festivals",
-    name: "Festivals & Ceremonies",
-    icon: Camera,
-    color: "from-yellow-500 to-amber-500",
+    id: "dance",
+    name: "Dance (නර්තනය)",
+    icon: PersonStanding,
+    color: "from-pink-500 to-rose-500",
     examples: [
-      { id: "esala-perahera", name: "Esala Perahera", image: "🐘" },
-      { id: "vesak", name: "Vesak Celebrations", image: "🪷" },
-      { id: "thai-pongal", name: "Thai Pongal", image: "🌾" },
-      { id: "sinhala-new-year", name: "Sinhala New Year", image: "🎊" },
+      { id: "upcountry-dance", name: "Upcountry (උඩරට)", image: "💃" },
+      { id: "lowcountry-dance", name: "Low Country (පහතරට)", image: "👹" },
+      { id: "sabaragamuwa-dance", name: "Sabaragamuwa", image: "👯" },
+      { id: "contemporary-dance", name: "Contemporary (නව නර්තන)", image: "🩰" },
     ],
   },
 ];
+
 
 interface SignupFlowPreferencesProps {
   onComplete?: () => void;
@@ -261,21 +237,25 @@ export function SignupFlowPreferences({ onComplete }: SignupFlowPreferencesProps
             </div>
           )}
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-64 overflow-y-auto">
-            {SRI_LANKAN_CITIES.map((city) => (
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-72 overflow-y-auto pr-2 scrollbar-thin">
+            {SRI_LANKAN_DISTRICTS.map((district) => (
               <button
-                key={city}
-                onClick={() => setSelectedCity(city)}
+                key={district}
+                onClick={() => setSelectedCity(district)}
                 className={`px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-                  selectedCity === city
+                  selectedCity === district
                     ? "bg-violet-600 text-white shadow-lg shadow-violet-500/30"
                     : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700"
                 }`}
               >
-                {city}
+                {district}
               </button>
             ))}
           </div>
+
+          <p className="text-xs text-center text-zinc-400 dark:text-zinc-500 mt-1">
+            Scroll to see all 25 districts
+          </p>
 
           <button
             onClick={() => setCurrentStep("categories")}
