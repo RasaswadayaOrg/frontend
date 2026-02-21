@@ -22,6 +22,7 @@ interface RoleTextFields {
 export default function ProfilePage() {
   const [profile, setProfile] = useState<any>(null);
   const [preferences, setPreferences] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -41,11 +42,17 @@ export default function ProfilePage() {
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
   useEffect(() => {
-    fetchCurrentUser().then(setProfile);
-    fetchUserPreferences().then((prefs) => {
+    Promise.all([
+      fetchCurrentUser(),
+      fetchUserPreferences(),
+    ]).then(([profileData, prefs]) => {
+      setProfile(profileData);
       setPreferences(prefs);
       setSelectedInterests(prefs?.interests || []);
       setSelectedCategories(prefs?.categories || []);
+      setLoading(false);
+    }).catch(() => {
+      setLoading(false);
     });
   }, []);
   // Interests edit logic
@@ -461,6 +468,32 @@ export default function ProfilePage() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="max-w-4xl mx-auto space-y-8">
+        <h1 className="text-3xl font-bold text-slate-900 dark:text-white">My Profile</h1>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="md:col-span-1">
+            <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 p-6 text-center animate-pulse">
+              <div className="w-24 h-24 bg-slate-200 dark:bg-zinc-800 rounded-full mx-auto mb-4" />
+              <div className="h-5 bg-slate-200 dark:bg-zinc-800 rounded w-32 mx-auto mb-2" />
+              <div className="h-4 bg-slate-200 dark:bg-zinc-800 rounded w-40 mx-auto mb-4" />
+              <div className="h-10 bg-slate-200 dark:bg-zinc-800 rounded-xl w-full mt-4" />
+            </div>
+          </div>
+          <div className="md:col-span-2 space-y-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 p-6 animate-pulse">
+                <div className="h-5 bg-slate-200 dark:bg-zinc-800 rounded w-32 mb-4" />
+                <div className="h-10 bg-slate-200 dark:bg-zinc-800 rounded-xl w-full" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       <h1 className="text-3xl font-bold text-slate-900 dark:text-white">My Profile</h1>
@@ -472,8 +505,8 @@ export default function ProfilePage() {
             <div className="w-24 h-24 bg-slate-200 dark:bg-zinc-800 rounded-full mx-auto mb-4 flex items-center justify-center">
               <User className="w-10 h-10 text-slate-400" />
             </div>
-            <h2 className="font-bold text-lg">{profile?.fullName || "Guest User"}</h2>
-            <p className="text-sm text-slate-500 mb-4">{profile?.email || "guest@example.com"}</p>
+            <h2 className="font-bold text-lg">{profile?.fullName || "—"}</h2>
+            <p className="text-sm text-slate-500 mb-4">{profile?.email || "—"}</p>
             <div className="text-sm text-slate-500 mb-2">{profile?.phone && `Phone: ${profile.phone}`}</div>
             <div className="text-sm text-slate-500 mb-2">{profile?.city && `City: ${profile.city}`}</div>
             {!editing ? (
@@ -557,11 +590,15 @@ export default function ProfilePage() {
             </h3>
             {!editing ? (
               <div className="flex flex-wrap gap-2 mb-2">
-                {(preferences?.interests?.length ? preferences.interests : allInterests).map((interest: string) => (
-                  <span key={interest} className="px-4 py-2 rounded-full text-sm border border-slate-200 dark:border-zinc-700 bg-brand-50 text-brand-600 border-brand-200">
-                    {interest}
-                  </span>
-                ))}
+                {preferences?.interests?.length ? (
+                  preferences.interests.map((interest: string) => (
+                    <span key={interest} className="px-4 py-2 rounded-full text-sm border border-slate-200 dark:border-zinc-700 bg-brand-50 text-brand-600 border-brand-200">
+                      {interest}
+                    </span>
+                  ))
+                ) : (
+                  <p className="text-sm text-slate-500 dark:text-zinc-400">No interests selected yet. Click Edit Profile to add.</p>
+                )}
               </div>
             ) : (
               <div className="flex flex-wrap gap-2 mb-2">
@@ -589,11 +626,15 @@ export default function ProfilePage() {
             </h3>
             {!editing ? (
               <div className="flex flex-wrap gap-2 mb-2">
-                {(preferences?.categories?.length ? preferences.categories : allCategories).map((category: string) => (
-                  <span key={category} className="px-4 py-2 rounded-full text-sm border border-slate-200 dark:border-zinc-700 bg-brand-50 text-brand-600 border-brand-200">
-                    {category}
-                  </span>
-                ))}
+                {preferences?.categories?.length ? (
+                  preferences.categories.map((category: string) => (
+                    <span key={category} className="px-4 py-2 rounded-full text-sm border border-slate-200 dark:border-zinc-700 bg-brand-50 text-brand-600 border-brand-200">
+                      {category}
+                    </span>
+                  ))
+                ) : (
+                  <p className="text-sm text-slate-500 dark:text-zinc-400">No preferences selected yet. Click Edit Profile to add.</p>
+                )}
               </div>
             ) : (
               <div className="flex flex-wrap gap-2 mb-2">
@@ -619,15 +660,7 @@ export default function ProfilePage() {
             <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
               <Bell className="w-5 h-5 text-brand-600" /> Upcoming Reminders
             </h3>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-zinc-800/50 rounded-xl">
-                <div>
-                  <h4 className="font-medium text-sm font-sinhala">සිංහබාහු</h4>
-                  <p className="text-xs text-slate-500">Dec 18 • 6:30 PM</p>
-                </div>
-                <button className="text-xs text-red-500 hover:underline">Remove</button>
-              </div>
-            </div>
+            <p className="text-sm text-slate-500 dark:text-zinc-400">No upcoming reminders.</p>
           </div>
 
         </div>
