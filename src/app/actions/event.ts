@@ -18,6 +18,7 @@ export async function createEvent(data: {
   capacity?: number;
   ticketLink?: string;
   imageUrl?: string;
+  artistIds?: string[];
 }) {
   const session = await getSession();
   if (!session?.token) {
@@ -43,6 +44,7 @@ export async function createEvent(data: {
       capacity: data.capacity || null,
       ticketLink: data.ticketLink || null,
       imageUrl: data.imageUrl || null,
+      artistIds: data.artistIds || [],
     }),
   });
 
@@ -67,7 +69,7 @@ export async function getOrganizerEvents() {
   }
 
   try {
-    const response = await fetch(`${API_URL}/events?limit=50`, {
+    const response = await fetch(`${API_URL}/events/organizer/me`, {
       headers: {
         Authorization: `Bearer ${session.token}`,
       },
@@ -79,12 +81,8 @@ export async function getOrganizerEvents() {
     }
 
     const result = await response.json();
-    const userId = session.user?.id;
-    const myEvents = userId
-      ? (result.data || []).filter((e: any) => e.organizerId === userId)
-      : result.data || [];
 
-    return { success: true, data: myEvents };
+    return { success: true, data: result.data || [] };
   } catch (error: any) {
     console.error("Fetch organizer events error:", error);
     return { success: false, data: [], error: error.message };
@@ -113,4 +111,25 @@ export async function deleteEvent(eventId: string) {
   revalidatePath("/events");
 
   return { success: true };
+}
+
+export async function getArtistsForTagging(search?: string) {
+  try {
+    const params = new URLSearchParams({ limit: "50" });
+    if (search) params.set("search", search);
+
+    const response = await fetch(`${API_URL}/artists?${params.toString()}`, {
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      return { success: false, data: [] };
+    }
+
+    const result = await response.json();
+    return { success: true, data: result.data || [] };
+  } catch (error: any) {
+    console.error("Fetch artists for tagging error:", error);
+    return { success: false, data: [] };
+  }
 }

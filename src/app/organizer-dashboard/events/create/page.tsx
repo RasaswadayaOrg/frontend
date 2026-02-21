@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
   Calendar,
@@ -11,26 +11,23 @@ import {
   ChevronLeft,
   Search,
   Check,
-  Send,
-  Upload,
   Users,
   Ticket,
   Building,
   Globe,
   AlertCircle,
   Loader2,
+  Music,
+  X,
 } from "lucide-react";
 import Link from "next/link";
-import { ImageWithFallback } from "@/components/ImageWithFallback";
-import { createEvent } from "@/app/actions/event";
+import { createEvent, getArtistsForTagging } from "@/app/actions/event";
 
 // Categories matching the user-facing event filters
 const EVENT_CATEGORIES = [
-  "Concert",
-  "Festival",
-  "Performance",
-  "Exhibition",
-  "Workshop",
+  "Music",
+  "Dance",
+  "Drama",
 ];
 
 // Sri Lankan districts for city selection
@@ -51,7 +48,7 @@ export default function CreateEventPage() {
 
   const [formData, setFormData] = useState({
     title: "",
-    category: "Concert",
+    category: "Music",
     date: "",
     startTime: "",
     endTime: "",
@@ -64,20 +61,45 @@ export default function CreateEventPage() {
     imageUrl: "",
   });
 
-  const [selectedArtists, setSelectedArtists] = useState<number[]>([]);
-  const [sentRequests, setSentRequests] = useState<number[]>([]);
-
-  const mockArtists = [
-    { id: 1, name: "Yohani De Silva", role: "Vocalist", avatar: "/api/avatar?name=Yohani", rating: 4.9, genre: "Pop", available: true },
-    { id: 2, name: "Bathiya N Santhush", role: "Pop Duo", avatar: "/api/avatar?name=BNS", rating: 4.8, genre: "Pop", available: true },
-    { id: 3, name: "Chitral Somapala", role: "Rock Singer", avatar: "/api/avatar?name=Chitral", rating: 4.7, genre: "Rock", available: false },
-    { id: 4, name: "Umaria Sinhawansa", role: "Vocalist", avatar: "/api/avatar?name=Umaria", rating: 4.9, genre: "Classical/Pop", available: true },
-    { id: 5, name: "Daddy", role: "Band", avatar: "/api/avatar?name=Daddy", rating: 4.6, genre: "Rock/Pop", available: true },
-    { id: 6, name: "Kasun Kalhara", role: "Composer/Singer", avatar: "/api/avatar?name=Kasun", rating: 4.9, genre: "Classical", available: false },
-  ];
+  // Artist tagging state
+  const [selectedArtists, setSelectedArtists] = useState<string[]>([]);
+  const [artists, setArtists] = useState<any[]>([]);
+  const [artistSearch, setArtistSearch] = useState("");
+  const [artistsLoading, setArtistsLoading] = useState(false);
 
   const totalSteps = 4;
-  const stepLabels = ["Basic Info", "Find Artists", "Details & Tickets", "Review & Publish"];
+  const stepLabels = ["Basic Info", "Tag Artists", "Details & Tickets", "Review & Publish"];
+
+  // Fetch artists from the database
+  const fetchArtists = useCallback(async (search?: string) => {
+    setArtistsLoading(true);
+    try {
+      const result = await getArtistsForTagging(search);
+      if (result.success && result.data) {
+        setArtists(result.data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch artists:", err);
+    } finally {
+      setArtistsLoading(false);
+    }
+  }, []);
+
+  // Load artists when entering step 2
+  useEffect(() => {
+    if (step === 2) {
+      fetchArtists();
+    }
+  }, [step, fetchArtists]);
+
+  // Debounced search
+  useEffect(() => {
+    if (step !== 2) return;
+    const timer = setTimeout(() => {
+      fetchArtists(artistSearch || undefined);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [artistSearch, step, fetchArtists]);
 
   const nextStep = () => {
     setError(null);
@@ -96,15 +118,10 @@ export default function CreateEventPage() {
   };
   const prevStep = () => { setError(null); setStep(step - 1); };
 
-  const toggleArtist = (id: number) => {
+  const toggleArtist = (id: string) => {
     setSelectedArtists((prev) =>
       prev.includes(id) ? prev.filter((aid) => aid !== id) : [...prev, id]
     );
-  };
-
-  const sendInvites = () => {
-    setSentRequests((prev) => [...prev, ...selectedArtists]);
-    setSelectedArtists([]);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -129,6 +146,7 @@ export default function CreateEventPage() {
         capacity: formData.capacity ? parseInt(formData.capacity) : undefined,
         ticketLink: formData.ticketLink.trim() || undefined,
         imageUrl: formData.imageUrl.trim() || undefined,
+        artistIds: selectedArtists.length > 0 ? selectedArtists : undefined,
       });
 
       setSuccess(true);
@@ -328,88 +346,130 @@ export default function CreateEventPage() {
             </div>
           )}
 
-          {/* Step 2: Find Artists */}
+          {/* Step 2: Tag Artists */}
           {step === 2 && (
             <div className="p-6 sm:p-8 space-y-5">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3">
-                <div className="flex-1 w-full">
-                  <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
-                    Available Artists {formData.date ? `for ${formData.date}` : ""}
-                  </label>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
-                    <input type="text" placeholder="Search by name, genre..." className={`${inputClass} pl-10`} />
-                  </div>
+              {/* Search */}
+              <div>
+                <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
+                  Tag Artists for This Event
+                </label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+                  <input
+                    type="text"
+                    placeholder="Search by name, genre..."
+                    className={`${inputClass} pl-10`}
+                    value={artistSearch}
+                    onChange={(e) => setArtistSearch(e.target.value)}
+                  />
+                  {artistSearch && (
+                    <button
+                      type="button"
+                      onClick={() => setArtistSearch("")}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
-                {selectedArtists.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={sendInvites}
-                    className="inline-flex items-center gap-2 px-5 py-3 bg-brand-600 text-white rounded-xl text-sm font-semibold hover:bg-brand-700 transition-all duration-200 active:scale-[0.98] shadow-lg shadow-brand-200/40 dark:shadow-none whitespace-nowrap"
-                  >
-                    <Send className="w-4 h-4" /> Invite {selectedArtists.length}
-                  </button>
-                )}
               </div>
 
+              {/* Selected artists chips */}
+              {selectedArtists.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {selectedArtists.map((id) => {
+                    const artist = artists.find((a: any) => a.id === id);
+                    return (
+                      <span
+                        key={id}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-300 border border-brand-200 dark:border-brand-800 rounded-full text-xs font-medium"
+                      >
+                        <Music className="w-3 h-3" />
+                        {artist?.name || "Unknown Artist"}
+                        <button
+                          type="button"
+                          onClick={() => toggleArtist(id)}
+                          className="ml-0.5 hover:text-brand-900 dark:hover:text-brand-100"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    );
+                  })}
+                  <span className="text-xs text-neutral-500 self-center ml-1">
+                    {selectedArtists.length} artist{selectedArtists.length !== 1 ? "s" : ""} tagged
+                  </span>
+                </div>
+              )}
+
+              {/* Artists list */}
               <div className="max-h-[380px] overflow-y-auto space-y-2 pr-1">
-                {mockArtists.map((artist) => {
-                  const isSelected = selectedArtists.includes(artist.id);
-                  const isSent = sentRequests.includes(artist.id);
-                  return (
-                    <div
-                      key={artist.id}
-                      className={`flex items-center gap-4 p-4 rounded-xl border cursor-pointer transition-all duration-200 ${
-                        isSelected
-                          ? "border-brand-300 bg-brand-50/50 dark:bg-brand-900/10 dark:border-brand-700"
-                          : "border-neutral-100 dark:border-neutral-800 hover:border-neutral-200 dark:hover:border-neutral-700"
-                      } ${!artist.available ? "opacity-40 cursor-not-allowed" : ""}`}
-                      onClick={() => artist.available && !isSent && toggleArtist(artist.id)}
-                    >
-                      <div className="relative flex-shrink-0">
-                        <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white dark:border-zinc-800 shadow-sm">
-                          <ImageWithFallback src={artist.avatar} alt={artist.name} width={40} height={40} className="object-cover" />
-                        </div>
-                        {artist.available && (
-                          <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-white dark:border-zinc-900" />
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <h4 className="text-sm font-semibold truncate">{artist.name}</h4>
-                          {isSent && (
-                            <span className="text-[10px] font-semibold text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-1.5 py-0.5 rounded">
-                              INVITED
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-[11px] text-neutral-500">{artist.role} · {artist.genre}</p>
-                      </div>
-                      {artist.available ? (
-                        isSent ? (
-                          <Check className="w-5 h-5 text-emerald-600 flex-shrink-0" />
-                        ) : (
-                          <div
-                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
-                              isSelected ? "bg-brand-600 border-brand-600 text-white" : "border-neutral-300 dark:border-neutral-600"
-                            }`}
-                          >
-                            {isSelected && <Check className="w-3 h-3" />}
+                {artistsLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="w-6 h-6 animate-spin text-brand-600" />
+                    <span className="ml-2 text-sm text-neutral-500">Loading artists...</span>
+                  </div>
+                ) : artists.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Users className="w-8 h-8 text-neutral-300 mx-auto mb-2" />
+                    <p className="text-sm text-neutral-500">
+                      {artistSearch ? "No artists found matching your search." : "No artists available."}
+                    </p>
+                  </div>
+                ) : (
+                  artists.map((artist: any) => {
+                    const isSelected = selectedArtists.includes(artist.id);
+                    return (
+                      <div
+                        key={artist.id}
+                        className={`flex items-center gap-4 p-4 rounded-xl border cursor-pointer transition-all duration-200 ${
+                          isSelected
+                            ? "border-brand-300 bg-brand-50/50 dark:bg-brand-900/10 dark:border-brand-700"
+                            : "border-neutral-100 dark:border-neutral-800 hover:border-neutral-200 dark:hover:border-neutral-700"
+                        }`}
+                        onClick={() => toggleArtist(artist.id)}
+                      >
+                        {/* Avatar */}
+                        <div className="relative flex-shrink-0">
+                          <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white dark:border-zinc-800 shadow-sm bg-gradient-to-br from-brand-100 to-brand-200 dark:from-brand-800 dark:to-brand-900 flex items-center justify-center">
+                            {artist.photoUrl ? (
+                              <img src={artist.photoUrl} alt={artist.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <span className="text-sm font-bold text-brand-700 dark:text-brand-300">
+                                {artist.name?.charAt(0)?.toUpperCase() || "?"}
+                              </span>
+                            )}
                           </div>
-                        )
-                      ) : (
-                        <span className="text-[10px] font-semibold text-rose-500 bg-rose-50 dark:bg-rose-900/20 px-1.5 py-0.5 rounded flex-shrink-0">
-                          BUSY
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
+                        </div>
+
+                        {/* Info */}
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-sm font-semibold truncate text-neutral-900 dark:text-white">
+                            {artist.name}
+                          </h4>
+                          <p className="text-[11px] text-neutral-500">
+                            {[artist.profession, artist.genre].filter(Boolean).join(" · ") || "Artist"}
+                          </p>
+                        </div>
+
+                        {/* Checkbox */}
+                        <div
+                          className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                            isSelected ? "bg-brand-600 border-brand-600 text-white" : "border-neutral-300 dark:border-neutral-600"
+                          }`}
+                        >
+                          {isSelected && <Check className="w-3 h-3" />}
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
               </div>
 
               <div className="p-3.5 bg-neutral-50 dark:bg-zinc-800/50 rounded-xl border border-neutral-100 dark:border-neutral-800">
                 <p className="text-xs text-neutral-500 leading-relaxed">
-                  <span className="font-semibold text-brand-600">Tip:</span> Artist invitations are optional. You can skip this step and add artists later.
+                  <span className="font-semibold text-brand-600">Tip:</span> Tagging artists is optional. You can skip this step and add artists later from the event edit page.
                 </p>
               </div>
             </div>
@@ -515,10 +575,15 @@ export default function CreateEventPage() {
                       <p className="font-medium text-neutral-900 dark:text-white">{formData.capacity}</p>
                     </div>
                   )}
-                  {sentRequests.length > 0 && (
+                  {selectedArtists.length > 0 && (
                     <div>
-                      <span className="text-neutral-500 text-xs">Artists Invited</span>
-                      <p className="font-medium text-neutral-900 dark:text-white">{sentRequests.length}</p>
+                      <span className="text-neutral-500 text-xs">Tagged Artists</span>
+                      <p className="font-medium text-neutral-900 dark:text-white">
+                        {selectedArtists.map((id) => {
+                          const artist = artists.find((a: any) => a.id === id);
+                          return artist?.name || "Unknown";
+                        }).join(", ")}
+                      </p>
                     </div>
                   )}
                 </div>
