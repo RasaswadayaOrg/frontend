@@ -7,11 +7,12 @@ export function ArtistFeed({ artistId, artistName, artistAvatar }: { artistId: s
   const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+
   useEffect(() => {
     async function fetchPosts() {
         try {
-            // Adjust URL based on your environment variable
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+            const apiUrl = API_URL;
             const res = await fetch(`${apiUrl}/artists/${artistId}/posts`);
             
             if (!res.ok) throw new Error('Failed to fetch');
@@ -52,9 +53,13 @@ export function ArtistFeed({ artistId, artistName, artistAvatar }: { artistId: s
                 avatar: artistAvatar || "/default-avatar.png",
                 isVerified: true 
               },
-              content: post.content || "",
+              content: post.title ? `**${post.title}**\n\n${post.content || ''}` : (post.content || ''),
               timestamp: new Date(post.publishedAt).toLocaleDateString(),
-              image: post.imageUrl,
+              image: post.imageUrl ? (
+                post.imageUrl.startsWith("http")
+                  ? post.imageUrl
+                  : `${API_URL.replace("/api", "")}${post.imageUrl}`
+              ) : undefined,
               video: post.videoUrl,
               likes: 0, // Placeholder
               comments: 0, // Placeholder
