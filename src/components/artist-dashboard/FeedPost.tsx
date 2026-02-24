@@ -109,12 +109,12 @@ export function FeedPost({ post }: PostProps) {
 
         {/* Image */}
         {post.image && (
-          <div className="rounded-xl overflow-hidden border border-neutral-100 dark:border-neutral-800/60 -mx-1">
+          <div className="rounded-xl overflow-hidden border border-neutral-100 dark:border-neutral-800/60 -mx-1 max-h-[400px]">
             {/* Use native img tag to avoid Next.js Image optimization issues with external URLs */}
             <img
               src={post.image}
               alt="Post content"
-              className="w-full h-auto object-cover"
+              className="w-full h-auto max-h-[400px] object-cover"
               onError={(e) => {
                 (e.target as HTMLImageElement).style.display = 'none';
               }}
@@ -124,7 +124,7 @@ export function FeedPost({ post }: PostProps) {
 
         {/* Video */}
         {post.video && videoId ? (
-          <div className="rounded-xl overflow-hidden border border-neutral-100 dark:border-neutral-800/60 aspect-video relative bg-black -mx-1">
+          <div className="rounded-xl overflow-hidden border border-neutral-100 dark:border-neutral-800/60 aspect-video relative bg-black -mx-1 max-h-[360px]">
              <iframe
                 src={`https://www.youtube.com/embed/${videoId}`}
                 className="absolute inset-0 w-full h-full"

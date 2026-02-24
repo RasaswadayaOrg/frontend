@@ -40,7 +40,7 @@ export function ArtistFeed({ artistId, artistName, artistAvatar }: { artistId: s
   return (
     <div className="space-y-6">
       <h3 className="text-xl font-bold text-slate-900 dark:text-white px-1">Latest Updates</h3>
-      <div className="space-y-4">
+      <div className="space-y-4 max-w-2xl">
         {posts.map((post) => (
           <FeedPost 
             key={post.id} 
