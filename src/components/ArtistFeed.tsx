@@ -50,7 +50,7 @@ export function ArtistFeed({ artistId, artistName, artistAvatar }: { artistId: s
               author: {
                 name: artistName,
                 handle: `@${artistName.replace(/\s+/g, '').toLowerCase()}`,
-                avatar: artistAvatar || "/default-avatar.png",
+                avatar: artistAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(artistName)}&background=random`,
                 isVerified: true 
               },
               content: post.title ? `**${post.title}**\n\n${post.content || ''}` : (post.content || ''),

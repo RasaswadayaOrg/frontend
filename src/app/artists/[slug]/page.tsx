@@ -50,7 +50,7 @@ export default async function ArtistProfilePage(props: { params: Promise<{ slug:
                   <span className="flex items-center gap-1"><Music className="w-4 h-4" /> {artist.profession || artist.genre || "Artist"}</span>
                 </div>
               </div>
-              <ArtistActions />
+              <ArtistActions artistId={artist.id} initialIsFollowing={artist.isFollowing} />
             </div>
             
             <p className="text-slate-600 dark:text-zinc-400 max-w-2xl leading-relaxed">

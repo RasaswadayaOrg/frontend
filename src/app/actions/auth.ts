@@ -49,7 +49,7 @@ export async function registerUser(data: {
     const result = await res.json();
 
     if (!res.ok) {
-      throw new Error(result.message || "Registration failed");
+      throw new Error(result.error || result.message || "Registration failed");
     }
 
     const { user, token } = result.data;
@@ -65,6 +65,38 @@ export async function registerUser(data: {
     return { success: true, user, token };
   } catch (error: any) {
     console.error("Register error:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+// Login a user with email (returns user data without redirect, sets session cookie)
+export async function loginUser(email: string, password: string) {
+  try {
+    const res = await fetch(`${API_URL}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const result = await res.json();
+
+    if (!res.ok) {
+      return { success: false, error: result.error || result.message || "Invalid credentials" };
+    }
+
+    const { user, token } = result.data;
+    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    const session = await encrypt({ 
+       user: { id: user.id, email: user.email, role: user.role, fullName: user.fullName }, 
+       token,
+       expires 
+    });
+
+    (await cookies()).set("session", session, { expires, httpOnly: true });
+
+    return { success: true, user, token };
+  } catch (error: any) {
+    console.error("Login error:", error);
     return { success: false, error: error.message };
   }
 }
@@ -193,10 +225,10 @@ export async function signup(formData: FormData) {
     const data = await res.json();
 
     if (!res.ok) {
-      throw new Error(data.message || "Registration failed");
+      throw new Error(data.error || data.message || "Registration failed");
     }
 
-    const { user, token } = data;
+    const { user, token } = data.data;
     const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
     const session = await encrypt({ 
        user: { id: user.id, email: user.email, role: user.role }, 
@@ -228,10 +260,10 @@ export async function signin(formData: FormData) {
     const data = await res.json();
 
     if (!res.ok) {
-      throw new Error(data.message || "Invalid credentials");
+      throw new Error(data.error || data.message || "Invalid credentials");
     }
 
-    const { user, token } = data;
+    const { user, token } = data.data;
 
     const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
     const session = await encrypt({ 
