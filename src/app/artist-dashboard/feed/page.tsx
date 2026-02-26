@@ -23,6 +23,16 @@ interface Post {
   comments?: number;
 }
 
+interface Follower {
+  id: string;
+  createdAt: string;
+  user: {
+    id: string;
+    fullName: string;
+    avatarUrl?: string;
+  };
+}
+
 const TRENDS = [
   { title: "#TraditionalArts", count: "12.5k posts" },
   { title: "#ColomboJazz", count: "8.2k posts" },
@@ -34,6 +44,7 @@ const TRENDS = [
 export default function ArtistFeedPage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [artist, setArtist] = useState<Artist | null>(null);
+  const [followers, setFollowers] = useState<Follower[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -70,6 +81,16 @@ export default function ArtistFeedPage() {
       if (postsRes.ok) {
         const postsData = await postsRes.json();
         setPosts(postsData);
+      }
+
+      // 3. Fetch Followers
+      const followersRes = await fetch(`${API_URL}/artists/${artistData.id}/followers`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (followersRes.ok) {
+        const followersData = await followersRes.json();
+        setFollowers(followersData.data || []);
       }
     } catch (err) {
       console.error(err);
@@ -170,43 +191,48 @@ export default function ArtistFeedPage() {
             </div>
           </div>
 
-          {/* Who to Follow */}
+          {/* Your Followers */}
           <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-neutral-200/60 dark:border-neutral-800/60 overflow-hidden">
             <div className="px-5 py-4 border-b border-neutral-100 dark:border-neutral-800/60">
               <h3 className="font-semibold text-sm text-neutral-900 dark:text-white">
-                Who to follow
+                Your Followers
               </h3>
             </div>
             <div className="divide-y divide-neutral-100 dark:divide-neutral-800/60">
-              {[
-                { name: "Sithara Madushani", role: "Classical Vocalist" },
-                { name: "Kasun Kalhara", role: "Composer" },
-                { name: "Umaria", role: "Pop Artist" },
-              ].map((person, i) => (
-                <div
-                  key={i}
-                  className="flex items-center justify-between px-5 py-3.5"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-100 to-fuchsia-100 dark:from-violet-900/30 dark:to-fuchsia-900/20 flex items-center justify-center">
-                      <span className="text-sm font-bold text-violet-600 dark:text-violet-400">
-                        {person.name.charAt(0)}
-                      </span>
+              {followers.length === 0 ? (
+                <div className="px-5 py-6 text-center text-sm text-neutral-500">
+                  No followers yet. Share your posts to grow your audience!
+                </div>
+              ) : (
+                followers.map((follower) => (
+                  <div
+                    key={follower.id}
+                    className="flex items-center gap-3 px-5 py-3.5"
+                  >
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-100 to-fuchsia-100 dark:from-violet-900/30 dark:to-fuchsia-900/20 flex items-center justify-center overflow-hidden flex-shrink-0">
+                      {follower.user.avatarUrl ? (
+                        <img
+                          src={follower.user.avatarUrl}
+                          alt={follower.user.fullName}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-sm font-bold text-violet-600 dark:text-violet-400">
+                          {follower.user.fullName.charAt(0)}
+                        </span>
+                      )}
                     </div>
                     <div>
                       <div className="text-sm font-semibold text-neutral-900 dark:text-white">
-                        {person.name}
+                        {follower.user.fullName}
                       </div>
                       <div className="text-[11px] text-neutral-500">
-                        {person.role}
+                        Followed {new Date(follower.createdAt).toLocaleDateString()}
                       </div>
                     </div>
                   </div>
-                  <button className="text-xs font-semibold text-violet-600 hover:text-violet-700 px-3 py-1.5 border border-violet-200 dark:border-violet-800 rounded-lg hover:bg-violet-50 dark:hover:bg-violet-900/20 transition-all duration-200">
-                    Follow
-                  </button>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         </div>

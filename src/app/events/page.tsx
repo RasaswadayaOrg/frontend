@@ -19,11 +19,9 @@ export default async function EventsPage(props: { searchParams: Promise<{ page?:
   const totalPages = Math.ceil(totalEvents / limit);
 
   const categories = [
-    { id: 'Festival', name: 'Festival' },
-    { id: 'Performance', name: 'Performance' },
-    { id: 'Exhibition', name: 'Exhibition' },
-    { id: 'Workshop', name: 'Workshop' },
-    { id: 'Concert', name: 'Concert' },
+    { id: 'Music', name: 'Music' },
+    { id: 'Dance', name: 'Dance' },
+    { id: 'Drama', name: 'Drama' },
   ];
 
   return (

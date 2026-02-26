@@ -107,38 +107,42 @@ export function FeedPost({ post }: PostProps) {
           {post.content}
         </div>
 
-        {/* Image */}
-        {post.image && (
-          <div className="rounded-xl overflow-hidden border border-neutral-100 dark:border-neutral-800/60 -mx-1">
-            {/* Use native img tag to avoid Next.js Image optimization issues with external URLs */}
-            <img
-              src={post.image}
-              alt="Post content"
-              className="w-full h-auto object-cover"
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = 'none';
-              }}
-            />
-          </div>
-        )}
-
-        {/* Video */}
-        {post.video && videoId ? (
-          <div className="rounded-xl overflow-hidden border border-neutral-100 dark:border-neutral-800/60 aspect-video relative bg-black -mx-1">
-             <iframe
-                src={`https://www.youtube.com/embed/${videoId}`}
-                className="absolute inset-0 w-full h-full"
-                allowFullScreen
-                title="YouTube video player"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              />
-          </div>
-        ) : post.video && (
-             <div className="rounded-xl overflow-hidden border border-neutral-100 dark:border-neutral-800/60 p-4 bg-neutral-50 dark:bg-neutral-800/30 text-center text-sm text-neutral-500">
+        {/* Media: Video + Image side by side when both exist, or full width when only one */}
+        {(post.video || post.image) && (
+          <div className={`-mx-1 ${post.video && videoId && post.image ? 'flex gap-3' : ''}`}>
+            {/* Video (shown first / left) */}
+            {post.video && videoId ? (
+              <div className={`rounded-xl overflow-hidden border border-neutral-100 dark:border-neutral-800/60 aspect-video relative bg-black ${post.image ? 'flex-1 min-w-0' : 'w-full'}`}>
+                <iframe
+                  src={`https://www.youtube.com/embed/${videoId}`}
+                  className="absolute inset-0 w-full h-full"
+                  allowFullScreen
+                  title="YouTube video player"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                />
+              </div>
+            ) : post.video && (
+              <div className="rounded-xl overflow-hidden border border-neutral-100 dark:border-neutral-800/60 p-4 bg-neutral-50 dark:bg-neutral-800/30 text-center text-sm text-neutral-500">
                 <a href={post.video} target="_blank" rel="noopener noreferrer" className="text-violet-600 hover:underline">
-                    Watch Video on YouTube
+                  Watch Video on YouTube
                 </a>
-             </div>
+              </div>
+            )}
+
+            {/* Image (shown second / right) */}
+            {post.image && (
+              <div className={`rounded-xl overflow-hidden border border-neutral-100 dark:border-neutral-800/60 ${post.video && videoId ? 'flex-1 min-w-0' : 'w-full max-h-[400px]'}`}>
+                <img
+                  src={post.image}
+                  alt="Post content"
+                  className={`w-full h-full object-cover ${post.video && videoId ? '' : 'max-h-[400px]'}`}
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+              </div>
+            )}
+          </div>
         )}
       </div>
 
