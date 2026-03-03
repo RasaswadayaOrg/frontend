@@ -67,7 +67,7 @@ export function FacebookConnect({ artistId, isConnected = false }: FacebookConne
          throw new Error("Artist profile not found. Please ensure you are logged in.");
       }
 
-      const res = await fetch(`${API_URL}/artists/${currentArtistId}/connect-facebook-implicit`, {
+      const res = await fetch(`${API_URL}/artists/${currentArtistId}/connect-facebook`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -79,7 +79,7 @@ export function FacebookConnect({ artistId, isConnected = false }: FacebookConne
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.message || "Failed to connect Facebook");
+        throw new Error(data.error || data.message || "Failed to connect Facebook");
       }
 
       setSuccess(true);
@@ -117,7 +117,7 @@ export function FacebookConnect({ artistId, isConnected = false }: FacebookConne
 
         if (!res.ok) {
             const data = await res.json();
-            throw new Error(data.message || "Sync failed");
+            throw new Error(data.error || data.message || "Sync failed");
         }
         
         setSuccess(true);
@@ -139,10 +139,10 @@ export function FacebookConnect({ artistId, isConnected = false }: FacebookConne
 
     setLoading(true);
     const redirectUri = window.location.href.split('#')[0]; 
-    const scope = "pages_show_list,pages_read_engagement,pages_read_user_content,public_profile";
+    const scope = "pages_show_list,pages_read_engagement,pages_read_user_content,public_profile,user_posts";
     const state = Math.random().toString(36).substring(7);
 
-    const authUrl = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${FB_APP_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=${scope}&state=${state}`;
+    const authUrl = `https://www.facebook.com/v22.0/dialog/oauth?client_id=${FB_APP_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=${scope}&state=${state}`;
     
     window.location.href = authUrl;
   };
