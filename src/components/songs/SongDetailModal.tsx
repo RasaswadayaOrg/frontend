@@ -94,7 +94,7 @@ export function SongDetailModal({ song: initialSong, onClose, onLikeUpdate }: So
 
   const fetchSongDetails = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/songs/${song.id}`, {
+      const response = await fetch(`${API_BASE_URL}/v1/songs/${song.id}`, {
         credentials: "include",
         headers: {
           ...getAuthHeaders(),
@@ -114,7 +114,7 @@ export function SongDetailModal({ song: initialSong, onClose, onLikeUpdate }: So
   const fetchComments = async () => {
     setIsLoadingComments(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/songs/${song.id}/comments`, {
+      const response = await fetch(`${API_BASE_URL}/v1/songs/${song.id}/comments`, {
         credentials: "include",
         headers: {
           ...getAuthHeaders(),
@@ -141,7 +141,7 @@ export function SongDetailModal({ song: initialSong, onClose, onLikeUpdate }: So
     setIsLiking(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/songs/${song.id}/like`, {
+      const response = await fetch(`${API_BASE_URL}/v1/songs/${song.id}/like`, {
         method: song.isLiked ? "DELETE" : "POST",
         credentials: "include",
         headers: {
@@ -172,7 +172,7 @@ export function SongDetailModal({ song: initialSong, onClose, onLikeUpdate }: So
     setIsFollowing(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/songs/artists/${song.artist.id}/follow`, {
+      const response = await fetch(`${API_BASE_URL}/v1/songs/artists/${song.artist.id}/follow`, {
         method: followState ? "DELETE" : "POST",
         credentials: "include",
         headers: {
@@ -205,7 +205,7 @@ export function SongDetailModal({ song: initialSong, onClose, onLikeUpdate }: So
     setIsSubmittingComment(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/songs/${song.id}/comments`, {
+      const response = await fetch(`${API_BASE_URL}/v1/songs/${song.id}/comments`, {
         method: "POST",
         credentials: "include",
         headers: {
@@ -230,7 +230,7 @@ export function SongDetailModal({ song: initialSong, onClose, onLikeUpdate }: So
 
   const handleDeleteComment = async (commentId: string) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/songs/${song.id}/comments/${commentId}`, {
+      const response = await fetch(`${API_BASE_URL}/v1/songs/${song.id}/comments/${commentId}`, {
         method: "DELETE",
         credentials: "include",
         headers: {

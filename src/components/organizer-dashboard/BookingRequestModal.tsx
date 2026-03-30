@@ -1,6 +1,6 @@
 "use client";
 
-import { X, Send, DollarSign, Clock, MessageSquare } from "lucide-react";
+import { X, Send, Clock, MessageSquare, CalendarIcon, MapPin } from "lucide-react";
 import { useState } from "react";
 
 interface BookingModalProps {
@@ -11,15 +11,54 @@ interface BookingModalProps {
 
 export function BookingRequestModal({ isOpen, onClose, artist }: BookingModalProps) {
   const [sending, setSending] = useState(false);
+  const [formData, setFormData] = useState({
+    eventName: "",
+    date: "",
+    time: "",
+    venue: "",
+    description: ""
+  });
+  const [error, setError] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
-  const handleSend = () => {
-    setSending(true);
-    setTimeout(() => {
+  const handleSend = async () => {
+    if (!formData.eventName || !formData.date || !formData.time || !formData.venue) {
+      setError("Please fill in all required fields.");
+      return;
+    }
+
+    try {
+      setSending(true);
+      setError(null);
+      
+      const token = localStorage.getItem("rasas_token") || sessionStorage.getItem("rasas_token");
+      
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/v1/booking-requests`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          ...formData,
+          artistId: artist?.id
+        })
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to send booking request');
+      }
+
       setSending(false);
       onClose();
-    }, 800);
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || 'Something went wrong. Please try again.');
+      setSending(false);
+    }
   };
 
   return (
@@ -57,36 +96,70 @@ export function BookingRequestModal({ isOpen, onClose, artist }: BookingModalPro
 
         {/* Form */}
         <div className="px-6 pb-5 space-y-4">
+          {error && (
+            <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-lg text-sm mb-4">
+              {error}
+            </div>
+          )}
+          
           <div>
-            <label className="block text-xs font-medium text-neutral-500 mb-1.5">Select Event</label>
-            <select className="w-full bg-neutral-50 dark:bg-zinc-800/50 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-brand-300 dark:focus:border-brand-700 transition-colors">
-              <option>Summer Jazz Festival 2026</option>
-              <option>Private Corporate Launch</option>
-              <option>Charity Gala Dinner</option>
-            </select>
+            <label className="block text-xs font-medium text-neutral-500 mb-1.5">Event Name <span className="text-red-500">*</span></label>
+            <input 
+              type="text"
+              value={formData.eventName}
+              onChange={(e) => setFormData({...formData, eventName: e.target.value})}
+              placeholder="E.g., Summer Jazz Festival 2026"
+              className="w-full bg-neutral-50 dark:bg-zinc-800/50 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-brand-300 dark:focus:border-brand-700 transition-colors"
+            />
           </div>
 
-          <div className="grid grid-cols-1 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium text-neutral-500 mb-1.5">
-                <Clock className="w-3 h-3 inline mr-1" />Duration
+                <CalendarIcon className="w-3 h-3 inline mr-1" />Date <span className="text-red-500">*</span>
               </label>
-              <select className="w-full bg-neutral-50 dark:bg-zinc-800/50 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-brand-300 dark:focus:border-brand-700 transition-colors">
-                <option>30 Minutes</option>
-                <option>1 Hour</option>
-                <option>2 Hours</option>
-                <option>Full Event</option>
-              </select>
+              <input 
+                type="date"
+                value={formData.date}
+                onChange={(e) => setFormData({...formData, date: e.target.value})}
+                className="w-full bg-neutral-50 dark:bg-zinc-800/50 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-brand-300 dark:focus:border-brand-700 transition-colors"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-neutral-500 mb-1.5">
+                <Clock className="w-3 h-3 inline mr-1" />Time <span className="text-red-500">*</span>
+              </label>
+              <input 
+                type="time"
+                value={formData.time}
+                onChange={(e) => setFormData({...formData, time: e.target.value})}
+                className="w-full bg-neutral-50 dark:bg-zinc-800/50 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-brand-300 dark:focus:border-brand-700 transition-colors"
+              />
             </div>
           </div>
 
           <div>
             <label className="block text-xs font-medium text-neutral-500 mb-1.5">
-              <MessageSquare className="w-3 h-3 inline mr-1" />Message (optional)
+              <MapPin className="w-3 h-3 inline mr-1" />Venue <span className="text-red-500">*</span>
+            </label>
+            <input 
+              type="text"
+              value={formData.venue}
+              onChange={(e) => setFormData({...formData, venue: e.target.value})}
+              placeholder="Event Location or Venue Name"
+              className="w-full bg-neutral-50 dark:bg-zinc-800/50 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-brand-300 dark:focus:border-brand-700 transition-colors"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-neutral-500 mb-1.5">
+              <MessageSquare className="w-3 h-3 inline mr-1" />Description
             </label>
             <textarea
               rows={3}
-              placeholder="Share any requirements or details…"
+              value={formData.description}
+              onChange={(e) => setFormData({...formData, description: e.target.value})}
+              placeholder="Share event requirements or details…"
               className="w-full bg-neutral-50 dark:bg-zinc-800/50 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-brand-300 dark:focus:border-brand-700 resize-none transition-colors"
             />
           </div>

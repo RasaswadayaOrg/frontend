@@ -49,8 +49,8 @@ export function SongCard({ song, onClick, onLikeUpdate }: SongCardProps) {
 
     try {
       const endpoint = song.isLiked 
-        ? `${API_BASE_URL}/songs/${song.id}/like`
-        : `${API_BASE_URL}/songs/${song.id}/like`;
+        ? `${API_BASE_URL}/v1/songs/${song.id}/like`
+        : `${API_BASE_URL}/v1/songs/${song.id}/like`;
       
       const token = localStorage.getItem("rasas_token");
       const response = await fetch(endpoint, {
