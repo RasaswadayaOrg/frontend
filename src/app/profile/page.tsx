@@ -272,7 +272,7 @@ export default function ProfilePage() {
         throw new Error('Please login again to submit a role request');
       }
 
-      const response = await fetch('http://localhost:3001/api/role-requests/apply', {
+      const response = await fetch('http://localhost:3001/api/v1/role-requests/apply', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

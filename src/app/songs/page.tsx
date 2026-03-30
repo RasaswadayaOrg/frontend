@@ -73,7 +73,7 @@ export default function SongsPage() {
         params.append("artistId", artistId);
       }
       
-      const response = await fetch(`${API_BASE_URL}/songs?${params}`, {
+      const response = await fetch(`${API_BASE_URL}/v1/songs?${params}`, {
         credentials: "include",
         headers: {
           ...getAuthHeaders(),
