@@ -18,7 +18,7 @@ export async function GET() {
       return NextResponse.json({ error: "Invalid session" }, { status: 401 });
     }
 
-    const res = await fetch(`${API_URL}/role-applications/my-applications`, {
+    const res = await fetch(`${API_URL}/v1/role-requests/my-requests`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

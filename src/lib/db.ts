@@ -298,7 +298,7 @@ export async function getCategories() {
 
 export async function getAdminStats() {
     try {
-        const data = await fetchData('/admin/stats');
+        const data = await fetchData('/v1/admin/stats');
         if (!data || !data.success) {
             // Fallback to individual endpoints
             const [eventsData, artistsData, productsData, academiesData, storesData] = await Promise.all([
@@ -340,7 +340,7 @@ export async function getUsers(limit = 20, page = 1, search?: string, role?: str
     if (search) params.search = search;
     if (role) params.role = role;
 
-    const data = await fetchData('/admin/users', params);
+    const data = await fetchData('/v1/admin/users', params);
     if (!data || !data.success) return [];
     return data.data;
 }
@@ -350,12 +350,12 @@ export async function getUsersCount(search?: string, role?: string) {
     if (search) params.search = search;
     if (role) params.role = role;
 
-    const data = await fetchData('/admin/users', params);
+    const data = await fetchData('/v1/admin/users', params);
     return data?.pagination?.total || 0;
 }
 
 export async function getUser(id: string) {
-    const data = await fetchData(`/admin/users/${id}`);
+    const data = await fetchData(`/v1/admin/users/${id}`);
     if (!data || !data.success) return null;
     return data.data;
 }
@@ -367,7 +367,7 @@ export async function getAdminOrders(limit = 20, page = 1, status?: string) {
     if (status) params.status = status;
 
     // Use admin endpoint
-    const data = await fetchData('/admin/orders', params);
+    const data = await fetchData('/v1/admin/orders', params);
     if (!data || !data.success) return [];
     return data.data;
 }
@@ -377,7 +377,7 @@ export async function getAdminOrdersCount(status?: string) {
     if (status) params.status = status;
 
     // Use admin endpoint
-    const data = await fetchData('/admin/orders', params);
+    const data = await fetchData('/v1/admin/orders', params);
     return data?.pagination?.total || 0;
 }
 
@@ -403,7 +403,7 @@ export async function getOrdersCount(status?: string) {
 export async function getRecentActivity(limit = 10) {
     try {
         // Try to fetch from admin activity endpoint first
-        const adminActivity = await fetchData('/admin/activity', { limit });
+        const adminActivity = await fetchData('/v1/admin/activity', { limit });
         if (adminActivity?.success && adminActivity.data) {
             return adminActivity.data;
         }
@@ -476,7 +476,7 @@ export async function getSponsoredAds(limit = 20, page = 1, placement?: string, 
     if (placement) params.placement = placement;
     if (isActive !== undefined) params.isActive = isActive;
 
-    const data = await fetchData('/admin/ads', params);
+    const data = await fetchData('/v1/admin/ads', params);
     if (!data || !data.success) return [];
     return data.data;
 }
@@ -486,19 +486,19 @@ export async function getSponsoredAdsCount(placement?: string, isActive?: boolea
     if (placement) params.placement = placement;
     if (isActive !== undefined) params.isActive = isActive;
 
-    const data = await fetchData('/admin/ads', params);
+    const data = await fetchData('/v1/admin/ads', params);
     return data?.pagination?.total || 0;
 }
 
 export async function getSponsoredAd(id: string) {
-    const data = await fetchData(`/admin/ads/${id}`);
+    const data = await fetchData(`/v1/admin/ads/${id}`);
     if (!data || !data.success) return null;
     return data.data;
 }
 
 export async function getActiveAdsForPlacement(placement: string) {
     // Silent mode - ads endpoint may not exist yet
-    const data = await fetchData(`/admin/ads/placement/${placement}`, {}, true);
+    const data = await fetchData(`/v1/admin/ads/placement/${placement}`, {}, true);
     if (!data || !data.success) return [];
     return data.data;
 }
@@ -527,14 +527,30 @@ export interface AdminPostType {
 }
 
 export async function getAdminPosts(limit = 20, page = 1): Promise<{ posts: AdminPostType[]; pagination: { page: number; limit: number; total: number; totalPages: number } }> {
-  const data = await fetchData('/admin/posts', { limit, page });
+  const data = await fetchData('/v1/admin/posts', { limit, page });
   if (!data || !data.success) return { posts: [], pagination: { page, limit, total: 0, totalPages: 0 } };
   return data.data;
 }
 
 export async function getAdminPostsCount() {
-  const data = await fetchData('/admin/posts', { limit: 1, page: 1 });
+  const data = await fetchData('/v1/admin/posts', { limit: 1, page: 1 });
   return data?.data?.pagination?.total || 0;
 }
 
 export const prisma = {};
+export async function getRecommendations(token: string) {
+    if (!token) return { data: null };
+    try {
+        const res = await fetch(`${API_URL}/v1/recommendations`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            cache: 'no-store'
+        });
+        if (!res.ok) return { data: null };
+        return await res.json();
+    } catch (error) {
+        console.error("Error fetching recommendations:", error);
+        return { data: null };
+    }
+}

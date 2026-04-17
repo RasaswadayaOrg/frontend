@@ -58,7 +58,7 @@ export default function UserDetailsModal({ userId, isOpen, onClose }: UserDetail
     
     try {
       const token = localStorage.getItem('admin_token');
-      const response = await fetch(`http://localhost:3001/api/admin/users/${userId}`, {
+      const response = await fetch(`http://localhost:3001/api/v1/admin/users/${userId}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -82,7 +82,7 @@ export default function UserDetailsModal({ userId, isOpen, onClose }: UserDetail
     
     try {
       const token = localStorage.getItem('admin_token');
-      const response = await fetch(`http://localhost:3001/api/role-requests/${applicationId}/approve`, {
+      const response = await fetch(`http://localhost:3001/api/v1/role-requests/${applicationId}/approve`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -123,7 +123,7 @@ export default function UserDetailsModal({ userId, isOpen, onClose }: UserDetail
     
     try {
       const token = localStorage.getItem('admin_token');
-      const response = await fetch(`http://localhost:3001/api/role-requests/${selectedApplicationId}/reject`, {
+      const response = await fetch(`http://localhost:3001/api/v1/role-requests/${selectedApplicationId}/reject`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

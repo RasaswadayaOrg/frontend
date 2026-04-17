@@ -98,11 +98,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: '*.fna.fbcdn.net',
-      },
-      {
-        protocol: 'https',
-        hostname: 'scontent.fcmb2-2.fna.fbcdn.net',
+        hostname: '*.fbcdn.net',
       },
     ],
   },

@@ -14,11 +14,12 @@ import {
   Info,
   Bot,
   Heart,
-  MessageSquare
+  MessageSquare,
+  ChevronRight
 } from "lucide-react";
 import { HeroSlider } from "../components/HeroSlider";
 import { AdPlaceholder } from "../components/AdPlaceholder";
-import { getEvents, getArtists, getStores, getProducts, getTrendingEvents, getMyReminders, getActiveAdsForPlacement } from "../lib/db";
+import { getEvents, getArtists, getStores, getProducts, getTrendingEvents, getMyReminders, getRecommendations, getActiveAdsForPlacement } from "../lib/db";
 import { SidebarStats } from "../components/SidebarStats";
 import { getSession } from "../lib/auth";
 
@@ -45,8 +46,19 @@ export default async function Home() {
     getActiveAdsForPlacement('home-seasonal'),
   ]);
 
+  // Fetch AI Recommendations
+  const recommendationsResult = isLoggedIn ? await getRecommendations(session.token) : { data: [] };
+  const recommendations = recommendationsResult?.data || [];
+  const recommendedEvents = recommendations.filter((r: any) => r.type === 'event').map((r: any) => ({ ...r.item, aiScore: r.score }));
+  const recommendedArtists = recommendations.filter((r: any) => r.type === 'artist').map((r: any) => ({ ...r.item, aiScore: r.score }));
+
   // Select a featured artist for the AI recommendation (use the 4th one or fallback to 1st)
   const featuredArtist = artists.length > 0 ? (artists[3] || artists[0]) : null;
+
+  // Setup AI override vars
+  const aiEvent1 = recommendedEvents.length > 0 ? recommendedEvents[0] : (events.length > 0 ? events[0] : null);
+  const aiEvent2 = recommendedEvents.length > 1 ? recommendedEvents[1] : (events.length > 1 ? events[1] : null);
+  const aiArtist = recommendedArtists.length > 0 ? recommendedArtists[0] : featuredArtist;
 
   const categories = [
     { name: "Music", icon: Music, href: "/events?category=music", color: "bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400" },
@@ -162,85 +174,95 @@ export default async function Home() {
             </div>
 
             {/* Detailed AI Cards Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              
-              {/* Card 1: Main Event Match */}
-              {events.length > 0 && (
-              <div className="lg:col-span-1 bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-2xl overflow-hidden hover:border-brand-500/30 transition-all group flex flex-col hover:shadow-[0_0_20px_-5px_rgba(124,58,237,0.15)] ring-1 ring-white/5">
-                {/* Tech Header */}
-                <div className="h-1 w-full bg-gradient-to-r from-brand-500 via-purple-500 to-indigo-500 opacity-70"></div>
-                
-                {/* Image Section - Split Layout */}
-                <Link href={`/events/${events[0].id}`} className="relative h-44 w-full overflow-hidden border-b border-white/5 block">
-                   <ImageWithFallback 
-                     src={events[0].imageUrl || "https://images.unsplash.com/photo-1543946602-a0ce26d9e6e0?q=80&w=800"}
-                     alt={events[0].title}
-                     fill
-                     className="object-cover group-hover:scale-105 transition-transform duration-700"
-                   />
-                   <div className="absolute inset-0 bg-slate-900/20 group-hover:bg-transparent transition-colors"></div>
-                   
-                   {/* Floating Badge */}
-                   <div className="absolute top-3 right-3">
-                      <span className="px-2 py-1 bg-slate-950/80 backdrop-blur border border-white/10 rounded text-[10px] font-bold text-white uppercase tracking-wider shadow-lg flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-brand-500 animate-pulse"></span>
-                        Top Pick
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative z-10">
+              {/* Card 1: Primary AI Recommendation (Featured Event) */}
+              {aiEvent1 && (
+               <div className="lg:col-span-1 bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-2xl overflow-hidden hover:border-blue-500/30 transition-all group flex flex-col hover:shadow-[0_0_30px_-5px_rgba(59,130,246,0.15)] ring-1 ring-white/5">
+                 {/* Tech Header */}
+                 <div className="h-1 w-full bg-gradient-to-r from-blue-500 via-cyan-500 to-emerald-500 opacity-70"></div>
+                 
+                 {/* Image Section - Tech Frame */}
+                 <div className="relative h-60 w-full overflow-hidden border-b border-white/5">
+                    <Link href={`/events/${aiEvent1.id}`} className="block w-full h-full">
+                        <ImageWithFallback 
+                            src={aiEvent1.imageUrl || "https://images.unsplash.com/photo-1540039155732-68096f21bb46?q=80&w=800"}
+                            alt={aiEvent1.title}
+                            fill
+                            className="object-cover group-hover:scale-105 transition-transform duration-700 blur-[2px] group-hover:blur-0"
+                        />
+                        <div className="absolute inset-0 bg-slate-950/40 mix-blend-multiply group-hover:opacity-0 transition-opacity duration-500"></div>
+                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent"></div>
+                    </Link>
+                    
+                    {/* Floating Tech Badges */}
+                    <div className="absolute top-4 left-4 flex flex-col gap-2 pointer-events-none">
+                      <span className="px-2.5 py-1 bg-slate-950/80 backdrop-blur border border-cyan-500/30 rounded text-xs font-bold text-cyan-400 uppercase tracking-wider shadow-lg flex items-center gap-2">
+                        <Sparkles className="w-3 h-3" />
+                         #1 Pick for You
                       </span>
                    </div>
-                   
-                   {/* Date Pill */}
-                   <div className="absolute bottom-3 left-3">
-                      <div className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-950/90 backdrop-blur border border-white/10 rounded-full text-xs font-medium text-slate-300">
-                         <Calendar className="w-3 h-3 text-brand-400" />
-                         {new Date(events[0].eventDate).toLocaleDateString()}
-                      </div>
-                   </div>
-                </Link>
 
-                {/* Content Panel */}
-                <div className="p-5 flex flex-col flex-grow bg-gradient-to-b from-slate-900/50 to-slate-950/50">
-                   <Link href={`/events/${events[0].id}`}>
-                      <h3 className="text-lg font-bold text-white mb-3 group-hover:text-brand-400 transition-colors line-clamp-2 leading-tight">{events[0].title}</h3>
-                   </Link>
-                   
-                   {/* AI Tech Box */}
-                   <div className="bg-slate-950 rounded-lg p-3.5 border border-white/5 mb-4 group-hover:border-brand-500/20 transition-colors">
-                      <div className="flex items-start gap-2.5">
-                        <div className="w-4 h-4 rounded bg-brand-500/20 flex items-center justify-center shrink-0 mt-0.5">
-                           <Bot className="w-2.5 h-2.5 text-brand-400" />
-                        </div>
-                        <div className="space-y-1">
-                           <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">AI Analysis</p>
-                           <p className="text-xs text-slate-300 leading-relaxed">
-                             Matches interest in <span className="text-brand-300 font-medium">{events[0].category || "culture"}</span>. High relevance score (98%).
-                           </p>
-                        </div>
+                   {/* AI Match Overlay */}
+                   <div className="absolute top-4 right-4 group-hover:scale-110 transition-transform pointer-events-none">
+                      <div className="relative w-12 h-12 flex items-center justify-center bg-slate-950/90 backdrop-blur rounded-full border border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.5)]">
+                         <span className="text-sm font-black text-white">{aiEvent1.aiScore || '98'}%</span>
+                         <svg className="absolute inset-0 w-full h-full -rotate-90">
+                            <circle cx="24" cy="24" r="23" stroke="currentColor" strokeWidth="2" fill="none" className="text-slate-800" />
+                            <circle cx="24" cy="24" r="23" stroke="currentColor" strokeWidth="2" fill="none" strokeDasharray="144" strokeDashoffset={144 - (144 * (aiEvent1.aiScore || 98) / 100)} className="text-blue-500 transition-all duration-1000 group-hover:text-cyan-400" />
+                         </svg>
                       </div>
                    </div>
 
-                   <div className="mt-auto pt-4 border-t border-white/5 flex items-center justify-between">
-                      <Link href={`/events/${events[0].id}`} className="text-xs font-medium text-slate-400 hover:text-white transition-colors flex items-center gap-1">
-                        Details <ArrowRight className="w-3 h-3" />
-                      </Link>
-                      <Link href={`/events/${events[0].id}`} className="text-xs bg-white/5 border border-white/10 text-white px-3 py-1.5 rounded-md font-bold hover:bg-white hover:text-slate-950 transition-all relative z-20">
-                        Book Now
-                      </Link>
+                   {/* Title Hover State */}
+                   <div className="absolute bottom-4 left-4 right-4 pointer-events-none">
+                      <h3 className="text-2xl font-black text-white leading-tight drop-shadow-lg group-hover:text-blue-400 transition-colors line-clamp-2">{aiEvent1.title}</h3>
                    </div>
-                </div>
-              </div>
+                 </div>
+
+                 {/* Content Section */}
+                 <div className="p-6 flex flex-col flex-grow bg-slate-950/50">
+                    <div className="flex items-center gap-4 mb-5 text-sm font-medium text-slate-300">
+                      <div className="flex items-center gap-1.5 bg-white/5 px-2.5 py-1 rounded">
+                         <Calendar className="w-3.5 h-3.5 text-blue-400" />
+                         {new Date(aiEvent1.eventDate).toLocaleDateString()}
+                      </div>
+                      <div className="flex items-center gap-1.5 bg-white/5 px-2.5 py-1 rounded">
+                         <MapPin className="w-3.5 h-3.5 text-emerald-400" />
+                         {aiEvent1.venue || 'Colosseum'}
+                      </div>
+                    </div>
+
+                    <div className="bg-blue-950/20 rounded-xl p-4 border border-blue-500/10 mb-6 relative overflow-hidden">
+                       <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 blur-[40px] rounded-full mix-blend-screen"></div>
+                       <p className="text-sm text-slate-300 relative z-10 leading-relaxed line-clamp-3">
+                          {aiEvent1.description || "The Rasaswadaya neural network has detected a profound resonance between your taste profile and this event's energy signature. A highly recommended cultural convergence. Don't miss this."}
+                       </p>
+                    </div>
+
+                    <div className="mt-auto pt-4 border-t border-white/5 flex items-center justify-between">
+                       <Link href={`/events/${aiEvent1.id}`} className="text-sm font-bold text-slate-400 hover:text-white transition-colors flex items-center gap-1.5 relative z-20">
+                          Explore Event <ArrowRight className="w-4 h-4" />
+                       </Link>
+                       <Link href={`/events/${aiEvent1.id}`} className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold shadow-[0_0_15px_rgba(37,99,235,0.4)] hover:shadow-[0_0_25px_rgba(59,130,246,0.6)] transition-all flex items-center gap-2 group/btn relative z-20">
+                          Secure Spot
+                          <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                       </Link>
+                    </div>
+                 </div>
+               </div>
               )}
 
               {/* Card 2: Secondary Event */}
-              {events.length > 1 && (
+              {aiEvent2 && (
               <div className="lg:col-span-1 bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-2xl overflow-hidden hover:border-purple-500/30 transition-all group flex flex-col hover:shadow-[0_0_20px_-5px_rgba(168,85,247,0.15)] ring-1 ring-white/5">
                  {/* Tech Header */}
                  <div className="h-1 w-full bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 opacity-70"></div>
                  
                  {/* Image Section - Split Layout */}
-                 <Link href={`/events/${events[1].id}`} className="relative h-44 w-full overflow-hidden border-b border-white/5 block">
+                 <Link href={`/events/${aiEvent2.id}`} className="relative h-44 w-full overflow-hidden border-b border-white/5 block">
                     <ImageWithFallback 
-                        src={events[1].imageUrl || "https://images.unsplash.com/photo-1514525253440-b393452e8d26?w=800"}
-                        alt={events[1].title}
+                        src={aiEvent2.imageUrl || "https://images.unsplash.com/photo-1514525253440-b393452e8d26?w=800"}
+                        alt={aiEvent2.title}
                         fill
                         className="object-cover group-hover:scale-105 transition-transform duration-700"
                     />
@@ -250,7 +272,7 @@ export default async function Home() {
                     <div className="absolute top-3 right-3">
                       <span className="px-2 py-1 bg-slate-950/80 backdrop-blur border border-white/10 rounded text-[10px] font-bold text-white uppercase tracking-wider shadow-lg flex items-center gap-1.5">
                         <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse"></span>
-                        {events[1].category || 'Event'}
+                        {aiEvent2.category || 'Event'}
                       </span>
                    </div>
 
@@ -258,15 +280,15 @@ export default async function Home() {
                    <div className="absolute bottom-3 left-3">
                       <div className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-950/90 backdrop-blur border border-white/10 rounded-full text-xs font-medium text-slate-300">
                          <Calendar className="w-3 h-3 text-purple-400" />
-                         {new Date(events[1].eventDate).toLocaleDateString()}
+                         {new Date(aiEvent2.eventDate).toLocaleDateString()}
                       </div>
                    </div>
                  </Link>
                  
                  {/* Content Panel */}
                  <div className="p-5 flex flex-col flex-grow bg-gradient-to-b from-slate-900/50 to-slate-950/50">
-                    <Link href={`/events/${events[1].id}`}>
-                       <h3 className="text-lg font-bold text-white mb-3 group-hover:text-purple-400 transition-colors line-clamp-2 leading-tight">{events[1].title}</h3>
+                    <Link href={`/events/${aiEvent2.id}`}>
+                       <h3 className="text-lg font-bold text-white mb-3 group-hover:text-purple-400 transition-colors line-clamp-2 leading-tight">{aiEvent2.title}</h3>
                     </Link>
                     
                     {/* AI Tech Box */}
@@ -278,17 +300,17 @@ export default async function Home() {
                          <div className="space-y-1">
                             <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Recommendation</p>
                             <p className="text-xs text-slate-300 leading-relaxed line-clamp-2">
-                               {events[1].description}
+                               {aiEvent2.description || 'Recommended based on your cultural profile.'}
                             </p>
                          </div>
                        </div>
                     </div>
 
                     <div className="mt-auto pt-4 border-t border-white/5 flex items-center justify-between">
-                       <Link href={`/events/${events[1].id}`} className="text-xs font-medium text-slate-400 hover:text-white transition-colors flex items-center gap-1">
+                       <Link href={`/events/${aiEvent2.id}`} className="text-xs font-medium text-slate-400 hover:text-white transition-colors flex items-center gap-1">
                           Details <ArrowRight className="w-3 h-3" />
                        </Link>
-                       <Link href={`/events/${events[1].id}`} className="text-xs bg-white/5 border border-white/10 text-white px-3 py-1.5 rounded-md font-bold hover:bg-white hover:text-slate-950 transition-all relative z-20">
+                       <Link href={`/events/${aiEvent2.id}`} className="text-xs bg-white/5 border border-white/10 text-white px-3 py-1.5 rounded-md font-bold hover:bg-white hover:text-slate-950 transition-all relative z-20">
                          Book Now
                        </Link>
                     </div>
@@ -297,15 +319,15 @@ export default async function Home() {
               )}
 
               {/* Card 3: Personalized Artist Pick */}
-              {featuredArtist && (
+              {aiArtist && (
                <div className="lg:col-span-1 bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-2xl overflow-hidden hover:border-pink-500/30 transition-all group flex flex-col hover:shadow-[0_0_20px_-5px_rgba(236,72,153,0.15)] ring-1 ring-white/5">
                  <div className="h-1 w-full bg-gradient-to-r from-pink-500 via-rose-500 to-red-500 opacity-70"></div>
                  
                  <div className="relative h-44 w-full overflow-hidden border-b border-white/5">
-                    <Link href={`/artists/${featuredArtist.id}`} className="block w-full h-full">
+                    <Link href={`/artists/${aiArtist.id}`} className="block w-full h-full">
                         <ImageWithFallback 
-                            src={featuredArtist.photoUrl || "https://images.unsplash.com/photo-1549834125-906c85a44004?q=80&w=800"}
-                            alt={featuredArtist.name}
+                            src={aiArtist.photoUrl || "https://images.unsplash.com/photo-1549834125-906c85a44004?q=80&w=800"}
+                            alt={aiArtist.name}
                             fill
                             className="object-cover group-hover:scale-105 transition-transform duration-700"
                         />
@@ -313,21 +335,21 @@ export default async function Home() {
                     </Link>
                     
                     <div className="absolute top-3 right-3 pointer-events-none">
-                      <span className="px-2 py-1 bg-slate-950/80 backdrop-blur border border-white/10 rounded text-[10px] font-bold text-white uppercase tracking-wider shadow-lg">
+                      <span className="px-2 py-1 bg-slate-950/80 backdrop-blur border border-white/10 rounded text-[10px] font-bold text-white uppercase tracking-wider shadow-lg flex items-center gap-1.5">
                         Artist Match
                       </span>
-                   </div>
+                    </div>
                  </div>
-                 
+
                  <div className="p-5 flex flex-col flex-grow bg-gradient-to-b from-slate-900/50 to-slate-950/50">
-                    <Link href={`/artists/${featuredArtist.id}`}>
-                       <h3 className="text-lg font-bold text-white mb-3 group-hover:text-pink-400 transition-colors line-clamp-1 leading-tight">{featuredArtist.name}</h3>
+                    <Link href={`/artists/${aiArtist.id}`}>
+                       <h3 className="text-lg font-bold text-white mb-3 group-hover:text-pink-400 transition-colors">{aiArtist.name}</h3>
                     </Link>
                     
                     <div className="bg-slate-950 rounded-lg p-3.5 border border-white/5 mb-4 group-hover:border-pink-500/20 transition-colors">
                        <div className="flex items-start gap-2.5">
                          <div className="w-4 h-4 rounded bg-pink-500/20 flex items-center justify-center shrink-0 mt-0.5">
-                            <Mic2 className="w-2.5 h-2.5 text-pink-400" />
+                            <Heart className="w-2.5 h-2.5 text-pink-400" />
                          </div>
                          <div className="space-y-1">
                             <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Trending + Taste</p>
@@ -339,14 +361,11 @@ export default async function Home() {
                     </div>
 
                     <div className="mt-auto pt-4 border-t border-white/5 flex items-center justify-between">
-                       <span className="flex items-center gap-2 text-[10px] font-medium text-pink-300 bg-pink-500/10 px-2 py-1 rounded border border-pink-500/10">
-                          <span className="relative flex h-1.5 w-1.5">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-pink-500"></span>
-                          </span>
-                          Rising Star
+                       <span className="text-xs font-medium text-pink-400/80 flex items-center gap-1.5">
+                         <span className="w-1.5 h-1.5 rounded-full bg-pink-500"></span>
+                         Rising Star
                        </span>
-                       <Link href={`/artists/${featuredArtist.id}`} className="text-xs bg-white/5 border border-white/10 text-white px-3 py-1.5 rounded-md font-bold hover:bg-white hover:text-slate-950 transition-all relative z-20">
+                       <Link href={`/artists/${aiArtist.id}`} className="text-xs bg-white/5 border border-white/10 text-white px-3 py-1.5 rounded-md font-bold hover:bg-white hover:text-slate-950 transition-all relative z-20">
                          Profile
                        </Link>
                     </div>
