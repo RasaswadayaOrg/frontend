@@ -11,8 +11,9 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
   const isAdmin = pathname?.startsWith("/admin");
   const isArtistDashboard = pathname?.startsWith("/artist-dashboard");
   const isOrganizerDashboard = pathname?.startsWith("/organizer-dashboard");
+  const isSellerDashboard = pathname?.startsWith("/seller-dashboard");
 
-  if (isAdmin || isArtistDashboard || isOrganizerDashboard) {
+  if (isAdmin || isArtistDashboard || isOrganizerDashboard || isSellerDashboard) {
     return <>{children}</>;
   }
 

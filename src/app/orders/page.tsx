@@ -6,6 +6,7 @@ import { Package, MapPin, Calendar } from "lucide-react";
 import Link from "next/link";
 import { ImageWithFallback } from "@/components/ImageWithFallback";
 import { useRouter } from "next/navigation";
+import { apiFetch } from "@/lib/api";
 
 interface OrderItem {
   id: string;
@@ -28,14 +29,11 @@ interface Order {
   items: OrderItem[];
 }
 
-function getOrderStorageKey(userId: string) {
-  return `rasas_local_orders_${userId}`;
-}
-
 export default function OrdersPage() {
   const { user } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -44,11 +42,39 @@ export default function OrdersPage() {
       return;
     }
 
-    const key = getOrderStorageKey(user.id);
-    const raw = localStorage.getItem(key);
-    const parsed = raw ? JSON.parse(raw) : [];
-    setOrders(parsed);
-    setIsLoading(false);
+    const load = async () => {
+      setIsLoading(true);
+      const res = await apiFetch<Order[]>("/orders");
+      if (!res.ok) {
+        setError(res.error || "Failed to load orders");
+        setIsLoading(false);
+        return;
+      }
+      if (Array.isArray(res.data)) {
+        // Map so each item has a totalAmount fallback and flat store info
+        const mapped = res.data.map((o: any) => ({
+          ...o,
+          totalAmount:
+            o.totalAmount ??
+            (o.items || []).reduce(
+              (sum: number, it: any) => sum + Number(it.price || 0) * Number(it.quantity || 0),
+              0
+            ),
+          items: (o.items || []).map((it: any) => ({
+            ...it,
+            price: Number(it.price ?? 0),
+            product: {
+              ...it.product,
+              store: it.product?.store || { name: "Unknown Store" },
+            },
+          })),
+        }));
+        setOrders(mapped);
+      }
+      setIsLoading(false);
+    };
+
+    load();
   }, [user, router]);
 
   if (isLoading) {
@@ -77,6 +103,12 @@ export default function OrdersPage() {
           Continue Shopping
         </Link>
       </div>
+
+      {error && (
+        <div className="rounded-xl border border-rose-200 bg-rose-50 text-rose-700 px-4 py-3 text-sm dark:bg-rose-950/30 dark:border-rose-900 dark:text-rose-300">
+          {error}
+        </div>
+      )}
 
       {orders.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-slate-300 dark:border-zinc-700 rounded-2xl bg-white dark:bg-zinc-900">
