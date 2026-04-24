@@ -88,7 +88,8 @@ export function SongCard({ song, onClick, onLikeUpdate }: SongCardProps) {
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           onError={(e) => {
             const target = e.target as HTMLImageElement;
-            target.src = "https://via.placeholder.com/400x400?text=No+Image";
+            target.onerror = null; // Prevent infinite loop
+            target.src = "https://placehold.co/400x400?text=No+Image";
           }}
         />
         
