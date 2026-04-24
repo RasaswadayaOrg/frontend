@@ -29,9 +29,19 @@ async function fetchData(endpoint: string, params: Record<string, any> = {}, sil
 
     const json = await res.json();
     return json;
-  } catch (error) {
+  } catch (error: any) {
     if (!silent) {
-      console.error(`Fetch error for ${endpoint}:`, error);
+      const isConnRefused =
+        error?.cause?.code === "ECONNREFUSED" ||
+        error?.code === "ECONNREFUSED" ||
+        (error?.message ?? "").includes("ECONNREFUSED");
+      if (isConnRefused) {
+        console.warn(
+          `[API] Backend not reachable at ${API_URL}${endpoint} — start the backend server (npm run dev in /backend).`
+        );
+      } else {
+        console.error(`[API] Fetch error for ${endpoint}:`, error?.message ?? error);
+      }
     }
     return null;
   }

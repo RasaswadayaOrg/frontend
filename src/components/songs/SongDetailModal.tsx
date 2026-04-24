@@ -284,7 +284,8 @@ export function SongDetailModal({ song: initialSong, onClose, onLikeUpdate }: So
               className="w-full h-full object-contain"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
-                target.src = "https://via.placeholder.com/600x600?text=No+Image";
+                target.onerror = null; // Prevent infinite loop
+                target.src = "https://placehold.co/600x600?text=No+Image";
               }}
             />
           )}

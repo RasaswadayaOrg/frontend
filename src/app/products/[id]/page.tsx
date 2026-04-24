@@ -2,8 +2,8 @@ import { getProduct } from "../../../lib/db";
 import { ImageWithFallback } from "../../../components/ImageWithFallback";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Star, ShoppingCart, Heart, Share2, ArrowLeft } from "lucide-react";
-import { AddToCartButton } from "../../../components/AddToCartButton";
+import { Star, ArrowLeft } from "lucide-react";
+import { ProductPurchasePanel } from "@/components/products/ProductPurchasePanel";
 
 export async function generateMetadata(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -23,6 +23,13 @@ export default async function ProductDetailsPage(props: { params: Promise<{ id: 
   if (!product) {
     return notFound();
   }
+
+  const reviews = Array.isArray((product as any).reviews) ? (product as any).reviews : [];
+  const reviewCount = reviews.length;
+  const avgRating = reviewCount
+    ? reviews.reduce((sum: number, review: any) => sum + Number(review?.rating || 0), 0) / reviewCount
+    : 0;
+  const roundedRating = Math.round(avgRating);
 
   return (
     <div className="space-y-6">
@@ -69,13 +76,18 @@ export default async function ProductDetailsPage(props: { params: Promise<{ id: 
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">{product.name}</h1>
           <div className="flex items-center gap-2 text-sm mb-4">
             <div className="flex text-yellow-400">
-              <Star className="w-4 h-4 fill-current" />
-              <Star className="w-4 h-4 fill-current" />
-              <Star className="w-4 h-4 fill-current" />
-              <Star className="w-4 h-4 fill-current" />
-              <Star className="w-4 h-4 text-slate-300" />
+              {Array.from({ length: 5 }).map((_, index) => (
+                <Star
+                  key={index}
+                  className={`w-4 h-4 ${index < roundedRating ? "fill-current" : "text-slate-300"}`}
+                />
+              ))}
             </div>
-            <span className="text-slate-500">(24 reviews)</span>
+            <span className="text-slate-500">
+              {reviewCount > 0
+                ? `${avgRating.toFixed(1)} (${reviewCount} review${reviewCount > 1 ? "s" : ""})`
+                : "No reviews yet"}
+            </span>
           </div>
         </div>
 
@@ -94,32 +106,17 @@ export default async function ProductDetailsPage(props: { params: Promise<{ id: 
           </div>
         </div>
 
-        <div className="space-y-4 pt-6 border-t border-slate-200 dark:border-zinc-800">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center border border-slate-200 dark:border-zinc-800 rounded-lg">
-              <button className="px-3 py-2 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors">-</button>
-              <span className="px-3 py-2 font-medium">1</span>
-              <button className="px-3 py-2 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors">+</button>
-            </div>
-            <span className="text-sm text-green-600 font-medium">In Stock</span>
-          </div>
-
-          <div className="flex gap-3">
-            <div className="flex-1">
-                <AddToCartButton />
-                <button className="w-full hidden bg-brand-600 text-white py-3.5 rounded-xl font-bold hover:bg-brand-700 transition-colors shadow-lg shadow-brand-500/20 flex items-center justify-center gap-2">
-                    <ShoppingCart className="w-5 h-5" /> Add to Cart
-                </button>
-            </div>
-            <button className="p-3.5 border border-slate-200 dark:border-zinc-800 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors">
-              <Heart className="w-5 h-5" />
-            </button>
-          </div>
-          {/* Manual Add to Cart Button since component is icon only */}
-            <button className="w-full bg-brand-600 text-white py-3.5 rounded-xl font-bold hover:bg-brand-700 transition-all active:scale-95 flex items-center justify-center gap-2">
-                 <ShoppingCart className="w-5 h-5" /> Add to Cart
-            </button>
-        </div>
+        <ProductPurchasePanel
+          product={{
+            id: product.id,
+            name: product.name,
+            imageUrl: product.imageUrl,
+            price: product.price || 0,
+            stock: product.stock || 999,
+            storeId: product.storeId,
+            storeName: product.storeName || "Unknown Store",
+          }}
+        />
 
         <div className="prose prose-slate dark:prose-invert text-sm">
           <h3 className="font-bold">Description</h3>
@@ -127,6 +124,64 @@ export default async function ProductDetailsPage(props: { params: Promise<{ id: 
             {product.description || "Authentic Sri Lankan item, handcrafted using traditional methods."}
           </p>
         </div>
+
+        <section className="space-y-4 pt-6 border-t border-slate-200 dark:border-zinc-800" aria-label="Customer reviews">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Customer Reviews</h3>
+            {reviewCount > 0 && (
+              <span className="text-sm text-slate-500 dark:text-zinc-400">
+                {avgRating.toFixed(1)} / 5 from {reviewCount} review{reviewCount > 1 ? "s" : ""}
+              </span>
+            )}
+          </div>
+
+          {reviewCount === 0 ? (
+            <div className="rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900 p-4 text-sm text-slate-600 dark:text-zinc-400">
+              No reviews yet. Be the first customer to share your feedback on this product.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {reviews.slice(0, 5).map((review: any, index: number) => {
+                const reviewerName =
+                  review?.user?.name ||
+                  review?.userName ||
+                  review?.author ||
+                  "Verified Customer";
+                const rating = Number(review?.rating || 0);
+                const createdAt = review?.createdAt ? new Date(review.createdAt) : null;
+
+                return (
+                  <article
+                    key={review?.id || `${reviewerName}-${index}`}
+                    className="rounded-xl border border-slate-200 dark:border-zinc-800 p-4 bg-white dark:bg-zinc-900"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="font-medium text-slate-900 dark:text-white">{reviewerName}</p>
+                        <div className="flex items-center gap-1 mt-1 text-yellow-400">
+                          {Array.from({ length: 5 }).map((_, starIndex) => (
+                            <Star
+                              key={starIndex}
+                              className={`w-4 h-4 ${starIndex < rating ? "fill-current" : "text-slate-300"}`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                      <p className="text-xs text-slate-500 dark:text-zinc-400">
+                        {createdAt && !Number.isNaN(createdAt.getTime())
+                          ? createdAt.toLocaleDateString()
+                          : ""}
+                      </p>
+                    </div>
+                    <p className="mt-3 text-sm text-slate-600 dark:text-zinc-300">
+                      {review?.comment || review?.text || "Customer shared a star rating without written feedback."}
+                    </p>
+                  </article>
+                );
+              })}
+            </div>
+          )}
+        </section>
       </div>
     </div>
     </div>
