@@ -67,7 +67,7 @@ export default async function MarketplacePage(props: { searchParams: Promise<{ p
 
       {/* Products Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {products.map((product: { id: string; name: string; description: string; storeId: string; storeName: string; store?: { name: string; id: string; ownerId: string } }) => (
+        {products.map((product: { id: string; name: string; description: string; imageUrl?: string; stock?: number; price: number; storeId: string; storeName: string; store?: { name: string; id: string; ownerId: string } }) => (
           <Link
             key={product.id}
             href={`/products/${product.id}`}
@@ -75,7 +75,7 @@ export default async function MarketplacePage(props: { searchParams: Promise<{ p
           >
             <div className="aspect-square bg-slate-100 dark:bg-zinc-800 relative">
               <ImageWithFallback
-                src={"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500"}
+                src={product.imageUrl || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500"}
                 alt={product.name}
                 fill
                 className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -91,7 +91,17 @@ export default async function MarketplacePage(props: { searchParams: Promise<{ p
               </h3>
               
               <div className="flex items-center justify-between">
-                <AddToCartButton />
+                <span className="font-semibold text-lg text-slate-900 dark:text-white">
+                  {product.price ? `Rs. ${product.price.toLocaleString()}` : "Rs. 0"}
+                </span>
+                <AddToCartButton product={{
+                  id: product.id,
+                  name: product.name,
+                  imageUrl: product.imageUrl || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500",
+                  price: product.price || 0,
+                  stock: product.stock || 999,
+                  store: { id: product.storeId, name: product.storeName }
+                }} />
               </div>
             </div>
           </Link>
