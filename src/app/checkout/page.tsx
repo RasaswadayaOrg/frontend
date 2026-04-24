@@ -7,10 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-
-function getOrderStorageKey(userId: string) {
-  return `rasas_local_orders_${userId}`;
-}
+import { apiFetch } from "@/lib/api";
 
 export default function CheckoutPage() {
   const { user } = useAuth();
@@ -52,47 +49,26 @@ export default function CheckoutPage() {
       setError("Delivery address is required");
       return;
     }
-    
+
     setSubmitting(true);
     setError(null);
-    try {
-      const now = new Date().toISOString();
-      const newOrder = {
-        id: `ORD-${Date.now()}`,
-        totalAmount: totalPrice,
-        status: "PENDING",
-        shippingAddress: address,
-        createdAt: now,
-        items: items.map((item) => ({
-          id: `${item.product.id}-${Date.now()}`,
-          quantity: item.quantity,
-          price: item.product.price,
-          product: {
-            id: item.product.id,
-            name: item.product.name,
-            imageUrl: item.product.imageUrl,
-            store: { name: item.product.store?.name || "Unknown Store" },
-          },
-        })),
-      };
+    const res = await apiFetch("/orders", {
+      method: "POST",
+      json: { shippingAddress: address },
+    });
 
-      const key = getOrderStorageKey(user.id);
-      const raw = localStorage.getItem(key);
-      const existing = raw ? JSON.parse(raw) : [];
-      localStorage.setItem(key, JSON.stringify([newOrder, ...existing]));
-      
-      setSuccess(true);
-      await clearCart();
-      setTimeout(() => {
-        router.push("/orders");
-      }, 3000);
-      
-    } catch (err) {
-      console.error(err);
-      setError("Something went wrong while placing your order.");
-    } finally {
+    if (!res.ok) {
+      setError(res.error || "Something went wrong while placing your order.");
       setSubmitting(false);
+      return;
     }
+
+    setSuccess(true);
+    await clearCart();
+    setTimeout(() => {
+      router.push("/orders");
+    }, 2500);
+    setSubmitting(false);
   };
 
   if (success) {
