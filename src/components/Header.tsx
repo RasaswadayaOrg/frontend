@@ -3,8 +3,9 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Search, Bell, User, Menu, LogIn, Loader2, X, LayoutDashboard } from "lucide-react";
+import { Search, Bell, User, Menu, LogIn, Loader2, X, LayoutDashboard, ShoppingBag, Package } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { useCart } from "@/context/CartContext";
 import { useState, useEffect, useRef } from "react";
 import { getSearchSuggestions, type SearchSuggestionsResult } from "@/app/actions/search";
 import { ImageWithFallback } from "./ImageWithFallback";
@@ -14,6 +15,7 @@ export function Header() {
   const searchParams = useSearchParams();
   const { replace } = useRouter();
   const { user, openAuthModal } = useAuth();
+  const { itemCount } = useCart();
   
   const [term, setTerm] = useState("");
   const [suggestions, setSuggestions] = useState<SearchSuggestionsResult | null>(null);
@@ -251,6 +253,17 @@ export function Header() {
                     Switch to Organizer Mode
                   </Link>
                 )}
+                <Link href="/cart" className="relative p-2 hover:bg-brand-500 rounded-full transition-colors flex items-center justify-center">
+                  <ShoppingBag className="w-5 h-5 text-white" />
+                  {itemCount > 0 && (
+                    <span className="absolute top-0 right-0 -mr-1 -mt-0 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+                      {itemCount}
+                    </span>
+                  )}
+                </Link>
+                <Link href="/orders" className="p-2 hover:bg-brand-500 rounded-full transition-colors flex items-center justify-center" aria-label="My Orders">
+                  <Package className="w-5 h-5 text-white" />
+                </Link>
                 <button className="p-2 hover:bg-brand-500 rounded-full transition-colors">
                   <Bell className="w-5 h-5 text-white" />
                 </button>

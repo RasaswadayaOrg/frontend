@@ -17,6 +17,7 @@ const abhayaLibre = Playfair_Display({
 });
 
 import { AuthProvider } from "@/context/AuthContext";
+import { CartProvider } from "@/context/CartContext";
 import { SiteLayout } from "../components/SiteLayout";
 
 export const metadata: Metadata = {
@@ -34,9 +35,11 @@ export default function RootLayout({
       <body className={`${inter.variable} ${outfit.variable} ${ibmPlex.variable} ${abhayaLibre.variable} font-sans bg-slate-50 dark:bg-zinc-900 text-slate-600 dark:text-zinc-400`} suppressHydrationWarning>
         
         <AuthProvider>
-          <SiteLayout>
-            {children}
-          </SiteLayout>
+          <CartProvider>
+            <SiteLayout>
+              {children}
+            </SiteLayout>
+          </CartProvider>
         </AuthProvider>
 
       </body>
