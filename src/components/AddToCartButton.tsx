@@ -40,24 +40,56 @@ export function AddToCartButton({ product, quantity = 1, variant = "icon" }: Add
     [items, product.id]
   );
 
+
+
   const handleAddToCart = async (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    e.stopPropagation(); // Prevent navigation if inside a Link
-    
+    e.stopPropagation();
+
     if (!user) {
       openAuthModal();
       return;
     }
 
-    setLoading(true);
-    const success = await addToCart(product, quantity);
-    setLoading(false);
+    if (!product?.id) {
+      setFeedback("error");
+      return;
+    }
 
-    if (success) {
+    setLoading(true);
+    setFeedback("idle");
+
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+      const token = typeof window !== "undefined" ? localStorage.getItem("rasas_token") : null;
+
+      const res = await fetch(`${API_URL}/cart`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ productId: product.id, quantity }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        console.error("Add to cart failed", data);
+        setFeedback("error");
+        setLoading(false);
+        return;
+      }
+
       setFeedback("success");
       setShowConfirmation(true);
-    } else {
+    } catch (err) {
+      console.error("Add to cart error", err);
       setFeedback("error");
+    } finally {
+      setLoading(false);
+      // Reset status after short timeout so button returns to normal
+      setTimeout(() => setFeedback("idle"), 1800);
     }
   };
 
