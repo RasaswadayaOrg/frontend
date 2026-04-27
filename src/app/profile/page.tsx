@@ -9,7 +9,7 @@ import { fetchUserPreferences } from "@/app/actions/preferences";
 import { updateUserLocation } from "@/app/actions/updateLocation";
 import { updateUserPreferences } from "@/app/actions/updatePreferences";
 
-type RoleType = 'ARTIST' | 'ORGANIZER' | 'SELLER' | 'TEACHER';
+type RoleType = 'ARTIST' | 'ORGANIZER' | 'STORE_OWNER' | 'TEACHER';
 
 interface RoleDocuments {
   [key: string]: File | null;
@@ -135,7 +135,7 @@ export default function ProfilePage() {
   const availableRoles: {value: RoleType, label: string}[] = [
     { value: 'ARTIST', label: 'Artist' },
     { value: 'ORGANIZER', label: 'Organizer' },
-    { value: 'SELLER', label: 'Seller' },
+    { value: 'STORE_OWNER', label: 'Seller' },
     { value: 'TEACHER', label: 'Teacher' },
   ];
 
@@ -217,9 +217,9 @@ export default function ProfilePage() {
             newErrors.ORGANIZER_doc = 'Approval letter is required';
           }
           break;
-        case 'SELLER':
-          if (!roleDocuments.SELLER) {
-            newErrors.SELLER_doc = 'Business license or product proof is required';
+        case 'STORE_OWNER':
+          if (!roleDocuments.STORE_OWNER) {
+            newErrors.STORE_OWNER_doc = 'Business license or product proof is required';
           }
           break;
         case 'TEACHER':
@@ -403,7 +403,7 @@ export default function ProfilePage() {
           </div>
         );
 
-      case 'SELLER':
+      case 'STORE_OWNER':
         return (
           <div className="space-y-4 p-4 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-200 dark:border-blue-800">
             <h4 className="font-semibold text-blue-900 dark:text-blue-300 flex items-center gap-2">
@@ -418,17 +418,17 @@ export default function ProfilePage() {
                   accept="image/*,.pdf"
                   className="hidden"
                   id="seller-file"
-                  onChange={(e) => handleFileUpload('SELLER', e.target.files?.[0] || null)}
+                  onChange={(e) => handleFileUpload('STORE_OWNER', e.target.files?.[0] || null)}
                 />
                 <label 
                   htmlFor="seller-file"
                   className="flex items-center justify-center gap-2 w-full px-4 py-3 border-2 border-dashed border-slate-300 dark:border-zinc-700 rounded-xl hover:border-emerald-500 transition-colors cursor-pointer"
                 >
                   <Upload className="w-5 h-5" />
-                  {roleDocuments.SELLER ? roleDocuments.SELLER.name : 'Upload file (Image or PDF)'}
+                  {roleDocuments.STORE_OWNER ? roleDocuments.STORE_OWNER.name : 'Upload file (Image or PDF)'}
                 </label>
               </div>
-              {errors.SELLER_doc && <p className="text-sm text-red-500 mt-1">{errors.SELLER_doc}</p>}
+              {errors.STORE_OWNER_doc && <p className="text-sm text-red-500 mt-1">{errors.STORE_OWNER_doc}</p>}
             </div>
           </div>
         );

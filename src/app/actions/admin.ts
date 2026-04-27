@@ -740,3 +740,74 @@ export async function updatePost(postId: string, postData: { title?: string; con
     return { success: false, message: 'Failed to update post' };
   }
 }
+
+
+// Store Owners
+export async function createStoreOwner(formData: FormData) {
+  const isAdmin = await verifyAdminSession();
+  if (!isAdmin) {
+    return { success: false, message: "Unauthorized" };
+  }
+
+  const storeOwnerData = {
+    email: formData.get('email'),
+    password: formData.get('password'),
+    fullName: formData.get('fullName'),
+    phone: formData.get('phone'),
+    city: formData.get('city'),
+    avatarUrl: formData.get('avatarUrl')
+  };
+
+  try {
+    const res = await fetch(`${API_URL}/v1/admin/storeOwners`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(storeOwnerData)
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      revalidatePath('/admin/storeOwners');
+      return { success: true };
+    } else {
+      return { success: false, message: data.message || 'Failed to create storeOwner' };
+    }
+  } catch (error) {
+    console.error('Create storeOwner error:', error);
+    return { success: false, message: 'Failed to create storeOwner' };
+  }
+}
+
+export async function updateStoreOwner(storeOwnerId: string, formData: FormData) {
+  const isAdmin = await verifyAdminSession();
+  if (!isAdmin) {
+    return { success: false, message: "Unauthorized" };
+  }
+
+  const storeOwnerData = {
+    fullName: formData.get('fullName'),
+    phone: formData.get('phone'),
+    city: formData.get('city'),
+    avatarUrl: formData.get('avatarUrl')
+  };
+
+  try {
+    const res = await fetch(`${API_URL}/v1/admin/storeOwners/${storeOwnerId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(storeOwnerData)
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      revalidatePath('/admin/storeOwners');
+      return { success: true };
+    } else {
+      return { success: false, message: data.message || 'Failed to update storeOwner' };
+    }
+  } catch (error) {
+    console.error('Update storeOwner error:', error);
+    return { success: false, message: 'Failed to update storeOwner' };
+  }
+}
+

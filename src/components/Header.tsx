@@ -253,6 +253,15 @@ export function Header() {
                     Switch to Organizer Mode
                   </Link>
                 )}
+                {(user.role === 'store_owner' || user.role === 'STORE_OWNER') && (
+                  <Link 
+                    href="/seller-dashboard" 
+                    className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-brand-800/50 hover:bg-brand-800 rounded-full transition-colors text-brand-100 text-xs font-medium mr-2 border border-brand-500/30"
+                  >
+                    <LayoutDashboard className="w-3.5 h-3.5" />
+                    Switch to Store Owner Mode
+                  </Link>
+                )}
                 <Link href="/cart" className="relative p-2 hover:bg-brand-500 rounded-full transition-colors flex items-center justify-center">
                   <ShoppingBag className="w-5 h-5 text-white" />
                   {itemCount > 0 && (

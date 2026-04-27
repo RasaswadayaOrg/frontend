@@ -15,7 +15,8 @@ import {
   Menu,
   Image as ImageIcon,
   UserCheck,
-  FileText
+  FileText,
+  Store
 } from "lucide-react";
 import { adminLogout } from "@/app/actions/adminAuth";
 import { useState } from "react";
@@ -26,6 +27,7 @@ const navigation = [
   { name: "Artists", href: "/admin/artists", icon: Mic2 },
   { name: "Posts", href: "/admin/posts", icon: FileText },
   { name: "Organizers", href: "/admin/organizers", icon: UserCheck },
+  { name: "Store Owners", href: "/admin/store-owners", icon: Store },
   { name: "Academies", href: "/admin/academies", icon: School },
   { name: "Marketplace", href: "/admin/marketplace", icon: ShoppingBag },
   { name: "Sponsored Ads", href: "/admin/sponsored", icon: ImageIcon },

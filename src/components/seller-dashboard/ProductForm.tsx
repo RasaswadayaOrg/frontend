@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Save, Trash2, Camera } from "lucide-react";
+import { Save, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api";
-import { ImageWithFallback } from "@/components/ImageWithFallback";
+import { ImageUpload } from "@/components/admin/ImageUpload";
 
 export interface ProductFormData {
   id?: string;
@@ -103,37 +103,13 @@ export function ProductForm({ initial, mode }: Props) {
 
       <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-6">
         <div>
-          <div className="relative aspect-square w-full rounded-2xl overflow-hidden bg-neutral-100 dark:bg-zinc-800 border border-neutral-200/60 dark:border-neutral-800/60">
-            <ImageWithFallback
-              src={form.imageUrl || "/logo.png"}
-              alt="Preview"
-              width={220}
-              height={220}
-              className="object-cover w-full h-full"
-            />
-            <button
-              type="button"
-              onClick={() => {
-                const next = window.prompt("Product image URL", form.imageUrl);
-                if (next !== null) update("imageUrl", next);
-              }}
-              className="absolute bottom-2 right-2 inline-flex items-center gap-1.5 bg-black/50 hover:bg-black/70 text-white px-2.5 py-1.5 rounded-lg text-[11px] font-medium backdrop-blur-sm transition-colors"
-            >
-              <Camera className="w-3 h-3" /> Change
-            </button>
-          </div>
-          <div className="mt-3">
-            <label className="block text-[11px] font-medium text-neutral-500 dark:text-neutral-400 mb-1.5">
-              Image URL
-            </label>
-            <input
-              type="text"
-              placeholder="https://…"
-              value={form.imageUrl}
-              onChange={(e) => update("imageUrl", e.target.value)}
-              className={`${inputClass} text-xs`}
-            />
-          </div>
+          <ImageUpload
+            name="imageUrl"
+            label="Product Image"
+            initialUrl={form.imageUrl}
+            onImageChange={(url) => update("imageUrl", url)}
+            aspectRatio="square"
+          />
         </div>
 
         <div className="space-y-4">
