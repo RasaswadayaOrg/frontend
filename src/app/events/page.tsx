@@ -19,11 +19,9 @@ export default async function EventsPage(props: { searchParams: Promise<{ page?:
   const totalPages = Math.ceil(totalEvents / limit);
 
   const categories = [
-    { id: 'Festival', name: 'Festival' },
-    { id: 'Performance', name: 'Performance' },
-    { id: 'Exhibition', name: 'Exhibition' },
-    { id: 'Workshop', name: 'Workshop' },
-    { id: 'Concert', name: 'Concert' },
+    { id: 'Music', name: 'Music' },
+    { id: 'Dance', name: 'Dance' },
+    { id: 'Drama', name: 'Drama' },
   ];
 
   return (
@@ -90,7 +88,7 @@ export default async function EventsPage(props: { searchParams: Promise<{ page?:
                 
                 {/* Date Badge */}
                 <div className="absolute bottom-3 left-3 bg-white dark:bg-zinc-900 rounded-lg p-2 text-center min-w-[60px] shadow-lg">
-                  <div className="text-xs font-bold text-brand-600 uppercase">
+                  <div className="text-xs font-bold text-slate-900 dark:text-white uppercase">
                     {eventDate.toLocaleDateString('en-US', { month: 'short' })}
                   </div>
                   <div className="text-xl font-bold text-slate-900 dark:text-white">

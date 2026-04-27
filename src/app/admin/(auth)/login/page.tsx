@@ -11,6 +11,10 @@ export default function AdminLoginPage() {
 
   useEffect(() => {
     if (state?.success) {
+      // Store admin JWT token separately from user token
+      if (state.token) {
+        localStorage.setItem('admin_token', state.token);
+      }
       router.push("/admin");
     }
   }, [state, router]);

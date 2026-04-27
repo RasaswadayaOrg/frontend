@@ -9,8 +9,11 @@ import AuthModal from "./AuthModal";
 export function SiteLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isAdmin = pathname?.startsWith("/admin");
+  const isArtistDashboard = pathname?.startsWith("/artist-dashboard");
+  const isOrganizerDashboard = pathname?.startsWith("/organizer-dashboard");
+  const isSellerDashboard = pathname?.startsWith("/seller-dashboard");
 
-  if (isAdmin) {
+  if (isAdmin || isArtistDashboard || isOrganizerDashboard || isSellerDashboard) {
     return <>{children}</>;
   }
 

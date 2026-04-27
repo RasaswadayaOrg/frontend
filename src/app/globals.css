@@ -42,3 +42,36 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Custom Scrollbar Styles */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #8B5CF6 #e4e4e7;
+}
+
+.dark .scrollbar-thin {
+  scrollbar-color: #8B5CF6 #27272a;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: #e4e4e7;
+  border-radius: 3px;
+}
+
+.dark .scrollbar-thin::-webkit-scrollbar-track {
+  background: #27272a;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #8B5CF6;
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: #7C3AED;
+}

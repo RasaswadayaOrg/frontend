@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Outfit, IBM_Plex_Sans, Abhaya_Libre } from "next/font/google";
+import { Inter, Outfit, IBM_Plex_Sans, Playfair_Display } from "next/font/google";
 import "./globals.css";
 
 // 1. Configure Fonts
@@ -10,13 +10,14 @@ const ibmPlex = IBM_Plex_Sans({
   subsets: ["latin"], 
   variable: "--font-ibm-plex" 
 });
-const abhayaLibre = Abhaya_Libre({
+const abhayaLibre = Playfair_Display({
   weight: ['400', '500', '600', '700', '800'],
-  subsets: ["sinhala", "latin"],
+  subsets: ["latin"],
   variable: "--font-abhaya"
 });
 
 import { AuthProvider } from "@/context/AuthContext";
+import { CartProvider } from "@/context/CartContext";
 import { SiteLayout } from "../components/SiteLayout";
 
 export const metadata: Metadata = {
@@ -34,9 +35,11 @@ export default function RootLayout({
       <body className={`${inter.variable} ${outfit.variable} ${ibmPlex.variable} ${abhayaLibre.variable} font-sans bg-slate-50 dark:bg-zinc-900 text-slate-600 dark:text-zinc-400`} suppressHydrationWarning>
         
         <AuthProvider>
-          <SiteLayout>
-            {children}
-          </SiteLayout>
+          <CartProvider>
+            <SiteLayout>
+              {children}
+            </SiteLayout>
+          </CartProvider>
         </AuthProvider>
 
       </body>

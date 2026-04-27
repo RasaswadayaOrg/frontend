@@ -13,7 +13,10 @@ import {
   Settings, 
   LogOut,
   Menu,
-  Image as ImageIcon
+  Image as ImageIcon,
+  UserCheck,
+  FileText,
+  Store
 } from "lucide-react";
 import { adminLogout } from "@/app/actions/adminAuth";
 import { useState } from "react";
@@ -22,6 +25,9 @@ const navigation = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { name: "Events", href: "/admin/events", icon: Calendar },
   { name: "Artists", href: "/admin/artists", icon: Mic2 },
+  { name: "Posts", href: "/admin/posts", icon: FileText },
+  { name: "Organizers", href: "/admin/organizers", icon: UserCheck },
+  { name: "Store Owners", href: "/admin/store-owners", icon: Store },
   { name: "Academies", href: "/admin/academies", icon: School },
   { name: "Marketplace", href: "/admin/marketplace", icon: ShoppingBag },
   { name: "Sponsored Ads", href: "/admin/sponsored", icon: ImageIcon },
@@ -105,7 +111,10 @@ export function AdminSidebar() {
                 </div>
              </div>
             <button
-              onClick={() => adminLogout()}
+              onClick={() => {
+                localStorage.removeItem('admin_token');
+                adminLogout();
+              }}
               className="flex w-full items-center gap-3 px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-md transition-colors"
             >
               <LogOut className="w-5 h-5" />

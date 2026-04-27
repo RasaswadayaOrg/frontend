@@ -3,8 +3,9 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Search, Bell, User, Menu, LogIn, Loader2, X } from "lucide-react";
+import { Search, Bell, User, Menu, LogIn, Loader2, X, LayoutDashboard, ShoppingBag, Package } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { useCart } from "@/context/CartContext";
 import { useState, useEffect, useRef } from "react";
 import { getSearchSuggestions, type SearchSuggestionsResult } from "@/app/actions/search";
 import { ImageWithFallback } from "./ImageWithFallback";
@@ -14,6 +15,7 @@ export function Header() {
   const searchParams = useSearchParams();
   const { replace } = useRouter();
   const { user, openAuthModal } = useAuth();
+  const { itemCount } = useCart();
   
   const [term, setTerm] = useState("");
   const [suggestions, setSuggestions] = useState<SearchSuggestionsResult | null>(null);
@@ -135,7 +137,7 @@ export function Header() {
                               className="flex items-center gap-3 p-2 hover:bg-slate-50 dark:hover:bg-zinc-800 rounded-lg group"
                             >
                               <div className="relative w-10 h-10 rounded overflow-hidden bg-slate-100 flex-shrink-0">
-                                <ImageWithFallback src={item.image} alt={item.title} fill className="object-cover" />
+                                <ImageWithFallback src={item.image || ""} alt={item.title} fill className="object-cover" />
                               </div>
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate group-hover:text-brand-600 dark:group-hover:text-brand-400">{item.title}</p>
@@ -157,7 +159,7 @@ export function Header() {
                               className="flex items-center gap-3 p-2 hover:bg-slate-50 dark:hover:bg-zinc-800 rounded-lg group"
                             >
                               <div className="relative w-10 h-10 rounded-full overflow-hidden bg-slate-100 flex-shrink-0">
-                                <ImageWithFallback src={item.image} alt={item.title} fill className="object-cover" />
+                                <ImageWithFallback src={item.image || ""} alt={item.title} fill className="object-cover" />
                               </div>
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate group-hover:text-brand-600 dark:group-hover:text-brand-400">{item.title}</p>
@@ -179,7 +181,7 @@ export function Header() {
                               className="flex items-center gap-3 p-2 hover:bg-slate-50 dark:hover:bg-zinc-800 rounded-lg group"
                             >
                               <div className="relative w-10 h-10 rounded overflow-hidden bg-slate-100 flex-shrink-0">
-                                <ImageWithFallback src={item.image} alt={item.title} fill className="object-cover" />
+                                <ImageWithFallback src={item.image || ""} alt={item.title} fill className="object-cover" />
                               </div>
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate group-hover:text-brand-600 dark:group-hover:text-brand-400">{item.title}</p>
@@ -201,7 +203,7 @@ export function Header() {
                               className="flex items-center gap-3 p-2 hover:bg-slate-50 dark:hover:bg-zinc-800 rounded-lg group"
                             >
                               <div className="relative w-10 h-10 rounded overflow-hidden bg-slate-100 flex-shrink-0">
-                                <ImageWithFallback src={item.image} alt={item.title} fill className="object-cover" />
+                                <ImageWithFallback src={item.image || ""} alt={item.title} fill className="object-cover" />
                               </div>
                                <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate group-hover:text-brand-600 dark:group-hover:text-brand-400">{item.title}</p>
@@ -233,6 +235,44 @@ export function Header() {
           <div className="flex items-center gap-4 shrink-0">
             {user ? (
               <>
+                {(user.role === 'artist' || user.role === 'ARTIST') && (
+                  <Link 
+                    href="/artist-dashboard" 
+                    className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-brand-800/50 hover:bg-brand-800 rounded-full transition-colors text-brand-100 text-xs font-medium mr-2 border border-brand-500/30"
+                  >
+                    <LayoutDashboard className="w-3.5 h-3.5" />
+                    Switch to Artist Mode
+                  </Link>
+                )}
+                {(user.role === 'organizer' || user.role === 'ORGANIZER') && (
+                  <Link 
+                    href="/organizer-dashboard" 
+                    className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-brand-800/50 hover:bg-brand-800 rounded-full transition-colors text-brand-100 text-xs font-medium mr-2 border border-brand-500/30"
+                  >
+                    <LayoutDashboard className="w-3.5 h-3.5" />
+                    Switch to Organizer Mode
+                  </Link>
+                )}
+                {(user.role === 'store_owner' || user.role === 'STORE_OWNER') && (
+                  <Link 
+                    href="/seller-dashboard" 
+                    className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-brand-800/50 hover:bg-brand-800 rounded-full transition-colors text-brand-100 text-xs font-medium mr-2 border border-brand-500/30"
+                  >
+                    <LayoutDashboard className="w-3.5 h-3.5" />
+                    Switch to Store Owner Mode
+                  </Link>
+                )}
+                <Link href="/cart" className="relative p-2 hover:bg-brand-500 rounded-full transition-colors flex items-center justify-center">
+                  <ShoppingBag className="w-5 h-5 text-white" />
+                  {itemCount > 0 && (
+                    <span className="absolute top-0 right-0 -mr-1 -mt-0 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+                      {itemCount}
+                    </span>
+                  )}
+                </Link>
+                <Link href="/orders" className="p-2 hover:bg-brand-500 rounded-full transition-colors flex items-center justify-center" aria-label="My Orders">
+                  <Package className="w-5 h-5 text-white" />
+                </Link>
                 <button className="p-2 hover:bg-brand-500 rounded-full transition-colors">
                   <Bell className="w-5 h-5 text-white" />
                 </button>
@@ -260,11 +300,32 @@ export function Header() {
       {/* Tier 2: Primary Nav */}
       <nav className="w-full bg-brand-700 text-white shadow-lg shadow-brand-900/20 hidden md:block">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-12 flex items-center gap-8 font-ui font-medium text-sm">
+          <Link href="/songs" className="hover:text-white/80 transition-colors">Songs</Link>
           <Link href="/events" className="hover:text-white/80 transition-colors">Events</Link>
           <Link href="/artists" className="hover:text-white/80 transition-colors">Artists</Link>
           <Link href="/academies" className="hover:text-white/80 transition-colors">Academies</Link>
           <Link href="/marketplace" className="hover:text-white/80 transition-colors">Marketplace</Link>
           <Link href="/about" className="hover:text-white/80 transition-colors">About</Link>
+{/*           
+          {user && (user.role === 'ARTIST' || user.role === 'artist') && (
+            <Link 
+              href="/artist-dashboard" 
+              className="bg-white/10 hover:bg-white/20 text-white px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-colors border border-white/20 flex items-center gap-2"
+            >
+              <LayoutDashboard className="w-3.5 h-3.5" />
+              Artist Dashboard
+            </Link>
+          )}
+          
+           {user && (user.role === 'ORGANIZER' || user.role === 'organizer') && (
+            <Link 
+              href="/organizer-dashboard" 
+              className="bg-white/10 hover:bg-white/20 text-white px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-colors border border-white/20 flex items-center gap-2"
+            >
+              <LayoutDashboard className="w-3.5 h-3.5" />
+              Organizer Dashboard
+            </Link>
+          )} */}
         </div>
       </nav>
     </header>

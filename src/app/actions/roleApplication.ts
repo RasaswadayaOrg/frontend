@@ -16,7 +16,7 @@ export async function submitRoleApplication(formData: FormData) {
 
     if (!token) return { success: false, error: "Invalid session" };
 
-    const res = await fetch(`${API_URL}/role-applications/apply`, {
+    const res = await fetch(`${API_URL}/v1/role-requests/apply`, {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${token}`,

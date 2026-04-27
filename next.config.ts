@@ -4,10 +4,25 @@ const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
   images: {
+    localPatterns: [
+      {
+        pathname: '/api/avatar',
+        search: '?**',
+      },
+      {
+        pathname: '/**',
+      },
+    ],
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'www.facebook.com',
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '3001',
+        pathname: '/**', // Allow all paths from localhost:3001
       },
       {
         protocol: 'https',
@@ -47,6 +62,10 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'i.pravatar.cc',
+      },
+      {
+        protocol: 'https',
         hostname: 'images.squarespace-cdn.com',
       },
       {
@@ -79,11 +98,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: '*.fna.fbcdn.net',
-      },
-      {
-        protocol: 'https',
-        hostname: 'scontent.fcmb2-2.fna.fbcdn.net',
+        hostname: '*.fbcdn.net',
       },
     ],
   },

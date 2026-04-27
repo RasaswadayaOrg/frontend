@@ -83,7 +83,7 @@ export function HeroSlider({ events = [] }: HeroSliderProps) {
                   <div className="flex items-center gap-2">
                     <Calendar className="w-5 h-5 text-slate-300" />
                     <span>
-                      {new Date(slide.eventDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                      {new Date(slide.eventDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                       {slide.startTime && ` • ${slide.startTime}`}
                     </span>
                   </div>

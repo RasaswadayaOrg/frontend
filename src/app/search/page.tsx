@@ -156,9 +156,8 @@ export default async function SearchPage({
                     {product.name}
                   </h3>
                    <div className="mt-2 flex items-center justify-between">
-                    <span className="font-bold text-lg text-slate-900 dark:text-white">LKR {product.price.toLocaleString()}</span>
+                    <span className="text-xs text-slate-500 dark:text-zinc-500 truncate">{product.storeName}</span>
                   </div>
-                  <p className="text-xs text-slate-500 dark:text-zinc-500 mt-1 truncate">{product.storeName}</p>
                 </div>
               </Link>
             ))}

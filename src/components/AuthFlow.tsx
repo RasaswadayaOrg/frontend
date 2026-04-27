@@ -15,7 +15,7 @@ interface AuthFlowProps {
 
 export function AuthFlow({ onComplete, onClose, isModal = false, defaultView = 'signin' }: AuthFlowProps) {
   const router = useRouter();
-  const { loginWithGoogle, loginWithEmail } = useAuth();
+  const { loginWithGoogle, loginWithEmail, loginAfterSignup } = useAuth();
   const [view, setView] = useState<'options' | 'signin' | 'signup'>(defaultView === 'signup' ? 'signup' : 'options');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -79,10 +79,13 @@ export function AuthFlow({ onComplete, onClose, isModal = false, defaultView = '
         fullName: `${formData.firstName} ${formData.lastName}`.trim(),
       });
 
-      if (result.success) {
+      if (result.success && result.user && result.token) {
+        // Set user in AuthContext so the app recognizes the logged-in state
+        loginAfterSignup(result.user, result.token);
         onComplete?.();
         onClose?.();
-        router.push('/'); // Go to home, they can set preferences later in profile
+        // Redirect to complete-profile for preferences (same as Google signup)
+        router.push('/auth/complete-profile');
         router.refresh();
       } else {
         setError(result.error || "Registration failed. Please try again.");

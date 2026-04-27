@@ -91,7 +91,7 @@ export function SidebarStats({ reminders = [], trendingEvents = [], city, isLogg
 
           {/* List */}
           <div className="flex flex-col gap-4">
-             {trendingEvents.map((evt, index) => (
+             {trendingEvents.slice(0, 2).map((evt, index) => (
                 <Link key={evt.id} href={`/events/${evt.id}`} className="flex items-center gap-3 group cursor-pointer">
                     <span className="text-2xl font-bold text-[#27272A] w-8 text-center flex-shrink-0 group-hover:text-brand-600 transition-colors">
                         {String(index + 1).padStart(2, '0')}

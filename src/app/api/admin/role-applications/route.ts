@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     const limit = searchParams.get("limit") || "10";
 
     const res = await fetch(
-      `${API_URL}/role-applications/all?status=${status}&page=${page}&limit=${limit}`,
+      `${API_URL}/v1/role-requests/all?status=${status}&page=${page}&limit=${limit}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,

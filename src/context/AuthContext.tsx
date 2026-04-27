@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { handleGoogleAuth } from "@/app/actions/auth";
+import { handleGoogleAuth, loginUser } from "@/app/actions/auth";
 
 type User = {
   id: string;
@@ -18,6 +18,7 @@ type AuthContextType = {
   isLoading: boolean;
   loginWithEmail: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   loginWithGoogle: () => Promise<void>;
+  loginAfterSignup: (userData: any, token: string) => void;
   logout: () => void;
   isAuthModalOpen: boolean;
   openAuthModal: () => void;
@@ -26,7 +27,6 @@ type AuthContextType = {
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -83,19 +83,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const loginWithEmail = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      const res = await fetch(`${API_URL}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+      // Use server action to login — this sets the session cookie (httpOnly)
+      const result = await loginUser(email, password);
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        return { success: false, error: data.message || "Invalid credentials" };
+      if (!result.success) {
+        return { success: false, error: result.error || "Invalid credentials" };
       }
 
-      const { user: userData, token } = data;
+      const { user: userData, token } = result;
       
       // Store user in state and localStorage
       const newUser = {
@@ -145,6 +140,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Clear local state
     setUser(null);
     localStorage.removeItem("rasas_user");
+    localStorage.removeItem("rasas_token");
     
     // Clear session cookie
     document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
@@ -153,6 +149,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const openAuthModal = () => setIsAuthModalOpen(true);
   const closeAuthModal = () => setIsAuthModalOpen(false);
 
+  const loginAfterSignup = (userData: any, token: string) => {
+    const newUser = {
+      id: userData.id,
+      name: userData.fullName || userData.email,
+      email: userData.email,
+      avatarUrl: userData.avatarUrl,
+      role: userData.role,
+      city: userData.city,
+    };
+    setUser(newUser);
+    localStorage.setItem("rasas_user", JSON.stringify(newUser));
+    localStorage.setItem("rasas_token", token);
+    setIsAuthModalOpen(false);
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -160,6 +171,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading,
         loginWithEmail,
         loginWithGoogle,
+        loginAfterSignup,
         logout,
         isAuthModalOpen,
         openAuthModal,

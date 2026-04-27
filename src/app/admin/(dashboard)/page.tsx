@@ -28,12 +28,12 @@ export default async function AdminDashboardPage() {
       href: "/admin/users"
     },
     {
-      title: "Total Revenue",
-      value: `LKR ${stats.totalRevenue.toLocaleString()}`,
-      icon: TrendingUp,
-      color: "text-green-500",
-      bgColor: "bg-green-100 dark:bg-green-900/20",
-      href: "/admin/marketplace"
+      title: "Total Artists",
+      value: stats.totalArtists.toString(),
+      icon: Mic2,
+      color: "text-amber-500",
+      bgColor: "bg-amber-100 dark:bg-amber-900/20",
+      href: "/admin/artists"
     },
     {
       title: "Total Events",

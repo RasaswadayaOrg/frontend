@@ -25,7 +25,7 @@ export async function PUT(
     const body = await request.json();
 
     const res = await fetch(
-      `${API_URL}/role-applications/${id}/status`,
+      `${API_URL}/v1/role-requests/${id}/status`,
       {
         method: "PUT",
         headers: {
