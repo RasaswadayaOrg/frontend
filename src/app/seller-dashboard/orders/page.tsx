@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { apiFetch } from "@/lib/api";
 import { ImageWithFallback } from "@/components/ImageWithFallback";
-import { ClipboardList, MapPin, User, Calendar, Package } from "lucide-react";
+import { ClipboardList, MapPin, User, Calendar, Package, MessageCircle, X, Send } from "lucide-react";
 
 type SellerOrderItem = {
   id: string;
@@ -42,13 +42,76 @@ export default function SellerOrdersPage() {
   const [error, setError] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
+  // Chat state
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [chatBuyer, setChatBuyer] = useState<{ id: string; name: string } | null>(null);
+  const [chatMessage, setChatMessage] = useState("");
+  const [chatHistory, setChatHistory] = useState<any[]>([]);
+  const [conversationId, setConversationId] = useState<string | null>(null);
+
+  const openChatWithBuyer = async (buyerId: string, buyerName: string) => {
+    setChatBuyer({ id: buyerId, name: buyerName });
+    setIsChatOpen(true);
+    setChatHistory([]);
+    setConversationId(null);
+    
+    try {
+      const token = localStorage.getItem("rasas_token");
+      if (!token) return;
+      const res = await fetch(`http://localhost:3001/api/v1/chat/store-conversations`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        // find conversation for this buyer
+        const conv = data.find((c: any) => c.buyerId === buyerId);
+        if (conv) {
+          setConversationId(conv.id);
+          const mappedMessages = conv.messages?.map((msg: any) => ({
+            sender: msg.senderId === buyerId ? 'user' : 'seller',
+            text: msg.text,
+            createdAt: msg.createdAt
+          })) || [];
+          setChatHistory(mappedMessages);
+        } else {
+          setChatHistory([{ sender: "system", text: "No existing messages found with this buyer. When they message you, it will appear here." }]);
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!chatMessage.trim() || !conversationId) return;
+    
+    setChatHistory([...chatHistory, { sender: 'seller', text: chatMessage }]);
+    const currentMessage = chatMessage;
+    setChatMessage("");
+
+    try {
+      const token = localStorage.getItem("rasas_token");
+      if (!token) return;
+      await fetch(`http://localhost:3001/api/v1/chat/conversations/${conversationId}/messages`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ text: currentMessage })
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const load = async () => {
     setLoading(true);
     const res = await apiFetch<SellerOrder[]>("/stores/user/my-store/orders");
     if (res.ok && Array.isArray(res.data)) {
       setOrders(res.data);
     } else {
-      setError(res.error || "Failed to load orders");
+      setError((res as any).error || "Failed to load orders");
     }
     setLoading(false);
   };
@@ -134,6 +197,13 @@ export default function SellerOrdersPage() {
                     <div className="flex items-center gap-1.5 text-xs text-neutral-500">
                       <User className="w-3.5 h-3.5" />
                       {order.buyer.fullName || order.buyer.email}
+                      <button
+                        onClick={() => openChatWithBuyer(order.buyer!.id, order.buyer!.fullName || order.buyer!.email)}
+                        className="ml-2 flex items-center justify-center gap-1 p-1 bg-violet-100 hover:bg-violet-200 dark:bg-violet-900/30 dark:hover:bg-violet-900/50 text-violet-600 dark:text-violet-400 rounded transition-colors"
+                        title="Message Customer"
+                      >
+                        <MessageCircle className="w-3.5 h-3.5" /> Chat
+                      </button>
                     </div>
                   )}
                 </div>
@@ -204,6 +274,74 @@ export default function SellerOrdersPage() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Chat Modal */}
+      {isChatOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl max-w-lg w-full h-[600px] max-h-[80vh] flex flex-col overflow-hidden shadow-2xl">
+            <div className="flex items-center justify-between p-4 bg-violet-600 text-white">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                  <User className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold">{chatBuyer?.name}</h2>
+                  <p className="text-xs text-violet-200">Customer</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setIsChatOpen(false)} 
+                className="p-2 hover:bg-white/20 rounded-full transition-colors"
+                title="Close chat"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-neutral-50 dark:bg-zinc-950">
+              {chatHistory.map((msg, idx) => (
+                <div key={idx} className={`flex ${msg.sender === 'seller' ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`max-w-[80%] rounded-2xl px-4 py-2 text-sm ${
+                    msg.sender === 'system' 
+                      ? 'bg-neutral-200 dark:bg-zinc-800 text-neutral-500 w-full text-center text-xs'
+                      : msg.sender === 'seller' 
+                        ? 'bg-violet-600 text-white rounded-br-sm' 
+                        : 'bg-white dark:bg-zinc-800 text-neutral-800 dark:text-neutral-200 shadow-sm border border-neutral-100 dark:border-neutral-800 rounded-bl-sm'
+                  }`}>
+                    {msg.text}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="p-3 border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-zinc-900">
+              <div className="flex items-end gap-2">
+                <textarea
+                  value={chatMessage}
+                  onChange={(e) => setChatMessage(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendMessage();
+                    }
+                  }}
+                  placeholder={conversationId ? "Type a reply..." : "Wait for customer to initiate..."}
+                  disabled={!conversationId}
+                  className="flex-1 bg-neutral-100 dark:bg-zinc-800 border-none rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none max-h-32 min-h-[44px]"
+                  rows={1}
+                />
+                <button 
+                  onClick={handleSendMessage}
+                  disabled={!chatMessage.trim() || !conversationId}
+                  className="p-3 bg-violet-600 text-white rounded-xl hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shrink-0"
+                >
+                  <Send className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

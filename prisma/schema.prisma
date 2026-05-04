@@ -7,116 +7,476 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  fullName  String
-  city      String?
-  interests String[] // Array of strings: ["Music", "Dance"]
-  role      Role     @default(USER)
-  
-  orders       Order[]
-  eventActions EventAction[]
-  store        Store?        // A user can own one store (optional)
-  artistProfile Artist?      // A user can be an artist
-  organizedEvents Event[]    // Events organized by this user
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              String           @id @default(cuid())
+  email           String           @unique
+  password        String
+  fullName        String
+  firstName       String?
+  lastName        String?
+  phone           String?
+  city            String?
+  avatarUrl       String?
+  role            UserRole         @default(USER)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  artist          Artist?
+  cartItems       CartItem[]
+  enquiries       Enquiry[]
+  organizedEvents Event[]          @relation("OrganizerEvents")
+  calendarEvents  OrganizerEvent[]
+  follows         Follower[]
+  interests       Interest[]
+  orders          Order[]
+  reminders       Reminder[]
+  recommendations Recommendation[]
+  RoleRequest     RoleRequest[]
+  store           Store?
+  tickets         Ticket[]
+  bookingRequests BookingRequest[]
+  preferences     UserPreference?
+
+  buyerConversations Conversation[] @relation("BuyerConversations")
+  sentMessages       Message[]      @relation("SentMessages")
 }
 
-enum Role {
-  USER
-  ADMIN
-  ORGANIZER
-  ARTIST
-}
-
-model Artist {
-  id        String   @id @default(uuid())
-  name      String
-  bio       String
-  photoUrl  String?
-  genre     String
-  
-  user      User?    @relation(fields: [userId], references: [id])
-  userId    String?  @unique
-  
-  events    Event[]
+model UserPreference {
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  categories String[]
+  interests  String[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Event {
-  id            String   @id @default(uuid())
-  title         String
-  description   String
-  imageUrl      String?
-  location      String?
-  city          String?
-  venue         String?
-  startTime     DateTime?
-  endTime       DateTime?
-  eventDate     DateTime? // Keeping this for compatibility with seed
-  capacity      Int?
-  category      String?
-  ticketLink    String?   // External URL
-  organizerInfo Json?    // Simple JSON for name/contact
-  
-  organizer     User?    @relation(fields: [organizerId], references: [id])
-  organizerId   String?
-  
-  artists       Artist[]
-  actions       EventAction[]
-  
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id           String        @id @default(cuid())
+  title        String
+  description  String
+  eventDate    DateTime
+  endDate      DateTime?
+  startTime    String?
+  endTime      String?
+  location     String
+  venue        String
+  city         String
+  category     String
+  imageUrl     String?
+  capacity     Int?
+  ticketLink   String?
+  price        Float         @default(0)
+  isFeatured   Boolean       @default(false)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  organizerId  String
+  organizer    User          @relation("OrganizerEvents", fields: [organizerId], references: [id])
+  interests    Interest[]
+  performances Performance[]
+  tickets      Ticket[]
 }
 
-model EventAction {
-  id        String   @id @default(uuid())
-  type      String   // "INTERESTED", "REMIND", "VIEW"
-  user      User     @relation(fields: [userId], references: [id])
-  userId    String
-  event     Event    @relation(fields: [eventId], references: [id])
-  eventId   String
-  
+model Ticket {
+  id           String       @id @default(cuid())
+  quantity     Int          @default(1)
+  status       TicketStatus @default(PENDING)
+  purchaseDate DateTime     @default(now())
+  userId       String
+  eventId      String
+  event        Event        @relation(fields: [eventId], references: [id])
+  user         User         @relation(fields: [userId], references: [id])
+}
+
+model Interest {
+  id        String   @id @default(cuid())
   createdAt DateTime @default(now())
+  userId    String
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, eventId])
 }
 
-// --- Marketplace ---
+model Artist {
+  id         String  @id @default(cuid())
+  name       String
+  profession String
+  genre      String
+  bio        String?
+  photoUrl   String?
+  coverUrl   String?
+  location   String?
+  website    String?
+  instagram  String?
+  facebook   String?
+
+  // Social Integration
+  fbPageId         String?
+  fbAccessToken    String?
+  fbTokenExpiresAt DateTime?
+  fbSourceType     String? // 'page' or 'profile' — determines feed endpoint
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  userId          String?          @unique
+  user            User?            @relation(fields: [userId], references: [id])
+  followers       Follower[]
+  performances    Performance[]
+  bookingRequests BookingRequest[]
+  posts           Post[]
+  calendarEvents  ArtistEvent[]
+}
+
+model ArtistEvent {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  eventDate   DateTime
+  startTime   String? // e.g. "19:00"
+  endTime     String? // e.g. "21:00"
+  location    String?
+  type        String   @default("gig") // gig, private, recording, rehearsal, other
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  artistId    String
+  artist      Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@index([artistId])
+  @@index([eventDate])
+}
+
+model OrganizerEvent {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  eventDate   DateTime
+  startTime   String? // e.g. "19:00"
+  endTime     String? // e.g. "21:00"
+  location    String?
+  type        String   @default("cultural_show") // cultural_show, workshop, meeting, rehearsal, site_visit, other
+  artistCount Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  organizerId String
+  organizer   User     @relation(fields: [organizerId], references: [id], onDelete: Cascade)
+
+  @@index([organizerId])
+  @@index([eventDate])
+}
+
+model Follower {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  userId    String
+  artistId  String
+  artist    Artist   @relation(fields: [artistId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, artistId])
+}
+
+model Performance {
+  id       String  @id @default(cuid())
+  role     String?
+  artistId String
+  eventId  String
+  artist   Artist  @relation(fields: [artistId], references: [id])
+  event    Event   @relation(fields: [eventId], references: [id])
+
+  @@unique([artistId, eventId])
+}
+
+model Academy {
+  id          String    @id @default(cuid())
+  name        String
+  type        String
+  location    String
+  description String?
+  imageUrl    String?
+  phone       String?
+  email       String?
+  website     String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  courses     Course[]
+  enquiries   Enquiry[]
+}
+
+model Course {
+  id          String  @id @default(cuid())
+  name        String
+  description String?
+  duration    String?
+  academyId   String
+  academy     Academy @relation(fields: [academyId], references: [id])
+}
+
+model Enquiry {
+  id        String        @id @default(cuid())
+  message   String
+  status    EnquiryStatus @default(PENDING)
+  response  String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  userId    String
+  academyId String
+  academy   Academy       @relation(fields: [academyId], references: [id])
+  user      User          @relation(fields: [userId], references: [id])
+}
 
 model Store {
-  id        String    @id @default(uuid())
-  name      String
-  owner     User      @relation(fields: [ownerId], references: [id])
-  ownerId   String    @unique
-  products  Product[]
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  imageUrl    String?
+  coverUrl    String?
+  location    String?
+  rating      Float     @default(0)
+  reviewCount Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  ownerId     String    @unique
+  products    Product[]
+  owner       User      @relation(fields: [ownerId], references: [id])
+  conversations Conversation[] @relation("StoreConversations")
 }
 
 model Product {
-  id          String      @id @default(uuid())
+  id          String      @id @default(cuid())
   name        String
-  description String
-  store       Store       @relation(fields: [storeId], references: [id])
+  description String?
+  imageUrl    String?
+  images      String[]
+  category    String?
+  stock       Int         @default(0)
+  price       Float       @default(0)
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
   storeId     String
+  cartItems   CartItem[]
   orderItems  OrderItem[]
+  store       Store       @relation(fields: [storeId], references: [id])
+}
+
+model Category {
+  id      String  @id @default(cuid())
+  name    String  @unique
+  iconUrl String?
+}
+
+model CartItem {
+  id        String   @id @default(cuid())
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, productId])
 }
 
 model Order {
-  id            String      @id @default(uuid())
-  user          User        @relation(fields: [userId], references: [id])
-  userId        String
-  status        String      // "PENDING", "COMPLETED", "CANCELLED"
-  paymentMethod String      // "PAYHERE", "COD"
-  items         OrderItem[]
-  
-  createdAt     DateTime    @default(now())
+  id              String      @id @default(cuid())
+  status          OrderStatus @default(PENDING)
+  shippingAddress String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  userId          String
+  user            User        @relation(fields: [userId], references: [id])
+  items           OrderItem[]
 }
 
 model OrderItem {
-  id        String  @id @default(uuid())
-  order     Order   @relation(fields: [orderId], references: [id])
-  orderId   String
-  product   Product @relation(fields: [productId], references: [id])
-  productId String
+  id        String  @id @default(cuid())
   quantity  Int
+  orderId   String
+  productId String
+  order     Order   @relation(fields: [orderId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+model Reminder {
+  id        String   @id @default(cuid())
+  title     String
+  eventDate DateTime
+  createdAt DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Recommendation {
+  id              String   @id @default(cuid())
+  userId          String
+  recommendedType String // "ARTIST" or "EVENT"
+  recommendedId   String // The ID of the artist or event
+  score           Float // AI confidence score (e.g. 0.85)
+  reason          String? // Short reason (e.g. "Because you like contemporary music")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([recommendedType])
+}
+
+model RoleRequest {
+  id              String        @id @default(cuid())
+  userId          String
+  requestedRole   UserRole
+  documents       Json?
+  textFields      Json?
+  reason          String
+  contact         String
+  status          RequestStatus @default(PENDING)
+  rejectionReason String?
+  requestedAt     DateTime      @default(now())
+  reviewedAt      DateTime?
+  reviewedBy      String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([requestedRole])
+  @@index([status])
+  @@index([userId])
+}
+
+enum UserRole {
+  USER
+  ARTIST
+  ORGANIZER
+  STORE_OWNER
+  ADMIN
+}
+
+enum TicketStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  USED
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum EnquiryStatus {
+  PENDING
+  RESPONDED
+  CLOSED
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Post {
+  id          String        @id @default(cuid())
+  title       String?
+  content     String?
+  imageUrl    String?
+  videoUrl    String?
+  source      PostSource    @default(RASASWADAYA)
+  externalId  String? // ID from Facebook/Instagram
+  publishedAt DateTime      @default(now())
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  artistId    String
+  artist      Artist        @relation(fields: [artistId], references: [id])
+  likes       PostLike[]
+  comments    PostComment[]
+
+  @@index([externalId])
+  @@index([artistId])
+}
+
+model PostLike {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  userId    String
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@index([postId])
+}
+
+model PostComment {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+}
+
+enum PostSource {
+  RASASWADAYA
+  FACEBOOK
+  INSTAGRAM
+}
+
+model BookingRequest {
+  id          String        @id @default(cuid())
+  eventName   String
+  date        DateTime
+  time        String
+  venue       String
+  description String?
+  status      BookingStatus @default(PENDING)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  organizerId String
+  artistId    String
+  organizer   User          @relation(fields: [organizerId], references: [id], onDelete: Cascade)
+  artist      Artist        @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@index([organizerId])
+  @@index([artistId])
+}
+
+enum BookingStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+// --- Chat System Models ---
+
+model Conversation {
+  id        String   @id @default(cuid())
+  buyerId   String
+  storeId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  buyer     User      @relation("BuyerConversations", fields: [buyerId], references: [id], onDelete: Cascade)
+  store     Store     @relation("StoreConversations", fields: [storeId], references: [id], onDelete: Cascade)
+  messages  Message[]
+
+  @@unique([buyerId, storeId])
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  senderId       String
+  text           String
+  isRead         Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User         @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
 }

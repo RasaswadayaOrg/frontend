@@ -2,16 +2,71 @@
 
 import { useCart } from "@/context/CartContext";
 import { ImageWithFallback } from "@/components/ImageWithFallback";
-import { Minus, Plus, Trash2, ShoppingBag, ArrowLeft, ArrowRight } from "lucide-react";
+import { Minus, Plus, Trash2, ShoppingBag, ArrowLeft, ArrowRight, MessageCircle, X, Send } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 
 export default function CartPage() {
   const { user } = useAuth();
   const { items, itemCount, totalPrice, updateQuantity, removeItem, isLoading, fetchCart } = useCart();
   const router = useRouter();
+  const [isChatModalOpen, setIsChatModalOpen] = useState(false);
+  const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
+  const [chatMessage, setChatMessage] = useState("");
+  const [chatHistory, setChatHistory] = useState<any[]>([]);
+  const [conversationId, setConversationId] = useState<string | null>(null);
+
+  const fetchChatHistory = async (storeId: string) => {
+    try {
+      const token = localStorage.getItem("rasas_token");
+      if (!token) return;
+      const res = await fetch(`http://localhost:3001/api/v1/chat/conversations/${storeId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setConversationId(data.id);
+        const mappedMessages = data.messages?.map((msg: any) => ({
+          sender: msg.senderId === user?.id ? 'user' : 'seller',
+          text: msg.text,
+          createdAt: msg.createdAt
+        })) || [];
+        setChatHistory([
+          { sender: "system", text: `Connected securely to the store. You can start chatting!` },
+          ...mappedMessages
+        ]);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!chatMessage.trim() || !conversationId) return;
+    
+    // Optimistic UI update
+    setChatHistory([...chatHistory, { sender: 'user', text: chatMessage }]);
+    const currentMessage = chatMessage;
+    setChatMessage("");
+
+    try {
+      const token = localStorage.getItem("rasas_token");
+      if (!token) return;
+      await fetch(`http://localhost:3001/api/v1/chat/conversations/${conversationId}/messages`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ text: currentMessage })
+      });
+      // Optionally re-fetch chat history after a short delay
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   useEffect(() => {
     // Force a fresh cart fetch on load if user exists
@@ -155,14 +210,109 @@ export default function CartPage() {
             </div>
 
             <button 
-              onClick={() => router.push("/checkout")}
-              className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-medium transition-colors shadow-md shadow-brand-600/20"
+              onClick={() => setIsChatModalOpen(true)}
+              className="w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-medium transition-colors shadow-md mb-3 flex items-center justify-center gap-2"
             >
-              Proceed to Checkout
+              <MessageCircle className="w-5 h-5" />
+              Chat to Buy
+            </button>
+
+            <button 
+              onClick={() => router.push("/checkout")}
+              className="w-full py-3 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-300 rounded-xl font-medium transition-colors"
+            >
+              Direct Checkout
             </button>
           </div>
         </div>
       </div>
+
+      {/* Chat Modal */}
+      {isChatModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl max-w-2xl w-full max-h-[80vh] flex flex-col overflow-hidden shadow-2xl">
+            <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-zinc-800">
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white">Contact Sellers</h2>
+              <button onClick={() => setIsChatModalOpen(false)} className="text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="flex flex-1 overflow-hidden">
+              {/* Stores List */}
+              <div className="w-1/3 border-r border-slate-200 dark:border-zinc-800 overflow-y-auto bg-slate-50 dark:bg-zinc-950 p-2">
+                {Object.entries(
+                  items.reduce((acc, item) => {
+                    const storeId = item.product.store?.id || "unknown";
+                    if (!acc[storeId]) {
+                      acc[storeId] = { name: item.product.store?.name || "Unknown Store", items: [] };
+                    }
+                    acc[storeId].items.push(item);
+                    return acc;
+                  }, {} as Record<string, {name: string, items: typeof items}>)
+                ).map(([storeId, storeData]) => (
+                  <button
+                    key={storeId}
+                    onClick={() => {
+                      setSelectedStoreId(storeId);
+                      fetchChatHistory(storeId);
+                    }}
+                    className={`w-full text-left p-3 rounded-xl mb-2 transition-colors ${selectedStoreId === storeId ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400' : 'hover:bg-slate-200 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-300'}`}
+                  >
+                    <div className="font-semibold text-sm">{storeData.name}</div>
+                    <div className="text-xs opacity-70">{storeData.items.length} items</div>
+                  </button>
+                ))}
+              </div>
+
+              {/* Chat Area */}
+              <div className="w-2/3 flex flex-col bg-white dark:bg-zinc-900">
+                {selectedStoreId ? (
+                  <>
+                    <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                      {chatHistory.map((msg, idx) => (
+                        <div key={idx} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                          <div className={`max-w-[80%] rounded-2xl px-4 py-2 text-sm ${msg.sender === 'user' ? 'bg-green-600 text-white' : 'bg-slate-100 dark:bg-zinc-800 text-slate-800 dark:text-zinc-200'}`}>
+                            {msg.text}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="p-3 border-t border-slate-200 dark:border-zinc-800 flex gap-2">
+                      <input
+                        type="text"
+                        value={chatMessage}
+                        onChange={(e) => setChatMessage(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && chatMessage.trim()) {
+                            handleSendMessage();
+                          }
+                        }}
+                        placeholder="Type a message..."
+                        className="flex-1 bg-slate-100 dark:bg-zinc-800 border-none rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                      />
+                      <button 
+                        onClick={() => {
+                          if (chatMessage.trim()) {
+                            handleSendMessage();
+                          }
+                        }}
+                        className="p-2 bg-green-600 text-white rounded-full hover:bg-green-700"
+                      >
+                        <Send className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex-1 flex items-center justify-center text-slate-400 dark:text-zinc-500 text-sm">
+                    Select a seller to start chatting
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
