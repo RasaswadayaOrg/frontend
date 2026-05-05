@@ -1,5 +1,3 @@
-"use client";
-
 import { getSponsoredAds, getSponsoredAdsCount } from "@/lib/db";
 import Link from "next/link";
 import { Plus, Image, ExternalLink, Eye, MousePointer } from "lucide-react";
