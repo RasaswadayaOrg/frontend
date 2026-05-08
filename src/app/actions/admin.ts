@@ -3,11 +3,21 @@
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
 async function verifyAdminSession() {
   const cookieStore = await cookies();
   return cookieStore.has("admin_session");
+}
+
+/** Returns headers including the admin Bearer token for backend calls. */
+async function adminHeaders(): Promise<Record<string, string>> {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("admin_token")?.value;
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
 }
 
 // Events
@@ -20,7 +30,7 @@ export async function deleteEvent(eventId: string) {
   try {
     const res = await fetch(`${API_URL}/v1/admin/events/${eventId}`, {
       method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await adminHeaders(),
     });
 
     if (res.ok) {
@@ -50,6 +60,7 @@ export async function createEvent(formData: FormData) {
     venue: formData.get('venue'),
     city: formData.get('city'),
     category: formData.get('category'),
+    subCategory: formData.get('subCategory') || null,
     imageUrl: formData.get('imageUrl'),
     capacity: formData.get('capacity') ? Number(formData.get('capacity')) : null,
     ticketLink: formData.get('ticketLink'),
@@ -58,7 +69,7 @@ export async function createEvent(formData: FormData) {
   try {
     const res = await fetch(`${API_URL}/v1/admin/events`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await adminHeaders(),
       body: JSON.stringify(eventData),
     });
 
@@ -89,6 +100,7 @@ export async function updateEvent(eventId: string, formData: FormData) {
     venue: formData.get('venue'),
     city: formData.get('city'),
     category: formData.get('category'),
+    subCategory: formData.get('subCategory') || null,
     imageUrl: formData.get('imageUrl'),
     capacity: formData.get('capacity') ? Number(formData.get('capacity')) : null,
     ticketLink: formData.get('ticketLink'),
@@ -97,7 +109,7 @@ export async function updateEvent(eventId: string, formData: FormData) {
   try {
     const res = await fetch(`${API_URL}/v1/admin/events/${eventId}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await adminHeaders(),
       body: JSON.stringify(eventData),
     });
 
@@ -123,7 +135,7 @@ export async function toggleEventFeatured(eventId: string, isFeatured: boolean) 
   try {
     const res = await fetch(`${API_URL}/v1/admin/events/${eventId}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await adminHeaders(),
       body: JSON.stringify({ isFeatured }),
     });
 
@@ -151,7 +163,7 @@ export async function deleteArtist(artistId: string) {
   try {
     const res = await fetch(`${API_URL}/v1/admin/artists/${artistId}`, {
       method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await adminHeaders(),
     });
 
     if (res.ok) {
@@ -177,6 +189,8 @@ export async function createArtist(formData: FormData) {
     name: formData.get('name'),
     profession: formData.get('profession'),
     genre: formData.get('genre'),
+    category: formData.get('category') || 'music',
+    subCategory: formData.get('subCategory') || null,
     bio: formData.get('bio'),
     location: formData.get('location'),
     photoUrl: formData.get('photoUrl'),
@@ -189,7 +203,7 @@ export async function createArtist(formData: FormData) {
   try {
     const res = await fetch(`${API_URL}/v1/admin/artists`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await adminHeaders(),
       body: JSON.stringify(artistData),
     });
 
@@ -216,6 +230,8 @@ export async function updateArtist(artistId: string, formData: FormData) {
     name: formData.get('name'),
     profession: formData.get('profession'),
     genre: formData.get('genre'),
+    category: formData.get('category') || 'music',
+    subCategory: formData.get('subCategory') || null,
     bio: formData.get('bio'),
     location: formData.get('location'),
     photoUrl: formData.get('photoUrl'),
@@ -228,7 +244,7 @@ export async function updateArtist(artistId: string, formData: FormData) {
   try {
     const res = await fetch(`${API_URL}/v1/admin/artists/${artistId}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await adminHeaders(),
       body: JSON.stringify(artistData),
     });
 
@@ -256,7 +272,7 @@ export async function deleteAcademy(academyId: string) {
   try {
     const res = await fetch(`${API_URL}/v1/admin/academies/${academyId}`, {
       method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await adminHeaders(),
     });
 
     if (res.ok) {
@@ -292,7 +308,7 @@ export async function createAcademy(formData: FormData) {
   try {
     const res = await fetch(`${API_URL}/v1/admin/academies`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await adminHeaders(),
       body: JSON.stringify(academyData),
     });
 
@@ -329,7 +345,7 @@ export async function updateAcademy(academyId: string, formData: FormData) {
   try {
     const res = await fetch(`${API_URL}/v1/admin/academies/${academyId}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await adminHeaders(),
       body: JSON.stringify(academyData),
     });
 
@@ -356,7 +372,7 @@ export async function deleteProduct(productId: string) {
   try {
     const res = await fetch(`${API_URL}/v1/admin/products/${productId}`, {
       method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await adminHeaders(),
     });
 
     if (res.ok) {
@@ -390,7 +406,7 @@ export async function createProduct(formData: FormData) {
   try {
     const res = await fetch(`${API_URL}/v1/admin/products`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await adminHeaders(),
       body: JSON.stringify(productData),
     });
 
@@ -425,7 +441,7 @@ export async function updateProduct(productId: string, formData: FormData) {
   try {
     const res = await fetch(`${API_URL}/v1/admin/products/${productId}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await adminHeaders(),
       body: JSON.stringify(productData),
     });
 
@@ -452,7 +468,7 @@ export async function deleteUser(userId: string) {
   try {
     const res = await fetch(`${API_URL}/v1/admin/users/${userId}`, {
       method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await adminHeaders(),
     });
 
     if (res.ok) {
@@ -477,7 +493,7 @@ export async function updateUserRole(userId: string, role: string) {
   try {
     const res = await fetch(`${API_URL}/v1/admin/users/${userId}/role`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await adminHeaders(),
       body: JSON.stringify({ role }),
     });
 
@@ -516,7 +532,7 @@ export async function createSponsoredAd(formData: FormData) {
   try {
     const res = await fetch(`${API_URL}/v1/admin/ads`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await adminHeaders(),
       body: JSON.stringify(adData),
     });
 
@@ -553,7 +569,7 @@ export async function updateSponsoredAd(adId: string, formData: FormData) {
   try {
     const res = await fetch(`${API_URL}/v1/admin/ads/${adId}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await adminHeaders(),
       body: JSON.stringify(adData),
     });
 
@@ -579,7 +595,7 @@ export async function deleteSponsoredAd(adId: string) {
   try {
     const res = await fetch(`${API_URL}/v1/admin/ads/${adId}`, {
       method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await adminHeaders(),
     });
 
     if (res.ok) {
@@ -604,7 +620,7 @@ export async function toggleSponsoredAdStatus(adId: string) {
   try {
     const res = await fetch(`${API_URL}/v1/admin/ads/${adId}/toggle`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await adminHeaders(),
     });
 
     if (res.ok) {
@@ -639,7 +655,7 @@ export async function createOrganizer(formData: FormData) {
   try {
     const res = await fetch(`${API_URL}/v1/admin/organizers`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await adminHeaders(),
       body: JSON.stringify(organizerData)
     });
 
@@ -672,7 +688,7 @@ export async function updateOrganizer(organizerId: string, formData: FormData) {
   try {
     const res = await fetch(`${API_URL}/v1/admin/organizers/${organizerId}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await adminHeaders(),
       body: JSON.stringify(organizerData)
     });
 
@@ -699,7 +715,7 @@ export async function deletePost(postId: string) {
   try {
     const res = await fetch(`${API_URL}/v1/admin/posts/${postId}`, {
       method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await adminHeaders(),
     });
 
     if (res.ok) {
@@ -724,7 +740,7 @@ export async function updatePost(postId: string, postData: { title?: string; con
   try {
     const res = await fetch(`${API_URL}/v1/admin/posts/${postId}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await adminHeaders(),
       body: JSON.stringify(postData),
     });
 
@@ -754,20 +770,21 @@ export async function createStoreOwner(formData: FormData) {
     password: formData.get('password'),
     fullName: formData.get('fullName'),
     phone: formData.get('phone'),
+    whatsappPhone: formData.get('whatsappPhone'),
     city: formData.get('city'),
     avatarUrl: formData.get('avatarUrl')
   };
 
   try {
-    const res = await fetch(`${API_URL}/v1/admin/storeOwners`, {
+    const res = await fetch(`${API_URL}/v1/admin/store-owners`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await adminHeaders(),
       body: JSON.stringify(storeOwnerData)
     });
 
     const data = await res.json();
     if (data.success) {
-      revalidatePath('/admin/storeOwners');
+      revalidatePath('/admin/store-owners');
       return { success: true };
     } else {
       return { success: false, message: data.message || 'Failed to create storeOwner' };
@@ -787,20 +804,21 @@ export async function updateStoreOwner(storeOwnerId: string, formData: FormData)
   const storeOwnerData = {
     fullName: formData.get('fullName'),
     phone: formData.get('phone'),
+    whatsappPhone: formData.get('whatsappPhone'),
     city: formData.get('city'),
     avatarUrl: formData.get('avatarUrl')
   };
 
   try {
-    const res = await fetch(`${API_URL}/v1/admin/storeOwners/${storeOwnerId}`, {
+    const res = await fetch(`${API_URL}/v1/admin/store-owners/${storeOwnerId}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await adminHeaders(),
       body: JSON.stringify(storeOwnerData)
     });
 
     const data = await res.json();
     if (data.success) {
-      revalidatePath('/admin/storeOwners');
+      revalidatePath('/admin/store-owners');
       return { success: true };
     } else {
       return { success: false, message: data.message || 'Failed to update storeOwner' };

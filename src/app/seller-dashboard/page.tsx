@@ -94,7 +94,7 @@ function groupByWeek(orders: SellerOrder[], weeks = 12) {
       const label = `W${getWeekNumber(new Date(o.createdAt))}`;
       if (label in buckets) buckets[label] = (buckets[label] ?? 0) + Number(o.totalForStore || 0);
     });
-  return Object.entries(buckets).map(([week, revenue]) => ({ week, revenue }));
+  return Object.entries(buckets).map(([week, revenue]) => ({ date: week, revenue }));
 }
 
 function getWeekNumber(d: Date) {
@@ -139,7 +139,7 @@ function RevenueTooltip({ active, payload, label }: any) {
   return (
     <div className="bg-white dark:bg-zinc-800 border border-neutral-200/60 dark:border-neutral-700 rounded-xl px-3 py-2 shadow-xl text-xs">
       <p className="text-neutral-500 mb-1">{label}</p>
-      <p className="font-bold text-violet-600 dark:text-violet-400">
+      <p className="font-bold text-brand-600 dark:text-brand-400">
         LKR {Number(payload[0].value).toLocaleString()}
       </p>
     </div>
@@ -178,7 +178,7 @@ export default function SellerDashboardPage() {
   const dailyData  = useMemo(() => groupByDay(orders, 30),  [orders]);
   const weeklyData = useMemo(() => groupByWeek(orders, 12), [orders]);
   const chartData  = revenueRange === "daily" ? dailyData : weeklyData;
-  const chartKey   = revenueRange === "daily" ? "date" : "week";
+  const chartKey   = "date";
 
   const statusCounts = useMemo(() => {
     const map: Record<string, number> = {};
@@ -201,7 +201,7 @@ export default function SellerDashboardPage() {
   if (loading) {
     return (
       <div className="flex justify-center py-20">
-        <div className="w-8 h-8 rounded-full border-b-2 border-violet-600 animate-spin" />
+        <div className="w-8 h-8 rounded-full border-b-2 border-brand-600 animate-spin" />
       </div>
     );
   }
@@ -218,8 +218,8 @@ export default function SellerDashboardPage() {
             Set up your store to start selling on the marketplace.
           </p>
         </div>
-        <div className="bg-gradient-to-br from-violet-50 to-fuchsia-50 dark:from-violet-900/20 dark:to-fuchsia-900/10 border border-violet-100 dark:border-violet-800/40 rounded-2xl p-8">
-          <AlertCircle className="w-10 h-10 text-violet-600 mb-4" />
+        <div className="bg-gradient-to-br from-brand-50 to-fuchsia-50 dark:from-brand-900/20 dark:to-fuchsia-900/10 border border-brand-100 dark:border-brand-800/40 rounded-2xl p-8">
+          <AlertCircle className="w-10 h-10 text-brand-600 mb-4" />
           <h2 className="text-lg font-bold text-neutral-900 dark:text-white mb-2">
             You don&apos;t have a store yet
           </h2>
@@ -228,7 +228,7 @@ export default function SellerDashboardPage() {
           </p>
           <Link
             href="/seller-dashboard/store"
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-sm font-semibold transition-all duration-200 hover:shadow-lg hover:shadow-violet-200/40 dark:hover:shadow-none"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-semibold transition-all duration-200 hover:shadow-lg hover:shadow-brand-200/40 dark:hover:shadow-none"
           >
             Create Store <ArrowRight className="w-4 h-4" />
           </Link>
@@ -243,7 +243,7 @@ export default function SellerDashboardPage() {
       value: `LKR ${totalRevenue.toLocaleString()}`,
       sub: "all time (excl. cancelled)",
       icon: TrendingUp,
-      accent: "from-violet-500 to-fuchsia-500",
+      accent: "from-brand-500 to-fuchsia-500",
       href: "/seller-dashboard/orders",
     },
     {
@@ -251,7 +251,7 @@ export default function SellerDashboardPage() {
       value: productCount,
       sub: "in your catalog",
       icon: Package,
-      accent: "from-indigo-500 to-violet-500",
+      accent: "from-indigo-500 to-brand-500",
       href: "/seller-dashboard/products",
     },
     {
@@ -284,7 +284,7 @@ export default function SellerDashboardPage() {
         </div>
         <Link
           href="/seller-dashboard/products/new"
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-sm font-semibold transition-all duration-200 hover:shadow-lg hover:shadow-violet-200/40 dark:hover:shadow-none active:scale-[0.98]"
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-semibold transition-all duration-200 hover:shadow-lg hover:shadow-brand-200/40 dark:hover:shadow-none active:scale-[0.98]"
         >
           <Plus className="w-4 h-4" /> Add Product
         </Link>
@@ -298,7 +298,7 @@ export default function SellerDashboardPage() {
             <Link
               key={s.label}
               href={s.href}
-              className="group relative bg-white dark:bg-zinc-900 border border-neutral-200/60 dark:border-neutral-800/60 rounded-2xl p-5 overflow-hidden hover:shadow-lg hover:shadow-violet-100/30 dark:hover:shadow-none transition-all duration-200"
+              className="group relative bg-white dark:bg-zinc-900 border border-neutral-200/60 dark:border-neutral-800/60 rounded-2xl p-5 overflow-hidden hover:shadow-lg hover:shadow-brand-100/30 dark:hover:shadow-none transition-all duration-200"
             >
               <div className={`absolute -top-8 -right-8 w-28 h-28 rounded-full bg-gradient-to-br ${s.accent} opacity-[0.08] group-hover:opacity-[0.15] transition-opacity`} />
               <div className="relative">
@@ -334,7 +334,7 @@ export default function SellerDashboardPage() {
                   onClick={() => setRevenueRange(r)}
                   className={`px-3 py-1 rounded-md transition-all ${
                     revenueRange === r
-                      ? "bg-white dark:bg-zinc-700 text-violet-700 dark:text-violet-300 shadow-sm"
+                      ? "bg-white dark:bg-zinc-700 text-brand-700 dark:text-brand-300 shadow-sm"
                       : "text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200"
                   }`}
                 >
@@ -489,7 +489,7 @@ export default function SellerDashboardPage() {
             </div>
             <Link
               href="/seller-dashboard/orders"
-              className="text-[11px] font-semibold text-violet-600 dark:text-violet-400 hover:underline flex items-center gap-1"
+              className="text-[11px] font-semibold text-brand-600 dark:text-brand-400 hover:underline flex items-center gap-1"
             >
               View all <ArrowRight className="w-3 h-3" />
             </Link>
@@ -508,7 +508,7 @@ export default function SellerDashboardPage() {
                 return (
                   <div
                     key={order.id}
-                    className="flex items-center gap-3 p-3 rounded-xl bg-neutral-50/80 dark:bg-zinc-800/50 hover:bg-violet-50/60 dark:hover:bg-violet-900/10 transition-colors"
+                    className="flex items-center gap-3 p-3 rounded-xl bg-neutral-50/80 dark:bg-zinc-800/50 hover:bg-brand-50/60 dark:hover:bg-brand-900/10 transition-colors"
                   >
                     <div
                       className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
@@ -558,12 +558,12 @@ export default function SellerDashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Link
           href="/seller-dashboard/store"
-          className="group bg-white dark:bg-zinc-900 border border-neutral-200/60 dark:border-neutral-800/60 rounded-2xl p-5 hover:border-violet-200 dark:hover:border-violet-800/60 transition-colors"
+          className="group bg-white dark:bg-zinc-900 border border-neutral-200/60 dark:border-neutral-800/60 rounded-2xl p-5 hover:border-brand-200 dark:hover:border-brand-800/60 transition-colors"
         >
           <div className="flex items-center gap-3 mb-1.5">
-            <StoreIcon className="w-5 h-5 text-violet-600" />
+            <StoreIcon className="w-5 h-5 text-brand-600" />
             <h3 className="text-sm font-bold text-neutral-900 dark:text-white">Manage Store Profile</h3>
-            <ArrowRight className="w-4 h-4 ml-auto text-neutral-400 group-hover:text-violet-600 group-hover:translate-x-0.5 transition-all" />
+            <ArrowRight className="w-4 h-4 ml-auto text-neutral-400 group-hover:text-brand-600 group-hover:translate-x-0.5 transition-all" />
           </div>
           <p className="text-xs text-neutral-500 line-clamp-1">
             {store.description || "Keep your store details fresh to build buyer trust."}
@@ -572,12 +572,12 @@ export default function SellerDashboardPage() {
 
         <Link
           href="/seller-dashboard/products"
-          className="group bg-white dark:bg-zinc-900 border border-neutral-200/60 dark:border-neutral-800/60 rounded-2xl p-5 hover:border-violet-200 dark:hover:border-violet-800/60 transition-colors"
+          className="group bg-white dark:bg-zinc-900 border border-neutral-200/60 dark:border-neutral-800/60 rounded-2xl p-5 hover:border-brand-200 dark:hover:border-brand-800/60 transition-colors"
         >
           <div className="flex items-center gap-3 mb-1.5">
-            <Package className="w-5 h-5 text-violet-600" />
+            <Package className="w-5 h-5 text-brand-600" />
             <h3 className="text-sm font-bold text-neutral-900 dark:text-white">Manage Products</h3>
-            <ArrowRight className="w-4 h-4 ml-auto text-neutral-400 group-hover:text-violet-600 group-hover:translate-x-0.5 transition-all" />
+            <ArrowRight className="w-4 h-4 ml-auto text-neutral-400 group-hover:text-brand-600 group-hover:translate-x-0.5 transition-all" />
           </div>
           <p className="text-xs text-neutral-500">
             {productCount === 0 ? "Add your first product to start selling." : `${productCount} product${productCount !== 1 ? "s" : ""} in your catalog.`}

@@ -27,7 +27,7 @@ export function SellerHeader() {
             <span className="font-bold text-base tracking-tight font-sinhala leading-none">
               රසාස්වාදය
             </span>
-            <span className="text-[9px] font-semibold uppercase tracking-[0.2em] text-violet-600 dark:text-violet-400 mt-0.5">
+            <span className="text-[9px] font-semibold uppercase tracking-[0.2em] text-brand-600 dark:text-brand-400 mt-0.5">
               Seller Studio
             </span>
           </div>
@@ -42,7 +42,7 @@ export function SellerHeader() {
               placeholder="Search products, orders…"
               onFocus={() => setSearchFocused(true)}
               onBlur={() => setSearchFocused(false)}
-              className="w-full pl-10 pr-16 py-2 text-sm bg-neutral-100/80 dark:bg-zinc-800/80 border border-transparent focus:border-violet-200 dark:focus:border-violet-800 rounded-xl outline-none transition-all duration-300 placeholder:text-neutral-400"
+              className="w-full pl-10 pr-16 py-2 text-sm bg-neutral-100/80 dark:bg-zinc-800/80 border border-transparent focus:border-brand-200 dark:focus:border-brand-800 rounded-xl outline-none transition-all duration-300 placeholder:text-neutral-400"
             />
             <kbd className="absolute right-3 top-1/2 -translate-y-1/2 hidden lg:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-medium text-neutral-400 bg-white dark:bg-zinc-700 border border-neutral-200 dark:border-neutral-600 rounded-md shadow-sm">
               <Command className="w-2.5 h-2.5" />K
@@ -71,7 +71,7 @@ export function SellerHeader() {
             href="/seller-dashboard/store"
             className="flex items-center gap-2.5 ml-1 pl-1 pr-2 py-1 hover:bg-neutral-100 dark:hover:bg-zinc-800 rounded-xl transition-all duration-200"
           >
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-400 to-fuchsia-500 p-[2px] shadow-sm">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brand-400 to-fuchsia-500 p-[2px] shadow-sm">
               <div className="w-full h-full rounded-full overflow-hidden bg-white dark:bg-zinc-900">
                 <ImageWithFallback
                   src={user?.avatarUrl || "/api/avatar"}

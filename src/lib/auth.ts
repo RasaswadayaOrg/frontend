@@ -3,19 +3,30 @@ import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
-const secretKey = "secret-key-change-me-in-prod";
-const key = new TextEncoder().encode(secretKey);
+function getSessionKey() {
+  const sessionSecret = process.env.SESSION_SECRET;
+
+  if (!sessionSecret) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("SESSION_SECRET must be set in production.");
+    }
+
+    return new TextEncoder().encode(["rasaswadaya", process.cwd(), process.env.NODE_ENV || "development"].join(":"));
+  }
+
+  return new TextEncoder().encode(sessionSecret);
+}
 
 export async function encrypt(payload: any) {
   return await new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("24h")
-    .sign(key);
+    .sign(getSessionKey());
 }
 
 export async function decrypt(input: string): Promise<any> {
-  const { payload } = await jwtVerify(input, key, {
+  const { payload } = await jwtVerify(input, getSessionKey(), {
     algorithms: ["HS256"],
   });
   return payload;

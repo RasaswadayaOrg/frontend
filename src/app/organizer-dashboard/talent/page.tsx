@@ -19,7 +19,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { BookingRequestModal } from "@/components/organizer-dashboard/BookingRequestModal";
 import { format, addDays, isSameDay } from "date-fns";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
 
 interface Artist {
   id: string;

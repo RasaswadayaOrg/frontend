@@ -43,7 +43,7 @@ export function AdPlaceholder({ className = '', size = 'medium', label = 'Advert
     const handleClick = async () => {
       // Track click
       try {
-        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/admin/ads/${ad.id}/click`, {
+        fetch(`${process.env.NEXT_PUBLIC_API_URL || '/api'}/admin/ads/${ad.id}/click`, {
           method: 'POST',
         }).catch(() => {});
       } catch {}

@@ -26,10 +26,10 @@ import {
   Calendar,
 } from "lucide-react";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
 
 const EVENT_TYPES = [
-  { value: "gig", label: "Gig", color: "bg-violet-500" },
+  { value: "gig", label: "Gig", color: "bg-brand-500" },
   { value: "private", label: "Private", color: "bg-amber-500" },
   { value: "recording", label: "Recording", color: "bg-blue-500" },
   { value: "rehearsal", label: "Rehearsal", color: "bg-emerald-500" },
@@ -270,7 +270,7 @@ export function EventCalendar() {
           <div className="grid grid-cols-7 relative">
             {loading && (
               <div className="absolute inset-0 bg-white/60 dark:bg-zinc-900/60 z-10 flex items-center justify-center">
-                <Loader2 className="w-5 h-5 animate-spin text-violet-500" />
+                <Loader2 className="w-5 h-5 animate-spin text-brand-500" />
               </div>
             )}
 
@@ -295,16 +295,16 @@ export function EventCalendar() {
                   onClick={() => setSelectedDate(day)}
                   className={`aspect-square border-r border-b border-neutral-50 dark:border-neutral-800/40 p-1.5 flex flex-col items-start gap-0.5 relative transition-colors duration-200 ${
                     isSelected
-                      ? "bg-violet-50/60 dark:bg-violet-900/10"
+                      ? "bg-brand-50/60 dark:bg-brand-900/10"
                       : "hover:bg-neutral-50/80 dark:hover:bg-zinc-800/30"
                   } ${!isCurrentMonth ? "opacity-30" : ""}`}
                 >
                   <span
                     className={`text-xs font-medium inline-flex items-center justify-center w-6 h-6 rounded-full ${
                       today
-                        ? "bg-violet-600 text-white font-bold"
+                        ? "bg-brand-600 text-white font-bold"
                         : isSelected
-                        ? "bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 font-bold"
+                        ? "bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 font-bold"
                         : "text-neutral-500"
                     }`}
                   >
@@ -334,7 +334,7 @@ export function EventCalendar() {
           <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-neutral-200/60 dark:border-neutral-800/60 overflow-hidden h-full">
             <div className="px-5 py-4 border-b border-neutral-100 dark:border-neutral-800/60 flex items-center justify-between">
               <h3 className="text-sm font-semibold text-neutral-900 dark:text-white flex items-center gap-2">
-                <Clock className="w-4 h-4 text-violet-500" />
+                <Clock className="w-4 h-4 text-brand-500" />
                 {selectedDate
                   ? format(selectedDate, "EEEE, MMMM do")
                   : "Select a date"}
@@ -342,7 +342,7 @@ export function EventCalendar() {
               {selectedDate && (
                 <button
                   onClick={() => openCreateModal(selectedDate)}
-                  className="p-1.5 rounded-lg bg-violet-50 dark:bg-violet-900/20 text-violet-600 hover:bg-violet-100 dark:hover:bg-violet-900/40 transition-colors"
+                  className="p-1.5 rounded-lg bg-brand-50 dark:bg-brand-900/20 text-brand-600 hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors"
                   title="Add event"
                 >
                   <Plus className="w-4 h-4" />
@@ -366,7 +366,7 @@ export function EventCalendar() {
                       </p>
                       <button
                         onClick={() => openCreateModal(selectedDate)}
-                        className="text-xs font-semibold text-violet-600 hover:text-violet-700 transition-colors"
+                        className="text-xs font-semibold text-brand-600 hover:text-brand-700 transition-colors"
                       >
                         + Add an event
                       </button>
@@ -376,7 +376,7 @@ export function EventCalendar() {
                       {getDayEvents(selectedDate).map((evt) => (
                         <div
                           key={evt.id}
-                          className="group p-3 rounded-xl bg-violet-50/50 dark:bg-violet-900/10 border border-violet-100/80 dark:border-violet-800/30"
+                          className="group p-3 rounded-xl bg-brand-50/50 dark:bg-brand-900/10 border border-brand-100/80 dark:border-brand-800/30"
                         >
                           <div className="flex gap-3 items-start">
                             <div className="text-center min-w-[44px] bg-white dark:bg-zinc-800 rounded-lg p-1.5 shadow-sm border border-neutral-100 dark:border-neutral-800">
@@ -415,10 +415,10 @@ export function EventCalendar() {
                           </div>
 
                           {/* Action buttons */}
-                          <div className="flex gap-1.5 mt-2.5 pt-2 border-t border-violet-100/60 dark:border-violet-800/20 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="flex gap-1.5 mt-2.5 pt-2 border-t border-brand-100/60 dark:border-brand-800/20 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button
                               onClick={() => openEditModal(evt)}
-                              className="flex items-center gap-1 text-[11px] font-medium text-neutral-500 hover:text-violet-600 px-2 py-1 rounded-md hover:bg-violet-50 dark:hover:bg-violet-900/20 transition-colors"
+                              className="flex items-center gap-1 text-[11px] font-medium text-neutral-500 hover:text-brand-600 px-2 py-1 rounded-md hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors"
                             >
                               <Pencil className="w-3 h-3" /> Edit
                             </button>
@@ -502,7 +502,7 @@ export function EventCalendar() {
                     setFormData({ ...formData, title: e.target.value })
                   }
                   placeholder="e.g. Live at Barefoot"
-                  className="w-full bg-neutral-50 dark:bg-zinc-800/50 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-violet-300 dark:focus:border-violet-700 transition-colors"
+                  className="w-full bg-neutral-50 dark:bg-zinc-800/50 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-brand-300 dark:focus:border-brand-700 transition-colors"
                 />
               </div>
 
@@ -518,7 +518,7 @@ export function EventCalendar() {
                   onChange={(e) =>
                     setFormData({ ...formData, eventDate: e.target.value })
                   }
-                  className="w-full bg-neutral-50 dark:bg-zinc-800/50 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-violet-300 dark:focus:border-violet-700 transition-colors"
+                  className="w-full bg-neutral-50 dark:bg-zinc-800/50 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-brand-300 dark:focus:border-brand-700 transition-colors"
                 />
               </div>
 
@@ -534,7 +534,7 @@ export function EventCalendar() {
                     onChange={(e) =>
                       setFormData({ ...formData, startTime: e.target.value })
                     }
-                    className="w-full bg-neutral-50 dark:bg-zinc-800/50 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-violet-300 dark:focus:border-violet-700 transition-colors"
+                    className="w-full bg-neutral-50 dark:bg-zinc-800/50 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-brand-300 dark:focus:border-brand-700 transition-colors"
                   />
                 </div>
                 <div>
@@ -547,7 +547,7 @@ export function EventCalendar() {
                     onChange={(e) =>
                       setFormData({ ...formData, endTime: e.target.value })
                     }
-                    className="w-full bg-neutral-50 dark:bg-zinc-800/50 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-violet-300 dark:focus:border-violet-700 transition-colors"
+                    className="w-full bg-neutral-50 dark:bg-zinc-800/50 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-brand-300 dark:focus:border-brand-700 transition-colors"
                   />
                 </div>
               </div>
@@ -564,7 +564,7 @@ export function EventCalendar() {
                     setFormData({ ...formData, location: e.target.value })
                   }
                   placeholder="e.g. Barefoot Gallery, Colombo"
-                  className="w-full bg-neutral-50 dark:bg-zinc-800/50 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-violet-300 dark:focus:border-violet-700 transition-colors"
+                  className="w-full bg-neutral-50 dark:bg-zinc-800/50 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-brand-300 dark:focus:border-brand-700 transition-colors"
                 />
               </div>
 
@@ -583,7 +583,7 @@ export function EventCalendar() {
                       }
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
                         formData.type === t.value
-                          ? "border-violet-300 dark:border-violet-700 bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-300"
+                          ? "border-brand-300 dark:border-brand-700 bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-300"
                           : "border-neutral-200 dark:border-neutral-700 text-neutral-500 hover:border-neutral-300"
                       }`}
                     >
@@ -606,7 +606,7 @@ export function EventCalendar() {
                   }
                   rows={3}
                   placeholder="Optional notes about this event..."
-                  className="w-full bg-neutral-50 dark:bg-zinc-800/50 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-violet-300 dark:focus:border-violet-700 transition-colors resize-none"
+                  className="w-full bg-neutral-50 dark:bg-zinc-800/50 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-brand-300 dark:focus:border-brand-700 transition-colors resize-none"
                 />
               </div>
 
@@ -622,7 +622,7 @@ export function EventCalendar() {
                 <button
                   type="submit"
                   disabled={saving || !formData.title || !formData.eventDate}
-                  className="flex-1 py-2.5 text-sm font-semibold rounded-xl bg-violet-600 text-white hover:bg-violet-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="flex-1 py-2.5 text-sm font-semibold rounded-xl bg-brand-600 text-white hover:bg-brand-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {saving && <Loader2 className="w-4 h-4 animate-spin" />}
                   {editingEvent ? "Update Event" : "Add Event"}

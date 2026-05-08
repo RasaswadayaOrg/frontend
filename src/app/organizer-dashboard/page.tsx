@@ -20,8 +20,8 @@ export default function OrganizerDashboardPage() {
 
   const stats = [
     { name: "Ticket Sales", value: "LKR 450k", change: "+12%", icon: DollarSign, accent: "text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20" },
-    { name: "Active Events", value: "3", change: "0", icon: Ticket, accent: "text-blue-600 bg-blue-50 dark:bg-blue-900/20" },
-    { name: "Total Attendees", value: "1,240", change: "+18%", icon: Users, accent: "text-violet-600 bg-violet-50 dark:bg-violet-900/20" },
+    { name: "Active Events", value: "3", change: "0", icon: Ticket, accent: "text-brand-600 bg-blue-50 dark:bg-blue-900/20" },
+    { name: "Total Attendees", value: "1,240", change: "+18%", icon: Users, accent: "text-brand-600 bg-brand-50 dark:bg-brand-900/20" },
     { name: "Pending Bookings", value: "5", change: "+2", icon: Calendar, accent: "text-amber-600 bg-amber-50 dark:bg-amber-900/20" },
   ];
 
@@ -137,8 +137,8 @@ export default function OrganizerDashboardPage() {
                 className="flex items-center justify-between p-3.5 rounded-xl hover:bg-neutral-50 dark:hover:bg-neutral-800/60 border border-transparent hover:border-neutral-200 dark:hover:border-neutral-700 transition-all duration-200 group"
               >
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-violet-50 dark:bg-violet-900/20 rounded-lg">
-                    <Users className="w-4 h-4 text-violet-600" />
+                  <div className="p-2 bg-brand-50 dark:bg-brand-900/20 rounded-lg">
+                    <Users className="w-4 h-4 text-brand-600" />
                   </div>
                   <div>
                     <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">Find Artists</p>

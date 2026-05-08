@@ -62,7 +62,7 @@ export function OrganizerForm({ initialData, isEdit = false }: OrganizerFormProp
                 name="fullName"
                 required
                 defaultValue={initialData?.fullName}
-                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white"
+                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-white"
                 placeholder="e.g. Acme Events"
               />
             </div>
@@ -76,7 +76,7 @@ export function OrganizerForm({ initialData, isEdit = false }: OrganizerFormProp
                 required
                 disabled={isEdit}
                 defaultValue={initialData?.email}
-                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white disabled:opacity-50"
+                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-white disabled:opacity-50"
                 placeholder="e.g. contact@acme.com"
               />
             </div>
@@ -89,7 +89,7 @@ export function OrganizerForm({ initialData, isEdit = false }: OrganizerFormProp
                   id="password"
                   name="password"
                   required
-                  className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white"
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-white"
                   placeholder="Leave empty to auto-generate"
                 />
               </div>
@@ -103,7 +103,7 @@ export function OrganizerForm({ initialData, isEdit = false }: OrganizerFormProp
                   id="phone"
                   name="phone"
                   defaultValue={initialData?.phone}
-                  className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white"
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-white"
                   placeholder="e.g. +94 77 123 4567"
                 />
               </div>
@@ -115,7 +115,7 @@ export function OrganizerForm({ initialData, isEdit = false }: OrganizerFormProp
                   id="city"
                   name="city"
                   defaultValue={initialData?.city}
-                  className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white"
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-white"
                   placeholder="e.g. Colombo"
                 />
               </div>
@@ -153,7 +153,7 @@ export function OrganizerForm({ initialData, isEdit = false }: OrganizerFormProp
         <button
           type="submit"
           disabled={loading}
-          className="flex items-center gap-2 px-6 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50"
+          className="flex items-center gap-2 px-6 py-2 text-sm font-medium text-white bg-brand-600 hover:bg-brand-700 rounded-lg transition-colors disabled:opacity-50"
         >
           {loading ? (
             <>

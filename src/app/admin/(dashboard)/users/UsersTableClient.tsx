@@ -42,7 +42,7 @@ export function UsersTableClient({ users }: UsersTableClientProps) {
             <input 
               type="text" 
               placeholder="Search users..." 
-              className="w-full pl-9 pr-4 py-2 text-sm border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full pl-9 pr-4 py-2 text-sm border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
           </div>
         </div>
@@ -75,7 +75,7 @@ export function UsersTableClient({ users }: UsersTableClientProps) {
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0 ${
                         user.hasPendingApplication 
                           ? 'bg-gradient-to-br from-orange-500 to-red-600 ring-2 ring-orange-300 dark:ring-orange-700' 
-                          : 'bg-gradient-to-br from-blue-500 to-purple-600'
+                          : 'bg-gradient-to-br from-blue-500 to-brand-600'
                       }`}>
                         {(user.fullName || user.email || 'U').charAt(0).toUpperCase()}
                       </div>
@@ -142,7 +142,7 @@ export function UsersTableClient({ users }: UsersTableClientProps) {
                     <div className="flex items-center justify-end gap-2">
                       <button
                         onClick={() => handleViewUser(user.id)}
-                        className="px-3 py-1 text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+                        className="px-3 py-1 text-xs font-medium text-brand-600 hover:text-brand-700 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded transition-colors"
                       >
                         View
                       </button>

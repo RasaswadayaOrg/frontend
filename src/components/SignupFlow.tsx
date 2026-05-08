@@ -4,77 +4,15 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { saveUserPreferences, registerUser, updateUserProfile } from "@/app/actions/auth";
-import { ArrowLeft, ArrowRight, Check, MapPin, Music, Theater, PersonStanding } from "lucide-react";
+import { CULTURAL_CATEGORIES, SRI_LANKAN_DISTRICTS, formatCityLabel } from "@/lib/cultural-preferences";
+import { ArrowLeft, ArrowRight, Check, Film, MapPin, Music, PersonStanding, Theater } from "lucide-react";
 
-// All 25 Sri Lankan Districts
-const SRI_LANKAN_DISTRICTS = [
-  "Ampara",
-  "Anuradhapura",
-  "Badulla",
-  "Batticaloa",
-  "Colombo",
-  "Galle",
-  "Gampaha",
-  "Hambantota",
-  "Jaffna",
-  "Kalutara",
-  "Kandy",
-  "Kegalle",
-  "Kilinochchi",
-  "Kurunegala",
-  "Mannar",
-  "Matale",
-  "Matara",
-  "Monaragala",
-  "Mullaitivu",
-  "Nuwara Eliya",
-  "Polonnaruwa",
-  "Puttalam",
-  "Ratnapura",
-  "Trincomalee",
-  "Vavuniya",
-];
-
-// Cultural categories with sub-preferences
-const CULTURAL_CATEGORIES = [
-  {
-    id: "music",
-    name: "Music (සංගීතය)",
-    icon: Music,
-    color: "from-amber-500 to-orange-500",
-    examples: [
-      { id: "classical-music", name: "Classical (ශාස්ත්‍රීය)", image: "🎶" },
-      { id: "folk-music", name: "Folk Music (ජන ගී)", image: "🪕" },
-      { id: "sarala-gee", name: "Sarala Gee (සරල ගී)", image: "🎵" },
-      { id: "fusion-modern", name: "Fusion / Modern", image: "🎸" },
-      { id: "instrumental", name: "Instrumental", image: "🥁" },
-    ],
-  },
-  {
-    id: "drama",
-    name: "Drama (නාට්‍ය කලාව)",
-    icon: Theater,
-    color: "from-blue-500 to-indigo-500",
-    examples: [
-      { id: "stylized-drama", name: "Stylized (දෘශ්‍ය කාව්‍ය)", image: "🎭" },
-      { id: "realistic-drama", name: "Realistic (යථාර්ථවාදී)", image: "🎬" },
-      { id: "comedy-drama", name: "Comedy (හාස්‍ය)", image: "😂" },
-      { id: "street-drama", name: "Street Drama (වීදි නාට්‍ය)", image: "🎤" },
-    ],
-  },
-  {
-    id: "dance",
-    name: "Dance (නර්තනය)",
-    icon: PersonStanding,
-    color: "from-pink-500 to-rose-500",
-    examples: [
-      { id: "upcountry-dance", name: "Upcountry (උඩරට)", image: "💃" },
-      { id: "lowcountry-dance", name: "Low Country (පහතරට)", image: "👹" },
-      { id: "sabaragamuwa-dance", name: "Sabaragamuwa", image: "👯" },
-      { id: "contemporary-dance", name: "Contemporary (නව නර්තන)", image: "🩰" },
-    ],
-  },
-];
+const CATEGORY_UI = {
+  music: { icon: Music, color: "from-amber-500 to-orange-500" },
+  dance: { icon: PersonStanding, color: "from-pink-500 to-rose-500" },
+  film: { icon: Film, color: "from-emerald-500 to-teal-500" },
+  drama: { icon: Theater, color: "from-blue-500 to-indigo-500" },
+};
 
 
 
@@ -178,7 +116,7 @@ export function SignupFlow({ onComplete, onBack, isModal = false }: SignupFlowPr
       });
 
       if (!profileResult.success) {
-        console.error("Failed to update profile:", profileResult.error);
+        throw new Error(profileResult.error || "Could not save your location. Please try again.");
       }
 
       // Then save cultural preferences (this updates UserPreference table)
@@ -197,22 +135,11 @@ export function SignupFlow({ onComplete, onBack, isModal = false }: SignupFlowPr
           router.push("/");
         }, 2000);
       } else {
-        console.error("Failed to save preferences:", prefsResult.error);
-        // Still complete the flow even if preferences fail to save
-        setCurrentStep("complete");
-        setTimeout(() => {
-          onComplete?.();
-          router.push("/");
-        }, 2000);
+        throw new Error(prefsResult.error || "Could not save your cultural preferences. Please try again.");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to save data:", error);
-      // Still complete the flow even if saving fails
-      setCurrentStep("complete");
-      setTimeout(() => {
-        onComplete?.();
-        router.push("/");
-      }, 2000);
+      setError(error.message || "Something went wrong saving your preferences. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -243,7 +170,7 @@ export function SignupFlow({ onComplete, onBack, isModal = false }: SignupFlowPr
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all ${
                   index <= currentIndex
-                    ? "bg-violet-600 text-white"
+                    ? "bg-brand-600 text-white"
                     : "bg-zinc-200 dark:bg-zinc-700 text-zinc-500"
                 }`}
               >
@@ -253,7 +180,7 @@ export function SignupFlow({ onComplete, onBack, isModal = false }: SignupFlowPr
                 <div
                   className={`w-16 sm:w-24 h-1 mx-2 rounded transition-all ${
                     index < currentIndex
-                      ? "bg-violet-600"
+                      ? "bg-brand-600"
                       : "bg-zinc-200 dark:bg-zinc-700"
                   }`}
                 />
@@ -280,7 +207,7 @@ export function SignupFlow({ onComplete, onBack, isModal = false }: SignupFlowPr
               <ArrowLeft size={20} />
             </button>
           )}
-          <h2 className="text-xl font-bold bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
+          <h2 className="text-xl font-bold bg-gradient-to-r from-brand-600 to-indigo-600 bg-clip-text text-transparent">
             Join Rasaswadaya
           </h2>
         </div>
@@ -335,14 +262,14 @@ export function SignupFlow({ onComplete, onBack, isModal = false }: SignupFlowPr
                 type="text"
                 required
                 placeholder="First Name"
-                className="w-full px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-violet-500 outline-none"
+                className="w-full px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-brand-500 outline-none"
                 value={formData.firstName}
                 onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
               />
               <input
                 type="text"
                 placeholder="Last Name"
-                className="w-full px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-violet-500 outline-none"
+                className="w-full px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-brand-500 outline-none"
                 value={formData.lastName}
                 onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
               />
@@ -351,14 +278,14 @@ export function SignupFlow({ onComplete, onBack, isModal = false }: SignupFlowPr
               type="email"
               required
               placeholder="Email"
-              className="w-full px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-violet-500 outline-none"
+              className="w-full px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-brand-500 outline-none"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
             />
             <input
               type="tel"
               placeholder="Phone (optional)"
-              className="w-full px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-violet-500 outline-none"
+              className="w-full px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-brand-500 outline-none"
               value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
             />
@@ -367,14 +294,14 @@ export function SignupFlow({ onComplete, onBack, isModal = false }: SignupFlowPr
               required
               minLength={6}
               placeholder="Password (min 6 characters)"
-              className="w-full px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-violet-500 outline-none"
+              className="w-full px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 focus:ring-2 focus:ring-brand-500 outline-none"
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
             />
             <button
               type="submit"
               disabled={isEmailLoading || isGoogleLoading}
-              className="w-full py-3 px-4 bg-violet-600 hover:bg-violet-700 disabled:bg-violet-400 text-white font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
+              className="w-full py-3 px-4 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-400 text-white font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
             >
               {isEmailLoading ? (
                 <>
@@ -403,7 +330,7 @@ export function SignupFlow({ onComplete, onBack, isModal = false }: SignupFlowPr
           <button onClick={() => setCurrentStep("auth")} className="mr-3 text-zinc-500 hover:text-zinc-700">
             <ArrowLeft size={20} />
           </button>
-          <h2 className="text-xl font-bold bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
+          <h2 className="text-xl font-bold bg-gradient-to-r from-brand-600 to-indigo-600 bg-clip-text text-transparent">
             Your Location
           </h2>
         </div>
@@ -412,8 +339,8 @@ export function SignupFlow({ onComplete, onBack, isModal = false }: SignupFlowPr
 
         <div className="p-6 space-y-4">
           <div className="text-center space-y-2">
-            <div className="w-16 h-16 bg-violet-100 dark:bg-violet-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-              <MapPin className="w-8 h-8 text-violet-600" />
+            <div className="w-16 h-16 bg-brand-100 dark:bg-brand-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+              <MapPin className="w-8 h-8 text-brand-600" />
             </div>
             <h3 className="text-lg font-medium dark:text-white">Where are you located?</h3>
             <p className="text-sm text-zinc-500 dark:text-zinc-400">
@@ -424,15 +351,15 @@ export function SignupFlow({ onComplete, onBack, isModal = false }: SignupFlowPr
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-72 overflow-y-auto pr-2 scrollbar-thin">
             {SRI_LANKAN_DISTRICTS.map((district) => (
               <button
-                key={district}
-                onClick={() => setSelectedCity(district)}
+                key={district.id}
+                onClick={() => setSelectedCity(district.id)}
                 className={`px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-                  selectedCity === district
-                    ? "bg-violet-600 text-white shadow-lg shadow-violet-500/30"
+                  selectedCity === district.id
+                    ? "bg-brand-600 text-white shadow-lg shadow-brand-500/30"
                     : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700"
                 }`}
               >
-                {district}
+                {district.name}
               </button>
             ))}
           </div>
@@ -444,7 +371,7 @@ export function SignupFlow({ onComplete, onBack, isModal = false }: SignupFlowPr
           <button
             onClick={() => setCurrentStep("categories")}
             disabled={!selectedCity}
-            className="w-full py-3 px-4 bg-violet-600 hover:bg-violet-700 disabled:bg-zinc-300 disabled:cursor-not-allowed text-white font-medium rounded-xl transition-colors flex items-center justify-center gap-2 mt-4"
+            className="w-full py-3 px-4 bg-brand-600 hover:bg-brand-700 disabled:bg-zinc-300 disabled:cursor-not-allowed text-white font-medium rounded-xl transition-colors flex items-center justify-center gap-2 mt-4"
           >
             Continue <ArrowRight size={18} />
           </button>
@@ -461,7 +388,7 @@ export function SignupFlow({ onComplete, onBack, isModal = false }: SignupFlowPr
           <button onClick={() => setCurrentStep("location")} className="mr-3 text-zinc-500 hover:text-zinc-700">
             <ArrowLeft size={20} />
           </button>
-          <h2 className="text-xl font-bold bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
+          <h2 className="text-xl font-bold bg-gradient-to-r from-brand-600 to-indigo-600 bg-clip-text text-transparent">
             Your Interests
           </h2>
         </div>
@@ -478,7 +405,7 @@ export function SignupFlow({ onComplete, onBack, isModal = false }: SignupFlowPr
 
           <div className="grid grid-cols-2 gap-3 max-h-80 overflow-y-auto">
             {CULTURAL_CATEGORIES.map((category) => {
-              const Icon = category.icon;
+              const { icon: Icon, color } = CATEGORY_UI[category.id];
               const isSelected = selectedCategories.includes(category.id);
               return (
                 <button
@@ -486,16 +413,16 @@ export function SignupFlow({ onComplete, onBack, isModal = false }: SignupFlowPr
                   onClick={() => toggleCategory(category.id)}
                   className={`p-4 rounded-xl border-2 transition-all text-left ${
                     isSelected
-                      ? "border-violet-500 bg-violet-50 dark:bg-violet-900/20"
+                      ? "border-brand-500 bg-brand-50 dark:bg-brand-900/20"
                       : "border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600"
                   }`}
                 >
-                  <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${category.color} flex items-center justify-center mb-2`}>
+                  <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${color} flex items-center justify-center mb-2`}>
                     <Icon className="w-5 h-5 text-white" />
                   </div>
                   <h4 className="font-medium text-sm dark:text-white">{category.name}</h4>
                   {isSelected && (
-                    <div className="absolute top-2 right-2 w-5 h-5 bg-violet-600 rounded-full flex items-center justify-center">
+                    <div className="absolute top-2 right-2 w-5 h-5 bg-brand-600 rounded-full flex items-center justify-center">
                       <Check size={12} className="text-white" />
                     </div>
                   )}
@@ -507,7 +434,7 @@ export function SignupFlow({ onComplete, onBack, isModal = false }: SignupFlowPr
           <button
             onClick={() => setCurrentStep("examples")}
             disabled={selectedCategories.length === 0}
-            className="w-full py-3 px-4 bg-violet-600 hover:bg-violet-700 disabled:bg-zinc-300 disabled:cursor-not-allowed text-white font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
+            className="w-full py-3 px-4 bg-brand-600 hover:bg-brand-700 disabled:bg-zinc-300 disabled:cursor-not-allowed text-white font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
           >
             Continue <ArrowRight size={18} />
           </button>
@@ -528,7 +455,7 @@ export function SignupFlow({ onComplete, onBack, isModal = false }: SignupFlowPr
           <button onClick={() => setCurrentStep("categories")} className="mr-3 text-zinc-500 hover:text-zinc-700">
             <ArrowLeft size={20} />
           </button>
-          <h2 className="text-xl font-bold bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
+          <h2 className="text-xl font-bold bg-gradient-to-r from-brand-600 to-indigo-600 bg-clip-text text-transparent">
             Your Preferences
           </h2>
         </div>
@@ -558,7 +485,7 @@ export function SignupFlow({ onComplete, onBack, isModal = false }: SignupFlowPr
                         onClick={() => toggleExample(example.id)}
                         className={`p-3 rounded-xl border transition-all flex items-center gap-3 ${
                           isSelected
-                            ? "border-violet-500 bg-violet-50 dark:bg-violet-900/20"
+                            ? "border-brand-500 bg-brand-50 dark:bg-brand-900/20"
                             : "border-zinc-200 dark:border-zinc-700 hover:border-zinc-300"
                         }`}
                       >
@@ -567,7 +494,7 @@ export function SignupFlow({ onComplete, onBack, isModal = false }: SignupFlowPr
                           {example.name}
                         </span>
                         {isSelected && (
-                          <Check size={16} className="text-violet-600 ml-auto" />
+                          <Check size={16} className="text-brand-600 ml-auto" />
                         )}
                       </button>
                     );
@@ -577,10 +504,24 @@ export function SignupFlow({ onComplete, onBack, isModal = false }: SignupFlowPr
             ))}
           </div>
 
+          {error && (
+            <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300">
+              <p>{error}</p>
+              <button
+                type="button"
+                onClick={handleComplete}
+                disabled={isSubmitting}
+                className="mt-2 font-semibold underline disabled:opacity-60"
+              >
+                Try again
+              </button>
+            </div>
+          )}
+
           <button
             onClick={handleComplete}
             disabled={isSubmitting}
-            className="w-full py-3 px-4 bg-violet-600 hover:bg-violet-700 disabled:bg-violet-400 text-white font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
+            className="w-full py-3 px-4 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-400 text-white font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
           >
             {isSubmitting ? (
               <>
@@ -608,7 +549,7 @@ export function SignupFlow({ onComplete, onBack, isModal = false }: SignupFlowPr
           </div>
           <h2 className="text-2xl font-bold dark:text-white">Welcome to Rasaswadaya!</h2>
           <p className="text-zinc-500 dark:text-zinc-400">
-            Your account is ready. Discover amazing cultural events in {selectedCity}!
+            Your account is ready. Discover amazing cultural events in {formatCityLabel(selectedCity)}!
           </p>
           <div className="flex flex-wrap justify-center gap-2 mt-4">
             {selectedCategories.slice(0, 3).map((catId) => {
@@ -616,7 +557,7 @@ export function SignupFlow({ onComplete, onBack, isModal = false }: SignupFlowPr
               return cat ? (
                 <span
                   key={catId}
-                  className="px-3 py-1 bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 rounded-full text-sm"
+                  className="px-3 py-1 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-full text-sm"
                 >
                   {cat.name}
                 </span>
@@ -625,7 +566,7 @@ export function SignupFlow({ onComplete, onBack, isModal = false }: SignupFlowPr
           </div>
           <button
             onClick={() => router.push("/")}
-            className="mt-6 px-6 py-3 bg-violet-600 hover:bg-violet-700 text-white font-medium rounded-xl transition-colors inline-flex items-center gap-2"
+            className="mt-6 px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white font-medium rounded-xl transition-colors inline-flex items-center gap-2"
           >
             Go to Home <ArrowRight size={18} />
           </button>

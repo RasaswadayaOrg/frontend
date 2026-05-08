@@ -2,28 +2,114 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { X } from "lucide-react";
+import { useEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
 import { AuthFlow } from "./AuthFlow";
+import { DesignStyles } from "./hp2/design";
 
 export default function AuthModal() {
   const { isAuthModalOpen, closeAuthModal } = useAuth();
+  const modalRef = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
 
+  useEffect(() => {
+    if (!isAuthModalOpen) return;
+
+    const focusableSelector = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+    const modal = modalRef.current;
+    const focusable = Array.from(modal?.querySelectorAll<HTMLElement>(focusableSelector) || []);
+    focusable[0]?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        closeAuthModal();
+        return;
+      }
+      if (event.key !== "Tab" || focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [closeAuthModal, isAuthModalOpen]);
+
+  // Suppress modal on the dedicated /auth route to avoid double UI.
+  if (pathname && pathname.startsWith("/auth")) return null;
   if (!isAuthModalOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div 
-        className="bg-white dark:bg-zinc-900 rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200 relative"
-        role="dialog"
-        aria-modal="true"
+    <>
+      <DesignStyles />
+      <div
+        className="hp2"
+        style={{
+          position: "fixed",
+          inset: 0,
+          zIndex: 50,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 16,
+        }}
       >
-        <button
-            onClick={closeAuthModal}
-            className="absolute top-6 right-6 z-10 text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
+        <div
+          onClick={closeAuthModal}
+          style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.65)", backdropFilter: "blur(6px)" }}
+        />
+        <div
+          ref={modalRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="auth-modal-title"
+          style={{
+            position: "relative",
+            width: "100%",
+            maxWidth: 440,
+            background: "#15121D",
+            border: "1px solid rgba(196,181,253,0.10)",
+            borderRadius: 24,
+            overflow: "hidden",
+            boxShadow: "0 40px 80px -30px rgba(0,0,0,0.6)",
+          }}
         >
-            <X size={20} />
-        </button>
-        <AuthFlow isModal onClose={closeAuthModal} onComplete={closeAuthModal} />
+          <h2 id="auth-modal-title" style={{ position: "absolute", width: 1, height: 1, padding: 0, margin: -1, overflow: "hidden", clip: "rect(0,0,0,0)", border: 0 }}>
+            Sign in or create an account
+          </h2>
+          <button
+            onClick={closeAuthModal}
+            aria-label="Close dialog"
+            style={{
+              position: "absolute",
+              top: 16,
+              right: 16,
+              zIndex: 10,
+              width: 36,
+              height: 36,
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: "transparent",
+              border: "none",
+              color: "#9B95B5",
+              cursor: "pointer",
+              borderRadius: 10,
+            }}
+          >
+            <X size={18} aria-hidden="true" />
+          </button>
+          <AuthFlow isModal onClose={closeAuthModal} onComplete={closeAuthModal} />
+        </div>
       </div>
-    </div>
+    </>
   );
 }

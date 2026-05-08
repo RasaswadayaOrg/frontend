@@ -34,7 +34,7 @@ export function BookingRequestModal({ isOpen, onClose, artist }: BookingModalPro
       
       const token = localStorage.getItem("rasas_token") || sessionStorage.getItem("rasas_token");
       
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/v1/booking-requests`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || '/api'}/v1/booking-requests`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -67,15 +67,16 @@ export function BookingRequestModal({ isOpen, onClose, artist }: BookingModalPro
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal */}
-      <div className="relative bg-white dark:bg-zinc-900 w-full max-w-lg rounded-2xl shadow-2xl border border-neutral-200/60 dark:border-neutral-800/60 overflow-hidden">
+      <div className="relative bg-white dark:bg-zinc-900 w-full max-w-lg rounded-2xl shadow-2xl border border-neutral-200/60 dark:border-neutral-800/60 overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="booking-request-title">
         {/* Header */}
         <div className="px-6 py-4 border-b border-neutral-100 dark:border-neutral-800/60 flex justify-between items-center">
-          <h3 className="font-semibold text-lg text-neutral-900 dark:text-white">Booking Request</h3>
+          <h3 id="booking-request-title" className="font-semibold text-lg text-neutral-900 dark:text-white">Booking Request</h3>
           <button
             onClick={onClose}
+            aria-label="Close booking request dialog"
             className="p-1.5 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors"
           >
-            <X className="w-4 h-4 text-neutral-500" />
+            <X className="w-4 h-4 text-neutral-500" aria-hidden="true" />
           </button>
         </div>
 

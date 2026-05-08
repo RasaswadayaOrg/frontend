@@ -1,122 +1,193 @@
-import { ImageWithFallback } from "../../components/ImageWithFallback";
 import Link from "next/link";
-import { ShoppingBag, Star, ArrowLeft } from "lucide-react";
+import { MessageCircle, ShoppingBag, Star } from "lucide-react";
+import { ImageWithFallback } from "../../components/ImageWithFallback";
 import { getProducts, getProductsCount, getCategories } from "../../lib/db";
-import { AdPlaceholder } from "../../components/AdPlaceholder";
-// import type { Product } from "@prisma/client";
+import { buildSlug } from "../../lib/slug";
 import { AddToCartButton } from "../../components/AddToCartButton";
-import { Pagination } from "../../components/Pagination";
-import { FilterList } from "../../components/FilterList";
+import { HP2Frame } from "../../components/hp2/Frame";
+import { Reveal } from "../../components/hp2/Reveal";
+import { LiveSearchBar } from "../../components/hp2/LiveSearchBar";
 
-export default async function MarketplacePage(props: { searchParams: Promise<{ page?: string; search?: string; category?: string }> }) {
+export const dynamic = "force-dynamic";
+
+function buildHref(base: string, params: Record<string, string | undefined>): string {
+  const sp = new URLSearchParams();
+  for (const k of Object.keys(params)) { const v = params[k]; if (v) sp.set(k, v); }
+  const qs = sp.toString();
+  return qs ? base + "?" + qs : base;
+}
+
+export default async function MarketplacePage(props: {
+  searchParams: Promise<{ page?: string; search?: string; category?: string; listing?: string }>;
+}) {
   const searchParams = await props.searchParams;
-  const page = Number(searchParams.page) || 1;
-  const search = searchParams.search || "";
+  const page     = Number(searchParams.page) || 1;
+  const search   = searchParams.search || "";
   const category = searchParams.category || "";
-  const limit = 12;
+  const listing  = searchParams.listing || ""; // "" | "rent" | "sale"
+  const limit    = 12;
 
   const [products, total, categories] = await Promise.all([
-    getProducts(limit, page, search, category),
-    getProductsCount(search, category),
+    getProducts(limit, page, search, category, listing),
+    getProductsCount(search, category, listing),
     getCategories(),
   ]);
-  const totalPages = Math.ceil(total / limit);
+
+  const visibleProducts = products;
+
+  const totalPages = Math.max(1, Math.ceil(total / limit));
+
+  const cats = [
+    { value: "", label: "All" },
+    ...((categories as any[]) || []).map((c: any) => ({ value: c.name as string, label: c.name as string })),
+  ];
 
   return (
-    <div className="space-y-8">
-      {/* Back Link */}
-      <div>
-        <Link 
-          href="/" 
-          className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-brand-600 dark:text-zinc-400 dark:hover:text-brand-400 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Home
-        </Link>
-      </div>
-
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
-            Handicrafts Marketplace
-          </h1>
-          <p className="text-slate-500 dark:text-zinc-400 mt-1">
-            Authentic Sri Lankan handicrafts from local artisans
-          </p>
+    <HP2Frame activePath="/marketplace">
+      {/* Compact page header */}
+      <header style={{ background: "#07060A", borderBottom: "1px solid rgba(196,181,253,0.08)", padding: "56px 0 28px" }}>
+        <div className="hp2-container">
+          <p className="hp2-section__kicker" style={{ marginBottom: 6 }}>Marketplace</p>
+          <h1 style={{ fontFamily: "var(--font-outfit)", fontSize: "clamp(24px,4vw,38px)", fontWeight: 600, letterSpacing: "-0.025em", color: "#F5F3FA", margin: 0 }}>Instruments &amp; <em>more.</em></h1>
         </div>
-        
+      </header>
 
-      </div>
+      <section style={{ padding: "28px 0 80px" }}>
+        <div className="hp2-container">
 
-      {/* Categories */}
-      <FilterList 
-        filters={categories.map((c: any) => ({ 
-            id: c.name, // Using name as ID for consistency with other filters or if backend expects name
-            name: c.name,
-            icon: c.iconUrl 
-        }))} 
-        paramName="category"
-        allLabel="All"
-      />
-
-      {/* Ad Space */}
-      <div className="w-full">
-         <AdPlaceholder size="leaderboard" label="Marketplace Sponsor" />
-      </div>
-
-      {/* Products Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {products.map((product: { id: string; name: string; description: string; imageUrl?: string; stock?: number; price: number; storeId: string; storeName: string; store?: { name: string; id: string; ownerId: string } }) => (
-          <Link
-            key={product.id}
-            href={`/products/${product.id}`}
-            className="group rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200/60 dark:border-zinc-800 overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all"
-          >
-            <div className="aspect-square bg-slate-100 dark:bg-zinc-800 relative">
-              <ImageWithFallback
-                src={product.imageUrl || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500"}
-                alt={product.name}
-                fill
-                className="object-cover group-hover:scale-105 transition-transform duration-300"
-              />
-            </div>
-            
-            <div className="p-4">
-              <p className="text-xs text-slate-500 dark:text-zinc-400 mb-1">
-                {product.storeName}
-              </p>
-              <h3 className="font-semibold text-sm mb-2 group-hover:text-brand-600 transition-colors line-clamp-2">
-                {product.name}
-              </h3>
-              
-              <div className="flex items-center justify-between">
-                <span className="font-semibold text-lg text-slate-900 dark:text-white">
-                  {product.price ? `Rs. ${product.price.toLocaleString()}` : "Rs. 0"}
-                </span>
-                <AddToCartButton product={{
-                  id: product.id,
-                  name: product.name,
-                  imageUrl: product.imageUrl || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500",
-                  price: product.price || 0,
-                  stock: product.stock || 999,
-                  store: { id: product.storeId, name: product.storeName }
-                }} />
+          <Reveal delay={80} zIndex={10}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 36 }}>
+              <LiveSearchBar action="/marketplace" defaultValue={search} placeholder="Search instruments, accessories, equipment…" type="products" hiddenFields={{ ...(category ? { category } : {}), ...(listing ? { listing } : {}) }} />
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                <div className="hp2-chips" role="tablist" aria-label="Filter by category">
+                  {cats.map((c) => (
+                    <Link
+                      key={c.value || "all"}
+                      href={buildHref("/marketplace", { search, category: c.value || undefined, listing: listing || undefined })}
+                      className={"hp2-chip" + (category === c.value ? " is-active" : "")}
+                      role="tab"
+                      aria-selected={category === c.value}
+                    >
+                      {c.label}
+                    </Link>
+                  ))}
+                </div>
+                <div className="hp2-chips" role="tablist" aria-label="Filter by listing type" style={{ borderLeft: "1px solid #2A1F4E", paddingLeft: 8 }}>
+                  {[
+                    { val: "",     label: "All Listings" },
+                    { val: "sale", label: "For Sale" },
+                    { val: "rent", label: "For Rent" },
+                  ].map(({ val, label }) => (
+                    <Link
+                      key={val || "all-l"}
+                      href={buildHref("/marketplace", { search, category: category || undefined, listing: val || undefined })}
+                      className={"hp2-chip" + (listing === val ? " is-active" : "")}
+                      role="tab"
+                      aria-selected={listing === val}
+                    >
+                      {label}
+                    </Link>
+                  ))}
+                </div>
               </div>
             </div>
-          </Link>
-        ))}
-      </div>
+          </Reveal>
 
-      {products.length === 0 && (
-        <div className="text-center py-16">
-          <ShoppingBag className="w-12 h-12 mx-auto text-slate-300 dark:text-zinc-600 mb-4" />
-          <p className="text-slate-500 dark:text-zinc-400">No products found</p>
+          <p className="hp2-section__kicker" style={{ marginBottom: 20 }}>
+            {total > 0
+              ? "Showing " + ((page - 1) * limit + 1) + "–" + Math.min(page * limit, total) + " of " + total + (listing === "rent" ? " · For Rent" : listing === "sale" ? " · For Sale" : "")
+              : "No products match"}
+          </p>
+
+          {visibleProducts.length === 0 ? (
+            <div className="hp2-empty">
+              <div style={{ marginBottom: 16 }}><ShoppingBag size={32} style={{ color: "#9B95B5", margin: "0 auto" }} /></div>
+              <p className="hp2-empty__title">No products found</p>
+              <p className="hp2-empty__lede">Try a different search or browse all categories.</p>
+            </div>
+          ) : (
+            <div className="hp2-card-grid hp2-card-grid--4">
+              {visibleProducts.map((p: any, i: number) => {
+                const isRent = p.listingType === 'rent';
+                return (
+                <Reveal key={p.id} delay={i * 45}>
+                  <div className="hp2-card">
+                    <Link href={"/products/" + buildSlug(p.id, p.name)} className="hp2-card__img" aria-label={p.name}>
+                      <ImageWithFallback
+                        src={p.imageUrl || "https://images.unsplash.com/photo-1524117074681-31bd4de22ad3?q=80&w=600"}
+                        alt={p.name}
+                        fill
+                        className="object-cover"
+                      />
+                      <div style={{ position: "absolute", top: 8, left: 8, display: "flex", gap: 4, flexWrap: "wrap" }}>
+                        {p.category && <span className="hp2-card__cat" style={{ position: "static" }}>{p.category}</span>}
+                        {isRent && <span className="hp2-card__cat" style={{ position: "static", background: "#7C3AED", color: "#fff" }}>FOR RENT</span>}
+                      </div>
+                    </Link>
+                    <div className="hp2-card__body">
+                      <Link href={"/products/" + buildSlug(p.id, p.name)}>
+                        <h3 className="hp2-card__title">{p.name}</h3>
+                      </Link>
+                      {p.store?.name && (
+                        <p style={{ fontSize: 12, color: "#9B95B5" }}>by {p.store.name}</p>
+                      )}
+                      {p.rating != null && (
+                        <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, color: "#F0A6F8" }}>
+                          <Star size={11} fill="currentColor" />
+                          {Number(p.rating).toFixed(1)}
+                        </span>
+                      )}
+                      <div style={{ marginTop: "auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, paddingTop: 12 }}>
+                        <span className="hp2-card__price">
+                          {isRent && <span style={{ fontSize: 10, opacity: 0.7, display: "block", lineHeight: 1.2 }}>from</span>}
+                          Rs.&nbsp;{Number(p.price).toLocaleString()}
+                          {isRent && <span style={{ fontSize: 10, opacity: 0.7 }}>&nbsp;/ day</span>}
+                        </span>
+                        {isRent ? (
+                          <Link
+                            href={p.store?.id ? "/marketplace/stores/" + buildSlug(p.store.id, p.store.name) : "/marketplace"}
+                            style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, padding: "5px 10px", borderRadius: 6, background: "#3B1F7A", color: "#C4B5FD", whiteSpace: "nowrap", textDecoration: "none" }}
+                          >
+                            <MessageCircle size={11} /> Enquire
+                          </Link>
+                        ) : (
+                          <AddToCartButton product={p} />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </Reveal>
+                );
+              })}
+            </div>
+          )}
+
+          {totalPages > 1 && (
+            <nav className="hp2-pager" aria-label="Pagination">
+              <Link
+                href={buildHref("/marketplace", { search, category, page: page > 1 ? String(page - 1) : undefined })}
+                className={"hp2-pager__btn" + (page <= 1 ? " hp2-pager__btn--disabled" : "")}
+              >← Prev</Link>
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .filter((n) => n === 1 || n === totalPages || Math.abs(n - page) <= 2)
+                .reduce<(number | "…")[]>((acc, n) => {
+                  if (acc.length > 0 && typeof acc[acc.length - 1] === "number" && n - (acc[acc.length - 1] as number) > 1) acc.push("…");
+                  acc.push(n); return acc;
+                }, [])
+                .map((n, i) => n === "…"
+                  ? <span key={"e" + i} className="hp2-pager__btn hp2-pager__btn--disabled">…</span>
+                  : <Link key={n} href={buildHref("/marketplace", { search, category, page: n === 1 ? undefined : String(n) })}
+                      className={"hp2-pager__btn" + (n === page ? " is-active" : "")}
+                      aria-current={n === page ? "page" : undefined}>{n}</Link>
+                )}
+              <Link
+                href={buildHref("/marketplace", { search, category, page: page < totalPages ? String(page + 1) : undefined })}
+                className={"hp2-pager__btn" + (page >= totalPages ? " hp2-pager__btn--disabled" : "")}
+              >Next →</Link>
+            </nav>
+          )}
         </div>
-      )}
-
-      {/* Pagination */}
-      <Pagination currentPage={page} totalPages={totalPages} baseUrl="/marketplace" />
-    </div>
+      </section>
+    </HP2Frame>
   );
 }

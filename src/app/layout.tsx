@@ -19,6 +19,8 @@ const abhayaLibre = Playfair_Display({
 import { AuthProvider } from "@/context/AuthContext";
 import { CartProvider } from "@/context/CartContext";
 import { SiteLayout } from "../components/SiteLayout";
+import { FloatingCartButton } from "../components/FloatingCartButton";
+import { ThemeProvider } from "next-themes";
 
 export const metadata: Metadata = {
   title: "Rasaswadaya | Arts & Culture Hub",
@@ -31,17 +33,24 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
-      <body className={`${inter.variable} ${outfit.variable} ${ibmPlex.variable} ${abhayaLibre.variable} font-sans bg-slate-50 dark:bg-zinc-900 text-slate-600 dark:text-zinc-400`} suppressHydrationWarning>
-        
-        <AuthProvider>
-          <CartProvider>
-            <SiteLayout>
-              {children}
-            </SiteLayout>
-          </CartProvider>
-        </AuthProvider>
-
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.variable} ${outfit.variable} ${ibmPlex.variable} ${abhayaLibre.variable} font-sans bg-background text-foreground`} suppressHydrationWarning>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          forcedTheme="dark"
+          enableSystem={false}
+          disableTransitionOnChange
+        >
+          <AuthProvider>
+            <CartProvider>
+              <SiteLayout>
+                {children}
+              </SiteLayout>
+              <FloatingCartButton />
+            </CartProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

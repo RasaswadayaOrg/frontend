@@ -75,7 +75,7 @@ export function StoreProfileEditor() {
         text: store ? "Store updated" : "Store created — you can now add products",
       });
     } else {
-      setMessage({ type: "error", text: res.error || "Failed to save store" });
+      setMessage({ type: "error", text: res.ok ? "Failed to save store" : res.error || "Failed to save store" });
     }
     setSaving(false);
   };
@@ -86,12 +86,12 @@ export function StoreProfileEditor() {
   };
 
   const inputClass =
-    "w-full bg-neutral-50 dark:bg-zinc-800/50 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-violet-300 dark:focus:border-violet-700 transition-colors";
+    "w-full bg-neutral-50 dark:bg-zinc-800/50 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-brand-300 dark:focus:border-brand-700 transition-colors";
 
   if (loading) {
     return (
       <div className="flex justify-center py-20">
-        <div className="w-8 h-8 rounded-full border-b-2 border-violet-600 animate-spin" />
+        <div className="w-8 h-8 rounded-full border-b-2 border-brand-600 animate-spin" />
       </div>
     );
   }
@@ -102,7 +102,7 @@ export function StoreProfileEditor() {
       className="bg-white dark:bg-zinc-900 rounded-2xl border border-neutral-200/60 dark:border-neutral-800/60 overflow-hidden"
     >
       {/* Cover */}
-      <div className="h-44 relative bg-gradient-to-r from-violet-500 to-fuchsia-500">
+      <div className="h-44 relative bg-gradient-to-r from-brand-500 to-fuchsia-500">
         {form.coverUrl && (
           <ImageWithFallback
             src={form.coverUrl}
@@ -148,7 +148,7 @@ export function StoreProfileEditor() {
           <button
             type="submit"
             disabled={saving}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-violet-600 hover:bg-violet-700 disabled:opacity-60 text-white rounded-xl text-sm font-semibold transition-all duration-200 hover:shadow-lg hover:shadow-violet-200/40 dark:hover:shadow-none active:scale-[0.98]"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 hover:bg-brand-700 disabled:opacity-60 text-white rounded-xl text-sm font-semibold transition-all duration-200 hover:shadow-lg hover:shadow-brand-200/40 dark:hover:shadow-none active:scale-[0.98]"
           >
             <Save className="w-4 h-4" /> {saving ? "Saving…" : store ? "Save Changes" : "Create Store"}
           </button>
@@ -216,7 +216,7 @@ export function StoreProfileEditor() {
           <div className="space-y-5">
             <div>
               <h3 className="text-xs font-semibold mb-3.5 text-neutral-900 dark:text-white flex items-center gap-2">
-                <ImageIcon className="w-3.5 h-3.5 text-violet-500" /> Media
+                <ImageIcon className="w-3.5 h-3.5 text-brand-500" /> Media
               </h3>
               <div className="space-y-3">
                 <div>
@@ -247,8 +247,8 @@ export function StoreProfileEditor() {
             </div>
 
             {store && (
-              <div className="p-4 rounded-2xl border border-violet-100 dark:border-violet-800/40 bg-gradient-to-br from-violet-50 to-fuchsia-50/60 dark:from-violet-900/20 dark:to-fuchsia-900/10">
-                <div className="flex items-center gap-2 text-violet-700 dark:text-violet-300 text-[11px] font-bold uppercase tracking-wide mb-3">
+              <div className="p-4 rounded-2xl border border-brand-100 dark:border-brand-800/40 bg-gradient-to-br from-brand-50 to-fuchsia-50/60 dark:from-brand-900/20 dark:to-fuchsia-900/10">
+                <div className="flex items-center gap-2 text-brand-700 dark:text-brand-300 text-[11px] font-bold uppercase tracking-wide mb-3">
                   <StoreIcon className="w-3.5 h-3.5" /> Store Stats
                 </div>
                 <div className="grid grid-cols-2 gap-3 text-sm">

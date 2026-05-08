@@ -6,6 +6,7 @@ import { Loader2, Save, X } from "lucide-react";
 import Link from "next/link";
 import { createEvent, updateEvent } from "@/app/actions/admin";
 import { ImageUpload } from "./ImageUpload";
+import { CULTURAL_CATEGORIES } from "@/lib/cultural-preferences";
 
 interface EventFormProps {
   initialData?: any;
@@ -16,6 +17,16 @@ export function EventForm({ initialData, isEdit = false }: EventFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  // Normalize legacy capitalized values ("Music") to canonical IDs ("music")
+  const initialCategory = (() => {
+    const raw = (initialData?.category || "").toString().toLowerCase();
+    return CULTURAL_CATEGORIES.some((c) => c.id === raw) ? raw : "music";
+  })();
+  const [category, setCategory] = useState<string>(initialCategory);
+  const [subCategory, setSubCategory] = useState<string>(initialData?.subCategory || "");
+
+  const subCategoryOptions =
+    CULTURAL_CATEGORIES.find((c) => c.id === category)?.examples ?? [];
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -63,28 +74,46 @@ export function EventForm({ initialData, isEdit = false }: EventFormProps) {
                 name="title"
                 required
                 defaultValue={initialData?.title}
-                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white"
+                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-white"
                 placeholder="e.g. Classical Music Festival"
               />
             </div>
 
-            <div className="space-y-2">
-              <label htmlFor="category" className="text-sm font-medium text-slate-700 dark:text-slate-300">Category</label>
-              <select
-                id="category"
-                name="category"
-                required
-                defaultValue={initialData?.category || ""}
-                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white"
-              >
-                <option value="" disabled>Select category</option>
-                <option value="Music">Music</option>
-                <option value="Dance">Dance</option>
-                <option value="Theatre">Theatre</option>
-                <option value="Art">Art/Exhibition</option>
-                <option value="Workshop">Workshop</option>
-                <option value="Other">Other</option>
-              </select>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label htmlFor="category" className="text-sm font-medium text-slate-700 dark:text-slate-300">Category</label>
+                <select
+                  id="category"
+                  name="category"
+                  required
+                  value={category}
+                  onChange={(e) => {
+                    setCategory(e.target.value);
+                    setSubCategory("");
+                  }}
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-white"
+                >
+                  {CULTURAL_CATEGORIES.map((c) => (
+                    <option key={c.id} value={c.id}>{c.shortName}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="subCategory" className="text-sm font-medium text-slate-700 dark:text-slate-300">Sub-category</label>
+                <select
+                  id="subCategory"
+                  name="subCategory"
+                  value={subCategory}
+                  onChange={(e) => setSubCategory(e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-white"
+                >
+                  <option value="">— None —</option>
+                  {subCategoryOptions.map((s) => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -95,7 +124,7 @@ export function EventForm({ initialData, isEdit = false }: EventFormProps) {
                 name="eventDate"
                 required
                 defaultValue={initialData?.eventDate ? new Date(initialData.eventDate).toISOString().slice(0, 16) : ""}
-                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white"
+                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-white"
               />
             </div>
 
@@ -107,7 +136,7 @@ export function EventForm({ initialData, isEdit = false }: EventFormProps) {
                 required
                 rows={4}
                 defaultValue={initialData?.description}
-                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white"
+                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-white"
                 placeholder="Describe your event..."
               />
             </div>
@@ -124,7 +153,7 @@ export function EventForm({ initialData, isEdit = false }: EventFormProps) {
                 name="venue"
                 required
                 defaultValue={initialData?.venue}
-                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white"
+                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-white"
                 placeholder="e.g. Nelum Pokuna"
               />
             </div>
@@ -138,7 +167,7 @@ export function EventForm({ initialData, isEdit = false }: EventFormProps) {
                   name="location"
                   required
                   defaultValue={initialData?.location}
-                  className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white"
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-white"
                   placeholder="Street address"
                 />
               </div>
@@ -151,7 +180,7 @@ export function EventForm({ initialData, isEdit = false }: EventFormProps) {
                   name="city"
                   required
                   defaultValue={initialData?.city}
-                  className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white"
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-white"
                   placeholder="e.g. Colombo"
                 />
               </div>
@@ -163,7 +192,7 @@ export function EventForm({ initialData, isEdit = false }: EventFormProps) {
                 id="capacity"
                 name="capacity"
                 defaultValue={initialData?.capacity}
-                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white"
+                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-white"
                 placeholder="e.g. 500"
               />
             </div>
@@ -189,7 +218,7 @@ export function EventForm({ initialData, isEdit = false }: EventFormProps) {
                 id="ticketLink"
                 name="ticketLink"
                 defaultValue={initialData?.ticketLink}
-                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white"
+                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-white"
                 placeholder="https://tickets.lk/..."
               />
             </div>
@@ -208,7 +237,7 @@ export function EventForm({ initialData, isEdit = false }: EventFormProps) {
         <button
           type="submit"
           disabled={loading}
-          className="flex items-center gap-2 px-6 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-2 px-6 py-2 text-sm font-medium text-white bg-brand-600 hover:bg-brand-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? (
             <>

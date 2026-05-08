@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, Music, Heart, MessageCircle, User2 } from "lucide-react";
-import { Pagination } from "@/components/Pagination";
+import { Music } from "lucide-react";
 import { SongCard } from "@/components/songs/SongCard";
 import { SongDetailModal } from "@/components/songs/SongDetailModal";
-import { FilterList } from "@/components/FilterList";
 import { useSearchParams } from "next/navigation";
+import { DesignStyles } from "@/components/hp2/design";
+import { HP2Nav, DEFAULT_NAV_LINKS } from "@/components/hp2/Nav";
+import { HP2Footer } from "@/components/hp2/Footer";
 
 interface Artist {
   id: string;
@@ -39,170 +40,162 @@ interface SongsResponse {
   };
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
 
 function getAuthHeaders(): HeadersInit {
   const token = typeof window !== "undefined" ? localStorage.getItem("rasas_token") : null;
-  return token ? { Authorization: `Bearer ${token}` } : {};
+  return token ? { Authorization: "Bearer " + token } : {};
 }
 
-export default function SongsPage() {
+function buildHref(base: string, params: Record<string, string | undefined>): string {
+  const sp = new URLSearchParams();
+  for (const k of Object.keys(params)) { const v = params[k]; if (v) sp.set(k, v); }
+  const qs = sp.toString();
+  return qs ? base + "?" + qs : base;
+}
+
+function SongsContent() {
   const searchParams = useSearchParams();
   const page = Number(searchParams.get("page")) || 1;
   const artistId = searchParams.get("artistId") || "";
-  
+
   const [songs, setSongs] = useState<Song[]>([]);
   const [pagination, setPagination] = useState({ page: 1, totalPages: 1, total: 0 });
   const [isLoading, setIsLoading] = useState(true);
   const [selectedSong, setSelectedSong] = useState<Song | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchSongs();
-  }, [page, artistId]);
+  useEffect(() => { fetchSongs(); }, [page, artistId]);
 
   const fetchSongs = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const params = new URLSearchParams({
-        page: page.toString(),
-        limit: "12",
-      });
-      if (artistId) {
-        params.append("artistId", artistId);
-      }
-      
-      const response = await fetch(`${API_BASE_URL}/v1/songs?${params}`, {
+      const params = new URLSearchParams({ page: page.toString(), limit: "12" });
+      if (artistId) params.append("artistId", artistId);
+      const response = await fetch(API_BASE_URL + "/v1/songs?" + params, {
         credentials: "include",
-        headers: {
-          ...getAuthHeaders(),
-        },
+        headers: getAuthHeaders(),
       });
-      
-      if (!response.ok) {
-        throw new Error("Failed to fetch songs");
-      }
-      
+      if (!response.ok) throw new Error("Failed to fetch songs");
       const data: SongsResponse = await response.json();
       setSongs(data.songs);
       setPagination(data.pagination);
     } catch (err) {
-      console.error("Error fetching songs:", err);
       setError("Failed to load songs. Please try again later.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleSongClick = (song: Song) => {
-    setSelectedSong(song);
-  };
-
-  const handleCloseModal = () => {
-    setSelectedSong(null);
-  };
-
   const handleLikeUpdate = (songId: string, isLiked: boolean, likesCount: number) => {
-    setSongs(prev => prev.map(song => 
-      song.id === songId 
-        ? { ...song, isLiked, likesCount }
-        : song
-    ));
-    if (selectedSong?.id === songId) {
-      setSelectedSong(prev => prev ? { ...prev, isLiked, likesCount } : null);
-    }
+    setSongs((prev) => prev.map((s) => s.id === songId ? { ...s, isLiked, likesCount } : s));
+    if (selectedSong?.id === songId) setSelectedSong((prev) => prev ? { ...prev, isLiked, likesCount } : null);
   };
 
   return (
-    <div className="space-y-8">
-      {/* Back Link */}
-      <div>
-        <Link 
-          href="/" 
-          className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-brand-600 dark:text-zinc-400 dark:hover:text-brand-400 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Home
-        </Link>
-      </div>
-
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
-            <Music className="w-8 h-8 text-brand-600" />
-            Songs & Music
-          </h1>
-          <p className="text-slate-500 dark:text-zinc-400 mt-1">
-            Discover music from talented Sri Lankan artists. Like, comment, and follow your favorites!
-          </p>
-        </div>
-      </div>
-
-      {/* Loading State */}
-      {isLoading && (
-        <div className="flex justify-center items-center py-20">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600"></div>
-        </div>
-      )}
-
-      {/* Error State */}
-      {error && !isLoading && (
-        <div className="text-center py-16">
-          <p className="text-red-500">{error}</p>
-          <button 
-            onClick={fetchSongs}
-            className="mt-4 px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors"
-          >
-            Try Again
-          </button>
-        </div>
-      )}
-
-      {/* Songs Grid */}
-      {!isLoading && !error && (
-        <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {songs.map((song) => (
-              <SongCard
-                key={song.id}
-                song={song}
-                onClick={() => handleSongClick(song)}
-                onLikeUpdate={handleLikeUpdate}
-              />
-            ))}
+    <section style={{ minHeight: "calc(100vh - 80px)", paddingBottom: 80 }}>
+      <header className="hp2-cover" style={{ minHeight: 240, padding: "96px 0 32px" }}>
+        <div className="hp2-cover__media hp2-cover__media--pink" aria-hidden />
+        <div className="hp2-container">
+          <div className="hp2-cover__inner">
+            <p className="hp2-cover__kicker">Songs · Music</p>
+            <h1 className="hp2-cover__title">Sounds of <em>Sri Lanka.</em></h1>
+            <p className="hp2-cover__lede">Stream, like and share original tracks.</p>
           </div>
+        </div>
+      </header>
 
-          {songs.length === 0 && (
-            <div className="text-center py-16">
-              <Music className="w-16 h-16 mx-auto text-slate-300 dark:text-zinc-600 mb-4" />
-              <p className="text-slate-500 dark:text-zinc-400">No songs found</p>
-              <p className="text-sm text-slate-400 dark:text-zinc-500 mt-2">
-                Check back later for new music from artists!
-              </p>
+      <div className="hp2-container" style={{ paddingTop: 24 }}>
+
+        {/* Loading */}
+        {isLoading && (
+          <div className="hp2-loading">
+            <div className="hp2-spinner hp2-spinner--lg" />
+          </div>
+        )}
+
+        {/* Error */}
+        {error && !isLoading && (
+          <div className="hp2-alert hp2-alert--error" style={{ marginBottom: 24 }}>
+            <Music size={16} />
+            {error}
+            <button onClick={fetchSongs} style={{ marginLeft: "auto", textDecoration: "underline", background: "none", border: "none", color: "inherit", cursor: "pointer", fontSize: 13 }}>
+              Try again
+            </button>
+          </div>
+        )}
+
+        {!isLoading && !error && (
+          <>
+            <div className="hp2-song-grid">
+              {songs.map((song) => (
+                <SongCard
+                  key={song.id}
+                  song={song}
+                  onClick={() => setSelectedSong(song)}
+                  onLikeUpdate={handleLikeUpdate}
+                />
+              ))}
             </div>
-          )}
 
-          {/* Pagination */}
-          {pagination.totalPages > 1 && (
-            <Pagination 
-              currentPage={pagination.page} 
-              totalPages={pagination.totalPages} 
-              baseUrl="/songs" 
-            />
-          )}
-        </>
-      )}
+            {songs.length === 0 && (
+              <div className="hp2-empty">
+                <div style={{ marginBottom: 12, color: "#9B95B5" }}><Music size={32} /></div>
+                <p className="hp2-empty__title">No songs yet</p>
+                <p className="hp2-empty__lede">Check back soon for new music from artists.</p>
+              </div>
+            )}
 
-      {/* Song Detail Modal */}
+            {/* Pagination */}
+            {pagination.totalPages > 1 && (
+              <nav className="hp2-pager" aria-label="Pagination">
+                <Link
+                  href={buildHref("/songs", { artistId, page: page > 1 ? String(page - 1) : undefined })}
+                  className={"hp2-pager__btn" + (page <= 1 ? " hp2-pager__btn--disabled" : "")}
+                >← Prev</Link>
+                {Array.from({ length: pagination.totalPages }, (_, i) => i + 1)
+                  .filter((n) => n === 1 || n === pagination.totalPages || Math.abs(n - page) <= 2)
+                  .reduce<(number | "…")[]>((acc, n) => {
+                    if (acc.length > 0 && typeof acc[acc.length - 1] === "number" && n - (acc[acc.length - 1] as number) > 1) acc.push("…");
+                    acc.push(n); return acc;
+                  }, [])
+                  .map((n, i) => n === "…"
+                    ? <span key={"e" + i} className="hp2-pager__btn hp2-pager__btn--disabled">…</span>
+                    : <Link key={n} href={buildHref("/songs", { artistId, page: n === 1 ? undefined : String(n) })}
+                        className={"hp2-pager__btn" + (n === page ? " is-active" : "")}
+                        aria-current={n === page ? "page" : undefined}>{n}</Link>
+                  )}
+                <Link
+                  href={buildHref("/songs", { artistId, page: page < pagination.totalPages ? String(page + 1) : undefined })}
+                  className={"hp2-pager__btn" + (page >= pagination.totalPages ? " hp2-pager__btn--disabled" : "")}
+                >Next →</Link>
+              </nav>
+            )}
+          </>
+        )}
+      </div>
+
       {selectedSong && (
         <SongDetailModal
           song={selectedSong}
-          onClose={handleCloseModal}
+          onClose={() => setSelectedSong(null)}
           onLikeUpdate={handleLikeUpdate}
         />
       )}
-    </div>
+    </section>
+  );
+}
+
+export default function SongsPage() {
+  return (
+    <main className="hp2">
+      <DesignStyles />
+      <HP2Nav links={DEFAULT_NAV_LINKS} activePath="/songs" />
+      <Suspense fallback={<div className="hp2-loading"><div className="hp2-spinner hp2-spinner--lg" /></div>}>
+        <SongsContent />
+      </Suspense>
+      <HP2Footer />
+    </main>
   );
 }

@@ -54,7 +54,7 @@ export default function DevTokenPage() {
             
             <button
               onClick={copyToClipboard}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition"
+              className="bg-brand-600 hover:bg-brand-700 text-white px-6 py-2 rounded-lg font-semibold transition"
             >
               {copied ? "✓ Copied!" : "📋 Copy Token"}
             </button>

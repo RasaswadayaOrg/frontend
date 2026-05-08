@@ -22,7 +22,7 @@ export function BookingRequestList() {
     try {
       setLoading(true);
       const token = localStorage.getItem("rasas_token") || sessionStorage.getItem("rasas_token");
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/v1/booking-requests/artist`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || '/api'}/v1/booking-requests/artist`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -46,7 +46,7 @@ export function BookingRequestList() {
     try {
       setActionLoading(id);
       const token = localStorage.getItem("rasas_token") || sessionStorage.getItem("rasas_token");
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/v1/booking-requests/${id}/status`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || '/api'}/v1/booking-requests/${id}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -83,7 +83,7 @@ export function BookingRequestList() {
       {requests.map((req) => (
         <div
           key={req.id}
-          className="bg-white dark:bg-zinc-900 rounded-2xl border border-neutral-200/60 dark:border-neutral-800/60 hover:border-violet-200 dark:hover:border-violet-800/40 transition-all duration-300 hover:shadow-md overflow-hidden"
+          className="bg-white dark:bg-zinc-900 rounded-2xl border border-neutral-200/60 dark:border-neutral-800/60 hover:border-brand-200 dark:hover:border-brand-800/40 transition-all duration-300 hover:shadow-md overflow-hidden"
         >
           <div className="flex flex-col lg:flex-row">
             {/* Main content */}
@@ -91,7 +91,7 @@ export function BookingRequestList() {
               {/* Organizer row with Status */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
                 <div className="flex items-center gap-3.5">
-                  <div className="w-12 h-12 rounded-2xl bg-violet-50 dark:bg-violet-900/20 border border-violet-100 dark:border-violet-800/30 overflow-hidden flex-shrink-0 group-hover:scale-105 transition-transform duration-300">
+                  <div className="w-12 h-12 rounded-2xl bg-brand-50 dark:bg-brand-900/20 border border-brand-100 dark:border-brand-800/30 overflow-hidden flex-shrink-0 group-hover:scale-105 transition-transform duration-300">
                     <ImageWithFallback
                       src={req.organizer?.avatarUrl || `/api/avatar?name=${req.organizer?.fullName}`}
                       alt={req.organizer?.fullName || "Organizer"}
@@ -130,7 +130,7 @@ export function BookingRequestList() {
 
               {/* Event title */}
               <div className="space-y-2 mb-6">
-                <h2 className="text-xl font-extrabold text-neutral-900 dark:text-white group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors duration-200">
+                <h2 className="text-xl font-extrabold text-neutral-900 dark:text-white group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors duration-200">
                   {req.eventName}
                 </h2>
                 <p className="text-sm text-neutral-600 dark:text-neutral-400 line-clamp-2 leading-relaxed">
@@ -201,7 +201,7 @@ export function BookingRequestList() {
 
                 <div className="pt-2 mt-2 border-t border-neutral-200/50 dark:border-neutral-800/50">
                   <button className="w-full py-3 bg-white dark:bg-zinc-800/50 border border-neutral-200 dark:border-neutral-700 rounded-xl text-[13px] font-bold flex items-center justify-center gap-2.5 hover:bg-neutral-50 dark:hover:bg-zinc-700 transition-all shadow-sm text-neutral-600 dark:text-neutral-300">
-                    <Phone className="w-4 h-4 text-violet-500" /> 
+                    <Phone className="w-4 h-4 text-brand-500" /> 
                     <span>Call Organizer</span>
                   </button>
                 </div>

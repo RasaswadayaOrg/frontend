@@ -2,20 +2,26 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { apiFetch } from "@/lib/api";
+import { BookingRequestModal } from "@/components/organizer-dashboard/BookingRequestModal";
 import { Loader2 } from "lucide-react";
 
 interface ArtistActionsProps {
   artistId: string;
+  artistName: string;
+  artistProfession?: string | null;
   initialIsFollowing?: boolean;
+  initialFollowerCount?: number;
 }
 
-export function ArtistActions({ artistId, initialIsFollowing = false }: ArtistActionsProps) {
+export function ArtistActions({ artistId, artistName, artistProfession, initialIsFollowing = false, initialFollowerCount }: ArtistActionsProps) {
   const { user, openAuthModal } = useAuth();
   const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
+  const [followerCount, setFollowerCount] = useState<number | undefined>(initialFollowerCount);
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(false);
-
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [message, setMessage] = useState<{ type: "info" | "error"; text: string } | null>(null);
 
   // Check follow status client-side when user is logged in
   useEffect(() => {
@@ -24,17 +30,9 @@ export function ArtistActions({ artistId, initialIsFollowing = false }: ArtistAc
     const checkFollowStatus = async () => {
       setChecking(true);
       try {
-        const token = localStorage.getItem("rasas_token");
-        const res = await fetch(`${API_URL}/artists/${artistId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
-
+        const res = await apiFetch<any>(`/artists/${artistId}`);
         if (res.ok) {
-          const data = await res.json();
-          setIsFollowing(data.data?.isFollowing || false);
+          setIsFollowing(res.data?.isFollowing || false);
         }
       } catch (err) {
         console.error("Failed to check follow status:", err);
@@ -44,7 +42,7 @@ export function ArtistActions({ artistId, initialIsFollowing = false }: ArtistAc
     };
 
     checkFollowStatus();
-  }, [user, artistId, API_URL]);
+  }, [user, artistId]);
 
   const handleFollow = async () => {
     if (!user) {
@@ -53,26 +51,22 @@ export function ArtistActions({ artistId, initialIsFollowing = false }: ArtistAc
     }
 
     setLoading(true);
+    setMessage(null);
     try {
-      const token = localStorage.getItem("rasas_token");
       const method = isFollowing ? "DELETE" : "POST";
-
-      const res = await fetch(`${API_URL}/artists/${artistId}/follow`, {
-        method,
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
+      const res = await apiFetch(`/artists/${artistId}/follow`, { method });
 
       if (res.ok) {
-        setIsFollowing(!isFollowing);
+        const nowFollowing = !isFollowing;
+        setIsFollowing(nowFollowing);
+        setFollowerCount((c) => c !== undefined ? c + (nowFollowing ? 1 : -1) : undefined);
+        window.dispatchEvent(new CustomEvent("artistFollowChanged", { detail: { artistId, delta: nowFollowing ? 1 : -1 } }));
       } else {
-        const data = await res.json();
-        console.error("Follow/unfollow failed:", data.error || data.message);
+        setMessage({ type: "error", text: res.error || "Could not update follow status." });
       }
     } catch (err) {
       console.error("Follow/unfollow error:", err);
+      setMessage({ type: "error", text: "Connection error. Please try again." });
     } finally {
       setLoading(false);
     }
@@ -83,29 +77,51 @@ export function ArtistActions({ artistId, initialIsFollowing = false }: ArtistAc
       openAuthModal();
       return;
     }
-    console.log(`Contact artist: ${artistId}`);
+
+    const role = user.role?.toUpperCase();
+    if (role !== "ORGANIZER" && role !== "ADMIN") {
+      setMessage({ type: "info", text: "Create an organiser account to book artists." });
+      return;
+    }
+
+    setMessage(null);
+    setShowBookingModal(true);
   };
 
   return (
-    <div className="flex gap-3">
-      <button
-        onClick={handleFollow}
-        disabled={loading || checking}
-        className={`px-6 py-2.5 font-medium rounded-xl transition-colors flex items-center gap-2 disabled:opacity-50 ${
-          isFollowing
-            ? "border border-slate-200 dark:border-zinc-700 text-slate-700 dark:text-zinc-300 hover:bg-red-50 hover:text-red-600 hover:border-red-200 dark:hover:bg-red-900/20 dark:hover:text-red-400 dark:hover:border-red-800"
-            : "bg-brand-600 text-white hover:bg-brand-700"
-        }`}
-      >
-        {(loading || checking) && <Loader2 className="w-4 h-4 animate-spin" />}
-        {isFollowing ? "Unfollow" : "Follow"}
-      </button>
-      <button
-        onClick={handleContact}
-        className="px-6 py-2.5 border border-slate-200 dark:border-zinc-700 font-medium rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors"
-      >
-        Contact
-      </button>
-    </div>
+    <>
+      <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
+        <button
+          onClick={handleFollow}
+          disabled={loading || checking}
+          className={`px-6 py-2.5 font-medium rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-50 ${
+            isFollowing
+              ? "border border-slate-200 dark:border-zinc-700 text-slate-700 dark:text-zinc-300 hover:bg-red-50 hover:text-red-600 hover:border-red-200 dark:hover:bg-red-900/20 dark:hover:text-red-400 dark:hover:border-red-800"
+              : "bg-brand-600 text-white hover:bg-brand-700"
+          }`}
+        >
+          {(loading || checking) && <Loader2 className="w-4 h-4 animate-spin" />}
+          {isFollowing ? "Unfollow" : "Follow"}
+        </button>
+        <button
+          onClick={handleContact}
+          className="px-6 py-2.5 border border-slate-200 dark:border-zinc-700 font-medium rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors"
+        >
+          Contact
+        </button>
+      </div>
+
+      {message && (
+        <p className={`mt-2 text-sm ${message.type === "error" ? "text-red-600 dark:text-red-400" : "text-slate-500 dark:text-zinc-400"}`}>
+          {message.text}
+        </p>
+      )}
+
+      <BookingRequestModal
+        isOpen={showBookingModal}
+        onClose={() => setShowBookingModal(false)}
+        artist={{ id: artistId, name: artistName, role: artistProfession || "Artist" }}
+      />
+    </>
   );
 }

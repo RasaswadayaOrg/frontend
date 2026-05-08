@@ -6,6 +6,7 @@ import { Loader2, Save, X } from "lucide-react";
 import Link from "next/link";
 import { createArtist, updateArtist } from "@/app/actions/admin";
 import { ImageUpload } from "./ImageUpload";
+import { CULTURAL_CATEGORIES } from "@/lib/cultural-preferences";
 
 interface ArtistFormProps {
   initialData?: any;
@@ -16,6 +17,15 @@ export function ArtistForm({ initialData, isEdit = false }: ArtistFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [category, setCategory] = useState<string>(
+    initialData?.category && CULTURAL_CATEGORIES.some((c) => c.id === initialData.category)
+      ? initialData.category
+      : "music"
+  );
+  const [subCategory, setSubCategory] = useState<string>(initialData?.subCategory || "");
+
+  const subCategoryOptions =
+    CULTURAL_CATEGORIES.find((c) => c.id === category)?.examples ?? [];
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -63,7 +73,7 @@ export function ArtistForm({ initialData, isEdit = false }: ArtistFormProps) {
                 name="name"
                 required
                 defaultValue={initialData?.name}
-                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white"
+                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-white"
                 placeholder="e.g. Nanda Malini"
               />
             </div>
@@ -77,7 +87,7 @@ export function ArtistForm({ initialData, isEdit = false }: ArtistFormProps) {
                   name="profession"
                   required
                   defaultValue={initialData?.profession}
-                  className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white"
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-white"
                   placeholder="e.g. Vocalist"
                 />
               </div>
@@ -89,9 +99,46 @@ export function ArtistForm({ initialData, isEdit = false }: ArtistFormProps) {
                   id="genre"
                   name="genre"
                   defaultValue={initialData?.genre}
-                  className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white"
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-white"
                   placeholder="e.g. Classical"
                 />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label htmlFor="category" className="text-sm font-medium text-slate-700 dark:text-slate-300">Category</label>
+                <select
+                  id="category"
+                  name="category"
+                  required
+                  value={category}
+                  onChange={(e) => {
+                    setCategory(e.target.value);
+                    setSubCategory("");
+                  }}
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-white"
+                >
+                  {CULTURAL_CATEGORIES.map((c) => (
+                    <option key={c.id} value={c.id}>{c.shortName}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="subCategory" className="text-sm font-medium text-slate-700 dark:text-slate-300">Sub-category</label>
+                <select
+                  id="subCategory"
+                  name="subCategory"
+                  value={subCategory}
+                  onChange={(e) => setSubCategory(e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-white"
+                >
+                  <option value="">— None —</option>
+                  {subCategoryOptions.map((s) => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
               </div>
             </div>
 
@@ -102,7 +149,7 @@ export function ArtistForm({ initialData, isEdit = false }: ArtistFormProps) {
                 id="location"
                 name="location"
                 defaultValue={initialData?.location}
-                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white"
+                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-white"
                 placeholder="e.g. Colombo, Sri Lanka"
               />
             </div>
@@ -114,7 +161,7 @@ export function ArtistForm({ initialData, isEdit = false }: ArtistFormProps) {
                 name="bio"
                 rows={4}
                 defaultValue={initialData?.bio}
-                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white"
+                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-white"
                 placeholder="Artist biography..."
               />
             </div>
@@ -147,7 +194,7 @@ export function ArtistForm({ initialData, isEdit = false }: ArtistFormProps) {
                 id="website"
                 name="website"
                 defaultValue={initialData?.website}
-                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white"
+                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-white"
                 placeholder="https://..."
               />
             </div>
@@ -159,7 +206,7 @@ export function ArtistForm({ initialData, isEdit = false }: ArtistFormProps) {
                 id="instagram"
                 name="instagram"
                 defaultValue={initialData?.instagram}
-                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white"
+                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-white"
                 placeholder="username"
               />
             </div>
@@ -171,7 +218,7 @@ export function ArtistForm({ initialData, isEdit = false }: ArtistFormProps) {
                 id="facebook"
                 name="facebook"
                 defaultValue={initialData?.facebook}
-                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white"
+                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-white"
                 placeholder="username"
               />
             </div>
@@ -189,7 +236,7 @@ export function ArtistForm({ initialData, isEdit = false }: ArtistFormProps) {
         <button
           type="submit"
           disabled={loading}
-          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-4 py-2 text-sm font-medium text-white bg-brand-600 hover:bg-brand-700 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading && <Loader2 className="w-4 h-4 animate-spin" />}
           {isEdit ? 'Update Artist' : 'Create Artist'}

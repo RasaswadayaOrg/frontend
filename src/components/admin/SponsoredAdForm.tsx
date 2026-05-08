@@ -91,7 +91,7 @@ export function SponsoredAdForm({ ad }: SponsoredAdFormProps) {
             name="title"
             defaultValue={ad?.title}
             required
-            className="w-full px-4 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+            className="w-full px-4 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-transparent"
             placeholder="Enter ad title"
           />
         </div>
@@ -102,11 +102,11 @@ export function SponsoredAdForm({ ad }: SponsoredAdFormProps) {
             Ad Image *
           </label>
           <ImageUpload
-            currentImage={imageUrl}
+            name="imageUrl"
+            initialUrl={imageUrl}
             onImageChange={setImageUrl}
             label="Upload ad image"
           />
-          <input type="hidden" name="imageUrl" value={imageUrl} />
         </div>
 
         {/* Link URL */}
@@ -118,7 +118,7 @@ export function SponsoredAdForm({ ad }: SponsoredAdFormProps) {
             type="url"
             name="linkUrl"
             defaultValue={ad?.linkUrl}
-            className="w-full px-4 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+            className="w-full px-4 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-transparent"
             placeholder="https://example.com"
           />
           <p className="mt-1 text-xs text-slate-500">Where users go when they click the ad</p>
@@ -133,7 +133,7 @@ export function SponsoredAdForm({ ad }: SponsoredAdFormProps) {
             name="placement"
             defaultValue={ad?.placement || 'home-sidebar'}
             required
-            className="w-full px-4 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+            className="w-full px-4 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-transparent"
           >
             {placements.map((p) => (
               <option key={p.value} value={p.value}>{p.label}</option>
@@ -150,7 +150,7 @@ export function SponsoredAdForm({ ad }: SponsoredAdFormProps) {
             name="size"
             defaultValue={ad?.size || 'medium'}
             required
-            className="w-full px-4 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+            className="w-full px-4 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-transparent"
           >
             {sizes.map((s) => (
               <option key={s.value} value={s.value}>{s.label}</option>
@@ -167,7 +167,7 @@ export function SponsoredAdForm({ ad }: SponsoredAdFormProps) {
             type="datetime-local"
             name="startDate"
             defaultValue={formatDateForInput(ad?.startDate)}
-            className="w-full px-4 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+            className="w-full px-4 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-transparent"
           />
         </div>
 
@@ -180,7 +180,7 @@ export function SponsoredAdForm({ ad }: SponsoredAdFormProps) {
             type="datetime-local"
             name="endDate"
             defaultValue={formatDateForInput(ad?.endDate)}
-            className="w-full px-4 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+            className="w-full px-4 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-transparent"
           />
         </div>
 
@@ -192,7 +192,7 @@ export function SponsoredAdForm({ ad }: SponsoredAdFormProps) {
               name="isActive"
               value="true"
               defaultChecked={ad?.isActive !== false}
-              className="w-5 h-5 rounded border-slate-300 dark:border-zinc-700 text-violet-600 focus:ring-violet-500"
+              className="w-5 h-5 rounded border-slate-300 dark:border-zinc-700 text-brand-600 focus:ring-brand-500"
             />
             <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
               Active (show this ad on the website)
@@ -216,7 +216,7 @@ export function SponsoredAdForm({ ad }: SponsoredAdFormProps) {
         <button
           type="submit"
           disabled={loading || !imageUrl}
-          className="px-6 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-6 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? 'Saving...' : ad ? 'Update Ad' : 'Create Ad'}
         </button>

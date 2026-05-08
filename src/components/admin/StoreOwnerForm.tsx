@@ -28,7 +28,7 @@ export function StoreOwnerForm({ initialData, isEdit = false }: StoreOwnerFormPr
         : await createStoreOwner(formData);
 
       if (result.success) {
-        router.push("/admin/storeOwners");
+        router.push("/admin/store-owners");
         router.refresh();
       } else {
         setError(result.message || "Something went wrong");
@@ -48,10 +48,10 @@ export function StoreOwnerForm({ initialData, isEdit = false }: StoreOwnerFormPr
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
         {/* Basic Info */}
-        <div className="space-y-6">
-          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl p-6 space-y-4 shadow-sm">
+        <div className="flex flex-col">
+          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl p-6 space-y-4 shadow-sm flex-1">
             <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">StoreOwner Information</h3>
             
             <div className="space-y-2">
@@ -62,7 +62,7 @@ export function StoreOwnerForm({ initialData, isEdit = false }: StoreOwnerFormPr
                 name="fullName"
                 required
                 defaultValue={initialData?.fullName}
-                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white"
+                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-white"
                 placeholder="e.g. Acme Events"
               />
             </div>
@@ -76,7 +76,7 @@ export function StoreOwnerForm({ initialData, isEdit = false }: StoreOwnerFormPr
                 required
                 disabled={isEdit}
                 defaultValue={initialData?.email}
-                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white disabled:opacity-50"
+                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-white disabled:opacity-50"
                 placeholder="e.g. contact@acme.com"
               />
             </div>
@@ -89,7 +89,7 @@ export function StoreOwnerForm({ initialData, isEdit = false }: StoreOwnerFormPr
                   id="password"
                   name="password"
                   required
-                  className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white"
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-white"
                   placeholder="Leave empty to auto-generate"
                 />
               </div>
@@ -97,46 +97,58 @@ export function StoreOwnerForm({ initialData, isEdit = false }: StoreOwnerFormPr
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label htmlFor="phone" className="text-sm font-medium text-slate-700 dark:text-slate-300">Phone</label>
+                <label htmlFor="phone" className="text-sm font-medium text-slate-700 dark:text-slate-300">Contact Number</label>
                 <input
                   type="tel"
                   id="phone"
                   name="phone"
                   defaultValue={initialData?.phone}
-                  className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white"
-                  placeholder="e.g. +94 77 123 4567"
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-white"
+                  placeholder="+94 11 223 6767"
                 />
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="city" className="text-sm font-medium text-slate-700 dark:text-slate-300">City</label>
+                <label htmlFor="whatsappPhone" className="text-sm font-medium text-slate-700 dark:text-slate-300">WhatsApp Number</label>
                 <input
-                  type="text"
-                  id="city"
-                  name="city"
-                  defaultValue={initialData?.city}
-                  className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white"
-                  placeholder="e.g. Colombo"
+                  type="tel"
+                  id="whatsappPhone"
+                  name="whatsappPhone"
+                  defaultValue={initialData?.whatsappPhone}
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-white"
+                  placeholder="+94 77 223 6767"
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="city" className="text-sm font-medium text-slate-700 dark:text-slate-300">City</label>
+              <input
+                type="text"
+                id="city"
+                name="city"
+                defaultValue={initialData?.city}
+                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-white"
+                placeholder="e.g. Colombo"
+              />
             </div>
           </div>
         </div>
 
         {/* Media & Other */}
-        <div className="space-y-6">
-          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl p-6 space-y-4 shadow-sm">
+        <div className="flex flex-col">
+          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm flex-1 flex flex-col">
             <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Profile Image</h3>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Avatar</label>
-              <div className="w-32 h-32 mx-auto">
-                <ImageUpload 
-                  name="avatarUrl" 
-                  initialUrl={initialData?.avatarUrl || initialData?.photoUrl} 
+
+            <div className="flex-1 flex items-center justify-center">
+              <div className="w-full max-w-[260px]">
+                <ImageUpload
+                  name="avatarUrl"
+                  label=""
+                  aspectRatio="square"
+                  initialUrl={initialData?.avatarUrl || initialData?.photoUrl}
                 />
               </div>
-              <p className="text-xs text-center text-slate-500 mt-2">Recommended: Square image, max 2MB</p>
             </div>
           </div>
         </div>
@@ -153,7 +165,7 @@ export function StoreOwnerForm({ initialData, isEdit = false }: StoreOwnerFormPr
         <button
           type="submit"
           disabled={loading}
-          className="flex items-center gap-2 px-6 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50"
+          className="flex items-center gap-2 px-6 py-2 text-sm font-medium text-white bg-brand-600 hover:bg-brand-700 rounded-lg transition-colors disabled:opacity-50"
         >
           {loading ? (
             <>
@@ -163,7 +175,7 @@ export function StoreOwnerForm({ initialData, isEdit = false }: StoreOwnerFormPr
           ) : (
             <>
               <Save className="w-4 h-4" />
-              Save StoreOwner
+              Save
             </>
           )}
         </button>

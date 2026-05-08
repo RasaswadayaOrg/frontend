@@ -113,7 +113,7 @@ export default function RoleApplicationsManager() {
             onClick={() => setFilter(tab)}
             className={`px-4 py-2 font-medium border-b-2 transition ${
               filter === tab
-                ? "border-blue-600 text-blue-600"
+                ? "border-blue-600 text-brand-600"
                 : "border-transparent text-gray-600 hover:text-gray-900"
             }`}
           >
@@ -151,7 +151,7 @@ export default function RoleApplicationsManager() {
 
               <div className="mb-4">
                 <p className="text-sm font-medium text-gray-700 mb-1">
-                  Applying for: <span className="text-blue-600 font-semibold">{app.role}</span>
+                  Applying for: <span className="text-brand-600 font-semibold">{app.role}</span>
                 </p>
                 {app.bio && (
                   <div className="mt-2">
@@ -167,7 +167,7 @@ export default function RoleApplicationsManager() {
                     href={app.portfolioUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800"
+                    className="inline-flex items-center gap-1 text-sm text-brand-600 hover:text-blue-800"
                   >
                     <ExternalLink className="w-4 h-4" />
                     Portfolio
@@ -178,7 +178,7 @@ export default function RoleApplicationsManager() {
                     href={app.proofDocumentUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800"
+                    className="inline-flex items-center gap-1 text-sm text-brand-600 hover:text-blue-800"
                   >
                     <FileText className="w-4 h-4" />
                     Proof Document

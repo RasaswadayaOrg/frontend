@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Calendar, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
+import { buildSlug } from "../lib/slug";
 
 interface HeroEvent {
   id: string | number;
@@ -97,7 +98,7 @@ export function HeroSlider({ events = [] }: HeroSliderProps) {
 
                 <div className="pt-4 flex items-center gap-4">
                     <Link
-                      href={`/events/${slide.id}`}
+                      href={`/events/${buildSlug(slide.id, slide.title)}`}
                       className="inline-flex items-center justify-center px-6 py-3 text-sm font-bold text-white transition-all bg-brand-600 rounded-full hover:bg-brand-700 shadow-lg shadow-brand-900/20"
                     >
                       View Event

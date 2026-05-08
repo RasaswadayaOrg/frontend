@@ -44,7 +44,7 @@ export default async function AdminSponsoredPage() {
         </div>
         <Link
           href="/admin/sponsored/new"
-          className="flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-lg transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors"
         >
           <Plus className="w-4 h-4" />
           Add New Ad
@@ -55,7 +55,7 @@ export default async function AdminSponsoredPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl p-4">
           <div className="flex items-center gap-2">
-            <Image className="w-4 h-4 text-violet-500" />
+            <Image className="w-4 h-4 text-brand-500" />
             <span className="text-xs font-medium text-slate-500">Total Ads</span>
           </div>
           <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{totalCount}</p>
@@ -138,7 +138,7 @@ export default async function AdminSponsoredPage() {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="px-2 py-1 text-xs font-medium bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-400 rounded">
+                    <span className="px-2 py-1 text-xs font-medium bg-brand-100 text-brand-800 dark:bg-brand-900/30 dark:text-brand-400 rounded">
                       {placementLabels[ad.placement] || ad.placement}
                     </span>
                   </td>
@@ -167,7 +167,7 @@ export default async function AdminSponsoredPage() {
                     <div className="flex items-center justify-end gap-2">
                       <Link 
                         href={`/admin/sponsored/${ad.id}/edit`} 
-                        className="px-3 py-1 text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+                        className="px-3 py-1 text-xs font-medium text-brand-600 hover:text-brand-700 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded transition-colors"
                       >
                         Edit
                       </Link>
@@ -179,7 +179,7 @@ export default async function AdminSponsoredPage() {
               {ads.length === 0 && (
                 <tr>
                   <td colSpan={7} className="px-6 py-12 text-center text-slate-500">
-                    No sponsored ads found. <Link href="/admin/sponsored/new" className="text-violet-600 hover:underline">Create one now</Link>
+                    No sponsored ads found. <Link href="/admin/sponsored/new" className="text-brand-600 hover:underline">Create one now</Link>
                   </td>
                 </tr>
               )}

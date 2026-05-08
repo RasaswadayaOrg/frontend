@@ -1,7 +1,42 @@
 // Use internal API URL for server-side rendering, public URL for client-side
 const API_URL = typeof window === 'undefined' 
-  ? (process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api')
-  : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api');
+  ? (process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || '/api')
+  : (process.env.NEXT_PUBLIC_API_URL || '/api');
+
+// Admin-authenticated fetch — reads admin_token cookie so server components
+// calling protected /v1/admin/* endpoints receive a valid Bearer token.
+async function fetchAdminData(endpoint: string, params: Record<string, any> = {}) {
+  try {
+    // Dynamic import keeps this server-only; won't run in browser bundles.
+    const { cookies } = await import('next/headers');
+    const cookieStore = await cookies();
+    const token = cookieStore.get('admin_token')?.value;
+
+    const url = new URL(`${API_URL}${endpoint}`);
+    Object.keys(params).forEach(key => {
+      if (params[key] !== undefined && params[key] !== null) {
+        url.searchParams.append(key, params[key].toString());
+      }
+    });
+
+    const res = await fetch(url.toString(), {
+      cache: 'no-store',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+
+    if (!res.ok) {
+      console.error(`Error fetching ${endpoint}:`, res.status, res.statusText);
+      return null;
+    }
+    return await res.json();
+  } catch (error) {
+    console.error(`Error fetching ${endpoint}:`, error);
+    return null;
+  }
+}
 
 // Helper to fetch data
 async function fetchData(endpoint: string, params: Record<string, any> = {}, silent = false) {
@@ -31,11 +66,12 @@ async function fetchData(endpoint: string, params: Record<string, any> = {}, sil
     return json;
   } catch (error: any) {
     if (!silent) {
-      const isConnRefused =
+      const isNetworkError =
         error?.cause?.code === "ECONNREFUSED" ||
         error?.code === "ECONNREFUSED" ||
-        (error?.message ?? "").includes("ECONNREFUSED");
-      if (isConnRefused) {
+        (error?.message ?? "").includes("ECONNREFUSED") ||
+        error?.message === "fetch failed";
+      if (isNetworkError) {
         console.warn(
           `[API] Backend not reachable at ${API_URL}${endpoint} — start the backend server (npm run dev in /backend).`
         );
@@ -171,20 +207,20 @@ export async function getMyReminders(token: string) {
 
 // --- Artists ---
 
-export async function getArtists(limit = 3, page = 1, search?: string, genre?: string) {
+export async function getArtists(limit = 3, page = 1, search?: string, category?: string) {
     const params: any = { limit, page };
     if (search) params.search = search;
-    if (genre) params.genre = genre;
+    if (category) params.category = category;
 
     const data = await fetchData('/artists', params);
     if (!data || !data.success) return [];
     return data.data;
 }
 
-export async function getArtistsCount(search?: string, genre?: string) {
+export async function getArtistsCount(search?: string, category?: string) {
     const params: any = { limit: 1 };
     if (search) params.search = search;
-    if (genre) params.genre = genre;
+    if (category) params.category = category;
 
     const data = await fetchData('/artists', params);
     return data?.pagination?.total || 0;
@@ -194,6 +230,19 @@ export async function getArtist(id: string) {
     const data = await fetchData(`/artists/${id}`);
     if (!data || !data.success) return null;
     return data.data;
+}
+
+/**
+ * Look up an artist by their name slug (e.g. "amal-perera").
+ * Searches the API by a loose name term then confirms an exact slug match.
+ */
+export async function getArtistBySlug(slug: string) {
+    const { slugify } = await import('./slugs');
+    const searchTerm = slug.replace(/-/g, ' ');
+    const data = await fetchData('/artists', { search: searchTerm, limit: 50 });
+    if (!data || !data.success) return null;
+    const artists: any[] = data.data ?? [];
+    return artists.find((a: any) => slugify(a.name || '') === slug) ?? null;
 }
 
 // --- Stores ---
@@ -216,10 +265,11 @@ export async function getStore(id: string) {
 
 // --- Products ---
 
-export async function getProducts(limit = 6, page = 1, search?: string, category?: string) {
+export async function getProducts(limit = 6, page = 1, search?: string, category?: string, listing?: string) {
     const params: any = { limit, page };
     if (search) params.search = search;
     if (category) params.category = category;
+    if (listing) params.listing = listing;
 
     const data = await fetchData('/products', params);
     if (!data || !data.success) return [];
@@ -230,10 +280,11 @@ export async function getProducts(limit = 6, page = 1, search?: string, category
     }));
 }
 
-export async function getProductsCount(search?: string, category?: string) {
+export async function getProductsCount(search?: string, category?: string, listing?: string) {
     const params: any = { limit: 1 };
     if (search) params.search = search;
     if (category) params.category = category;
+    if (listing) params.listing = listing;
 
     const data = await fetchData('/products', params);
     return data?.pagination?.total || 0;
@@ -296,11 +347,14 @@ export async function getAcademy(id: string) {
 
 export async function getCategories() {
     return [
-        { id: 'cat-1', name: 'Handloom', iconUrl: '🧵' },
-        { id: 'cat-2', name: 'Masks', iconUrl: '🎭' },
-        { id: 'cat-3', name: 'Woodwork', iconUrl: '🪵' },
-        { id: 'cat-4', name: 'Brassware', iconUrl: '🏺' },
-        { id: 'cat-5', name: 'Batik', iconUrl: '🎨' },
+        { id: 'cat-1', name: 'Instruments', iconUrl: '🎸' },
+        { id: 'cat-2', name: 'Percussion', iconUrl: '🥁' },
+        { id: 'cat-3', name: 'Strings', iconUrl: '🪕' },
+        { id: 'cat-4', name: 'Wind', iconUrl: '🎷' },
+        { id: 'cat-5', name: 'Accessories', iconUrl: '🎵' },
+        { id: 'cat-6', name: 'Equipment', iconUrl: '🎛️' },
+        { id: 'cat-7', name: 'Traditional', iconUrl: '🪘' },
+        { id: 'cat-8', name: 'Music', iconUrl: '🎼' },
     ];
 }
 
@@ -308,7 +362,7 @@ export async function getCategories() {
 
 export async function getAdminStats() {
     try {
-        const data = await fetchData('/v1/admin/stats');
+        const data = await fetchAdminData('/v1/admin/stats');
         if (!data || !data.success) {
             // Fallback to individual endpoints
             const [eventsData, artistsData, productsData, academiesData, storesData] = await Promise.all([
@@ -350,7 +404,7 @@ export async function getUsers(limit = 20, page = 1, search?: string, role?: str
     if (search) params.search = search;
     if (role) params.role = role;
 
-    const data = await fetchData('/v1/admin/users', params);
+    const data = await fetchAdminData('/v1/admin/users', params);
     if (!data || !data.success) return [];
     return data.data;
 }
@@ -360,12 +414,12 @@ export async function getUsersCount(search?: string, role?: string) {
     if (search) params.search = search;
     if (role) params.role = role;
 
-    const data = await fetchData('/v1/admin/users', params);
+    const data = await fetchAdminData('/v1/admin/users', params);
     return data?.pagination?.total || 0;
 }
 
 export async function getUser(id: string) {
-    const data = await fetchData(`/v1/admin/users/${id}`);
+    const data = await fetchAdminData(`/v1/admin/users/${id}`);
     if (!data || !data.success) return null;
     return data.data;
 }
@@ -377,7 +431,7 @@ export async function getAdminOrders(limit = 20, page = 1, status?: string) {
     if (status) params.status = status;
 
     // Use admin endpoint
-    const data = await fetchData('/v1/admin/orders', params);
+    const data = await fetchAdminData('/v1/admin/orders', params);
     if (!data || !data.success) return [];
     return data.data;
 }
@@ -387,7 +441,7 @@ export async function getAdminOrdersCount(status?: string) {
     if (status) params.status = status;
 
     // Use admin endpoint
-    const data = await fetchData('/v1/admin/orders', params);
+    const data = await fetchAdminData('/v1/admin/orders', params);
     return data?.pagination?.total || 0;
 }
 
@@ -413,7 +467,7 @@ export async function getOrdersCount(status?: string) {
 export async function getRecentActivity(limit = 10) {
     try {
         // Try to fetch from admin activity endpoint first
-        const adminActivity = await fetchData('/v1/admin/activity', { limit });
+        const adminActivity = await fetchAdminData('/v1/admin/activity', { limit });
         if (adminActivity?.success && adminActivity.data) {
             return adminActivity.data;
         }
@@ -486,7 +540,7 @@ export async function getSponsoredAds(limit = 20, page = 1, placement?: string, 
     if (placement) params.placement = placement;
     if (isActive !== undefined) params.isActive = isActive;
 
-    const data = await fetchData('/v1/admin/ads', params);
+    const data = await fetchAdminData('/v1/admin/ads', params);
     if (!data || !data.success) return [];
     return data.data;
 }
@@ -496,19 +550,19 @@ export async function getSponsoredAdsCount(placement?: string, isActive?: boolea
     if (placement) params.placement = placement;
     if (isActive !== undefined) params.isActive = isActive;
 
-    const data = await fetchData('/v1/admin/ads', params);
+    const data = await fetchAdminData('/v1/admin/ads', params);
     return data?.pagination?.total || 0;
 }
 
 export async function getSponsoredAd(id: string) {
-    const data = await fetchData(`/v1/admin/ads/${id}`);
+    const data = await fetchAdminData(`/v1/admin/ads/${id}`);
     if (!data || !data.success) return null;
     return data.data;
 }
 
 export async function getActiveAdsForPlacement(placement: string) {
     // Silent mode - ads endpoint may not exist yet
-    const data = await fetchData(`/v1/admin/ads/placement/${placement}`, {}, true);
+    const data = await fetchAdminData(`/v1/admin/ads/placement/${placement}`);
     if (!data || !data.success) return [];
     return data.data;
 }
@@ -537,13 +591,13 @@ export interface AdminPostType {
 }
 
 export async function getAdminPosts(limit = 20, page = 1): Promise<{ posts: AdminPostType[]; pagination: { page: number; limit: number; total: number; totalPages: number } }> {
-  const data = await fetchData('/v1/admin/posts', { limit, page });
+  const data = await fetchAdminData('/v1/admin/posts', { limit, page });
   if (!data || !data.success) return { posts: [], pagination: { page, limit, total: 0, totalPages: 0 } };
   return data.data;
 }
 
 export async function getAdminPostsCount() {
-  const data = await fetchData('/v1/admin/posts', { limit: 1, page: 1 });
+  const data = await fetchAdminData('/v1/admin/posts', { limit: 1, page: 1 });
   return data?.data?.pagination?.total || 0;
 }
 
@@ -559,8 +613,40 @@ export async function getRecommendations(token: string) {
         });
         if (!res.ok) return { data: null };
         return await res.json();
-    } catch (error) {
-        console.error("Error fetching recommendations:", error);
+    } catch (error: any) {
+        const isNetworkError =
+            error?.cause?.code === "ECONNREFUSED" ||
+            error?.message === "fetch failed";
+        if (isNetworkError) {
+            console.warn(`[API] Backend not reachable — recommendations unavailable.`);
+        } else {
+            console.error("Error fetching recommendations:", error?.message ?? error);
+        }
         return { data: null };
+    }
+}
+
+export async function getUserPreferences(token: string) {
+    if (!token) return null;
+    try {
+        const res = await fetch(`${API_URL}/auth/preferences`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            cache: 'no-store'
+        });
+        if (!res.ok) return null;
+        const json = await res.json();
+        return json.success ? json.data : null;
+    } catch (error: any) {
+        const isNetworkError =
+            error?.cause?.code === "ECONNREFUSED" ||
+            error?.message === "fetch failed";
+        if (isNetworkError) {
+            console.warn(`[API] Backend not reachable — user preferences unavailable.`);
+        } else {
+            console.error("Error fetching user preferences:", error?.message ?? error);
+        }
+        return null;
     }
 }

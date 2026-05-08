@@ -2,231 +2,379 @@
 
 import { useCart } from "@/context/CartContext";
 import { ImageWithFallback } from "@/components/ImageWithFallback";
-import { ArrowLeft, ArrowRight, CreditCard, ShoppingBag, Truck } from "lucide-react";
+import { ArrowLeft, ArrowRight, CreditCard, Truck, Check, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/api";
+import { DesignStyles } from "@/components/hp2/design";
+import { HP2Nav, DEFAULT_NAV_LINKS } from "@/components/hp2/Nav";
+import { HP2Footer } from "@/components/hp2/Footer";
+
+type PayMethod = "cod" | "payhere";
 
 export default function CheckoutPage() {
   const { user } = useAuth();
   const { items, itemCount, totalPrice, clearCart, isLoading } = useCart();
   const router = useRouter();
 
-  const [address, setAddress] = useState("");
+  const VAT_RATE = 0.18;
+  const DELIVERY_FEE = totalPrice >= 10000 ? 0 : 350;
+  const vatAmount = Math.round(totalPrice * VAT_RATE);
+  const grandTotal = totalPrice + vatAmount + DELIVERY_FEE;
+
+  const [addr, setAddr] = useState({ line1: "", line2: "", city: "", province: "", postalCode: "", contactPhone: "" });
+  const [method, setMethod] = useState<PayMethod>("payhere");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  useEffect(() => {
-    if (!user) {
-      router.push("/cart");
-    }
-  }, [user, router]);
+  useEffect(() => { if (!user) router.push("/cart"); }, [user, router]);
+  useEffect(() => { if (!isLoading && itemCount === 0 && !success) router.push("/cart"); }, [isLoading, itemCount, success, router]);
 
-  useEffect(() => {
-    if (!isLoading && itemCount === 0 && !success) {
-      router.push("/cart");
-    }
-  }, [isLoading, itemCount, success, router]);
-
-  if (!user || isLoading) {
-    return (
-      <div className="flex justify-center items-center py-20">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
-      </div>
-    );
-  }
-
-  if (itemCount === 0 && !success) {
-    return null;
+  /** Construct + auto-submit a hidden form to PayHere with the signed fields. */
+  function submitToPayHere(checkoutUrl: string, fields: Record<string, string>) {
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = checkoutUrl;
+    form.style.display = "none";
+    Object.entries(fields).forEach(([k, v]) => {
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = k;
+      input.value = v ?? "";
+      form.appendChild(input);
+    });
+    document.body.appendChild(form);
+    form.submit();
   }
 
   const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!address.trim()) {
-      setError("Delivery address is required");
+    if (!addr.line1.trim() || !addr.city.trim() || !addr.contactPhone.trim()) {
+      setError("Please fill in address line 1, city and contact number.");
       return;
     }
-
+    const address = [
+      addr.line1,
+      addr.line2,
+      addr.city,
+      addr.province,
+      addr.postalCode,
+    ].filter(Boolean).join(", ") + ` | ${addr.contactPhone}`;
     setSubmitting(true);
     setError(null);
-    const res = await apiFetch("/orders", {
-      method: "POST",
-      json: { shippingAddress: address },
-    });
 
-    if (!res.ok) {
-      setError(res.error || "Something went wrong while placing your order.");
+    // 1) Create the Order (PENDING)
+    const createRes = await apiFetch<any>("/orders", {
+      method: "POST",
+      json: { shippingAddress: address, paymentMethod: method, totalAmount: grandTotal },
+    });
+    if (!createRes.ok) {
+      setError(createRes.error || "Could not create order.");
+      setSubmitting(false);
+      return;
+    }
+    const orderId = createRes.data?.id || createRes.data?.data?.id;
+
+    if (method === "cod") {
+      setSuccess(true);
+      await clearCart();
+      setTimeout(() => router.push(orderId ? `/orders/${orderId}` : "/orders"), 2000);
       setSubmitting(false);
       return;
     }
 
-    setSuccess(true);
-    await clearCart();
-    setTimeout(() => {
-      router.push("/orders");
-    }, 2500);
-    setSubmitting(false);
+    // 2) PayHere — fetch signed checkout fields and redirect to gateway
+    const initRes = await apiFetch<any>(`/payments/payhere/initiate/${orderId}`, {
+      method: "POST",
+    });
+    if (!initRes.ok || !initRes.data?.checkoutUrl) {
+      setError(initRes.error || "Could not start PayHere checkout.");
+      setSubmitting(false);
+      return;
+    }
+
+    submitToPayHere(initRes.data.checkoutUrl, initRes.data.fields);
   };
 
-  if (success) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-green-500 rounded-2xl bg-white dark:bg-zinc-900 mx-auto max-w-2xl mt-10">
-        <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mb-6">
-          <Truck className="w-10 h-10 text-green-600 dark:text-green-400" />
+  const body = () => {
+    if (!user || isLoading) return <div className="hp2-loading"><div className="hp2-spinner hp2-spinner--lg" /></div>;
+    if (itemCount === 0 && !success) return null;
+
+    if (success) return (
+      <div className="hp2-empty" style={{ borderColor: "rgba(52,211,153,0.3)", marginTop: 40 }}>
+        <div style={{ width: 60, height: 60, borderRadius: "50%", background: "rgba(52,211,153,0.1)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+          <Truck size={28} style={{ color: "#34d399" }} />
         </div>
-        <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Order placed successfully!</h2>
-        <p className="text-slate-500 dark:text-zinc-400 mb-8 max-w-sm">
-          Thank you for your purchase. We are redirecting you to your orders page...
-        </p>
+        <p className="hp2-empty__title" style={{ color: "#34d399" }}>Order placed successfully!</p>
+        <p className="hp2-empty__lede">Thank you for your purchase. Redirecting to your order…</p>
       </div>
     );
-  }
 
-  return (
-    <div className="space-y-8 max-w-5xl mx-auto mt-6">
-      {/* Header */}
-      <div>
-        <Link 
-          href="/cart" 
-          className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-brand-600 transition-colors mb-4"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Cart
-        </Link>
-        <h1 className="text-3xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
-          <CreditCard className="w-8 h-8 text-brand-600" />
-          Checkout
-        </h1>
-        <p className="text-slate-500 mt-1">Complete your order by providing delivery details.</p>
-      </div>
-
-      <div className="flex flex-col lg:flex-row gap-8">
-        {/* Checkout Form */}
-        <div className="lg:w-2/3">
-          <form onSubmit={handlePlaceOrder} className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm">
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
-              <Truck className="w-5 h-5 text-brand-600" />
-              Delivery Details
-            </h2>
-            
-            {error && (
-              <div className="bg-red-50 text-red-500 p-4 border border-red-200 rounded-lg mb-6 text-sm flex items-center gap-2">
-                <span className="font-medium">Error:</span> {error}
-              </div>
-            )}
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  readOnly
-                  value={user?.name || ""}
-                  className="w-full px-4 py-2 bg-slate-100 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg text-slate-500 opacity-70"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  Complete Address
-                </label>
-                <textarea
-                  required
-                  rows={4}
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  placeholder="Enter your full delivery address"
-                  className="w-full px-4 py-2 border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 rounded-lg focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors"
-                />
-              </div>
+    return (
+      <div className="hp2-two-col">
+        <form onSubmit={handlePlaceOrder}>
+          <div className="hp2-steps" style={{ marginBottom: 32 }}>
+            <div className="hp2-step hp2-step--done">
+              <span className="hp2-step__num"><Check size={12} /></span>
+              <span className="hp2-step__label">Cart</span>
+              <span className="hp2-step__line" />
             </div>
-
-            <div className="mt-8 pt-6 border-t border-slate-200 dark:border-zinc-800">
-              <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
-                <CreditCard className="w-5 h-5 text-brand-600" />
-                Payment Method
-              </h2>
-              <div className="p-4 border border-brand-200 dark:border-brand-900 bg-brand-50 dark:bg-brand-900/10 rounded-xl flex items-center justify-between">
-                <span className="font-medium text-brand-800 dark:text-brand-200">Cash on Delivery (COD)</span>
-                <span className="w-4 h-4 rounded-full border-4 border-brand-600"></span>
-              </div>
-              <p className="text-sm text-slate-500 mt-2">
-                Pay with cash when your order is delivered to your address.
-              </p>
+            <div className="hp2-step hp2-step--active">
+              <span className="hp2-step__num">2</span>
+              <span className="hp2-step__label">Checkout</span>
+              <span className="hp2-step__line" />
             </div>
-
-            <div className="mt-8">
-              <button 
-                type="submit"
-                disabled={submitting}
-                className="w-full py-4 text-lg bg-brand-600 hover:bg-brand-700 disabled:bg-slate-400 disabled:cursor-not-allowed text-white rounded-xl font-medium transition-colors shadow-md shadow-brand-600/20 flex items-center justify-center gap-2"
-              >
-                {submitting ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    Place Order - Rs. {totalPrice.toLocaleString()}
-                    <ArrowRight className="w-5 h-5" />
-                  </>
-                )}
-              </button>
-            </div>
-          </form>
-        </div>
-
-        {/* Order Summary */}
-        <div className="lg:w-1/3">
-          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 sticky top-24">
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Order Review</h2>
-            
-            <div className="space-y-4 mb-6 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
-              {items.map(item => (
-                <div key={item.id} className="flex gap-3">
-                  <div className="w-12 h-12 bg-slate-100 rounded-md overflow-hidden relative shrink-0">
-                    <ImageWithFallback 
-                      src={item.product?.imageUrl || ""} 
-                      alt="" 
-                      fill 
-                      className="object-cover" 
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="text-sm font-medium text-slate-900 dark:text-white line-clamp-1">{item.product?.name}</h4>
-                    <p className="text-xs text-slate-500">Qty: {item.quantity}</p>
-                  </div>
-                  <div className="text-sm font-medium text-slate-900 dark:text-white text-right">
-                    Rs. {(item.product?.price * item.quantity).toLocaleString()}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="pt-4 border-t border-slate-200 dark:border-zinc-800 space-y-4 text-sm mb-4">
-              <div className="flex justify-between text-slate-600 dark:text-zinc-400">
-                <span>Subtotal ({itemCount} items)</span>
-                <span className="font-medium text-slate-900 dark:text-white">Rs. {totalPrice.toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between text-slate-600 dark:text-zinc-400">
-                <span>Shipping</span>
-                <span className="font-medium text-slate-900 dark:text-white text-green-500">Free</span>
-              </div>
-            </div>
-
-            <div className="pt-4 border-t border-slate-200 dark:border-zinc-800 flex justify-between items-center">
-              <span className="font-bold text-slate-900 dark:text-white">Total</span>
-              <span className="text-2xl font-bold text-brand-600">Rs. {totalPrice.toLocaleString()}</span>
+            <div className="hp2-step hp2-step--idle">
+              <span className="hp2-step__num">3</span>
+              <span className="hp2-step__label">Confirmation</span>
             </div>
           </div>
-        </div>
+
+          <div className="hp2-surf" style={{ marginBottom: 20 }}>
+            <div className="hp2-surf__head">
+              <p style={{ display: "flex", alignItems: "center", gap: 8, fontFamily: "var(--font-outfit)", fontSize: 16, fontWeight: 500, color: "#F5F3FA" }}>
+                <Truck size={16} style={{ color: "#A78BFA" }} /> Delivery Details
+              </p>
+            </div>
+            <div className="hp2-surf__body" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              {error && <div className="hp2-alert hp2-alert--error">{error}</div>}
+              <div className="hp2-field">
+                <label className="hp2-label">Full Name</label>
+                <input type="text" readOnly value={user?.name || ""} className="hp2-input hp2-input--readonly" />
+              </div>
+              <div className="hp2-field">
+                <label className="hp2-label" htmlFor="contactPhone">Contact Number *</label>
+                <input
+                  id="contactPhone"
+                  type="tel"
+                  required
+                  value={addr.contactPhone}
+                  onChange={(e) => setAddr((p) => ({ ...p, contactPhone: e.target.value }))}
+                  placeholder="+94 77 123 4567"
+                  className="hp2-input"
+                />
+              </div>
+              <div className="hp2-field">
+                <label className="hp2-label" htmlFor="line1">Address Line 1 *</label>
+                <input
+                  id="line1"
+                  type="text"
+                  required
+                  value={addr.line1}
+                  onChange={(e) => setAddr((p) => ({ ...p, line1: e.target.value }))}
+                  placeholder="House No. / Flat, Street name"
+                  className="hp2-input"
+                />
+              </div>
+              <div className="hp2-field">
+                <label className="hp2-label" htmlFor="line2">Address Line 2</label>
+                <input
+                  id="line2"
+                  type="text"
+                  value={addr.line2}
+                  onChange={(e) => setAddr((p) => ({ ...p, line2: e.target.value }))}
+                  placeholder="Apartment, ward, landmark (optional)"
+                  className="hp2-input"
+                />
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div className="hp2-field">
+                  <label className="hp2-label" htmlFor="city">City *</label>
+                  <input
+                    id="city"
+                    type="text"
+                    required
+                    value={addr.city}
+                    onChange={(e) => setAddr((p) => ({ ...p, city: e.target.value }))}
+                    placeholder="e.g. Colombo"
+                    className="hp2-input"
+                  />
+                </div>
+                <div className="hp2-field">
+                  <label className="hp2-label" htmlFor="province">Province</label>
+                  <input
+                    id="province"
+                    type="text"
+                    value={addr.province}
+                    onChange={(e) => setAddr((p) => ({ ...p, province: e.target.value }))}
+                    placeholder="e.g. Western"
+                    className="hp2-input"
+                  />
+                </div>
+              </div>
+              <div className="hp2-field">
+                <label className="hp2-label" htmlFor="postalCode">Postal Code</label>
+                <input
+                  id="postalCode"
+                  type="text"
+                  value={addr.postalCode}
+                  onChange={(e) => setAddr((p) => ({ ...p, postalCode: e.target.value }))}
+                  placeholder="e.g. 10100"
+                  className="hp2-input"
+                  style={{ maxWidth: 160 }}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="hp2-surf" style={{ marginBottom: 24 }}>
+            <div className="hp2-surf__head">
+              <p style={{ display: "flex", alignItems: "center", gap: 8, fontFamily: "var(--font-outfit)", fontSize: 16, fontWeight: 500, color: "#F5F3FA" }}>
+                <CreditCard size={16} style={{ color: "#A78BFA" }} /> Payment Method
+              </p>
+            </div>
+            <div className="hp2-surf__body" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <PayOption
+                value="payhere"
+                active={method === "payhere"}
+                onSelect={setMethod}
+                title="Card / Bank / eZ Cash via PayHere"
+                desc="Secure online payment. Visa, Mastercard, Amex and local methods."
+                badge={<span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, color: "#34d399" }}><ShieldCheck size={12} /> Secured</span>}
+              />
+              <PayOption
+                value="cod"
+                active={method === "cod"}
+                onSelect={setMethod}
+                title="Cash on Delivery"
+                desc="Pay with cash when your order arrives at your doorstep."
+              />
+            </div>
+          </div>
+
+          <button type="submit" disabled={submitting} className="hp2-btn hp2-btn--primary" style={{ width: "100%", height: 52, fontSize: 15 }}>
+            {submitting ? (
+              <><span style={{ width: 16, height: 16, borderRadius: "50%", border: "2px solid rgba(10,10,11,0.3)", borderTopColor: "#0a0a0b", animation: "hp2-spin .8s linear infinite", display: "inline-block", marginRight: 8 }} />Processing…</>
+            ) : method === "payhere" ? (
+              <>Pay with PayHere — Rs.&nbsp;{grandTotal.toLocaleString()} <ArrowRight size={16} style={{ marginLeft: 8 }} /></>
+            ) : (
+              <>Place Order — Rs.&nbsp;{grandTotal.toLocaleString()} <ArrowRight size={16} style={{ marginLeft: 8 }} /></>
+            )}
+          </button>
+        </form>
+
+        <aside className="hp2-summary">
+          <div className="hp2-surf">
+            <div className="hp2-surf__head">
+              <p style={{ fontFamily: "var(--font-outfit)", fontSize: 16, fontWeight: 500, color: "#F5F3FA" }}>Order Review</p>
+            </div>
+            <div className="hp2-surf__body" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <div style={{ maxHeight: 240, overflowY: "auto", display: "flex", flexDirection: "column", gap: 10 }}>
+                {items.map((item) => (
+                  <div key={item.id} style={{ display: "flex", gap: 12, alignItems: "center" }}>
+                    <div style={{ width: 44, height: 44, borderRadius: 10, overflow: "hidden", position: "relative", background: "#1E1A2B", flexShrink: 0 }}>
+                      <ImageWithFallback src={item.product?.imageUrl || ""} alt={item.product?.name || ""} fill className="object-cover" />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: 13, fontWeight: 500, color: "#F5F3FA", overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>{item.product?.name}</p>
+                      <p style={{ fontSize: 11, color: "#9B95B5" }}>Qty: {item.quantity}</p>
+                    </div>
+                    <span style={{ fontSize: 13, fontWeight: 500, color: "#F5F3FA", flexShrink: 0 }}>Rs.&nbsp;{(item.product?.price * item.quantity).toLocaleString()}</span>
+                  </div>
+                ))}
+              </div>
+              <div style={{ borderTop: "1px solid rgba(196,181,253,0.10)", paddingTop: 14, display: "flex", flexDirection: "column", gap: 10 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#9B95B5" }}>
+                  <span>Subtotal ({itemCount} item{itemCount !== 1 ? "s" : ""})</span>
+                  <span style={{ color: "#F5F3FA" }}>Rs.&nbsp;{totalPrice.toLocaleString()}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#9B95B5" }}>
+                  <span>VAT (18%)</span>
+                  <span style={{ color: "#F5F3FA" }}>Rs.&nbsp;{vatAmount.toLocaleString()}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#9B95B5" }}>
+                  <span>Delivery</span>
+                  {DELIVERY_FEE === 0
+                    ? <span style={{ color: "#34d399" }}>Free</span>
+                    : <span style={{ color: "#F5F3FA" }}>Rs.&nbsp;{DELIVERY_FEE.toLocaleString()}</span>
+                  }
+                </div>
+                {DELIVERY_FEE > 0 && (
+                  <p style={{ fontSize: 11, color: "#6B6680", margin: "-4px 0 0" }}>Free delivery on orders over Rs.&nbsp;10,000</p>
+                )}
+                <div style={{ borderTop: "1px solid rgba(196,181,253,0.10)", paddingTop: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontWeight: 600, color: "#F5F3FA" }}>Total</span>
+                  <span style={{ fontFamily: "var(--font-outfit)", fontSize: 22, fontWeight: 600, color: "#A78BFA" }}>Rs.&nbsp;{grandTotal.toLocaleString()}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </aside>
       </div>
-    </div>
+    );
+  };
+
+  return (
+    <main className="hp2">
+      <DesignStyles />
+      <HP2Nav links={DEFAULT_NAV_LINKS} activePath="/checkout" />
+      <section style={{ paddingBottom: 80 }}>
+        <header className="hp2-cover" style={{ minHeight: 220, padding: "88px 0 28px" }}>
+          <div className="hp2-cover__media hp2-cover__media--blue" aria-hidden />
+          <div className="hp2-container">
+            <div className="hp2-cover__inner">
+              <Link href="/cart" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, color: "#C4B5FD", textDecoration: "none", marginBottom: 12 }}>
+                <ArrowLeft size={12} /> Back to cart
+              </Link>
+              <p className="hp2-cover__kicker">Final step</p>
+              <h1 className="hp2-cover__title"><em>Checkout.</em></h1>
+            </div>
+          </div>
+        </header>
+
+        <div className="hp2-container" style={{ paddingTop: 32 }}>
+          {body()}
+        </div>
+      </section>
+      <HP2Footer />
+    </main>
+  );
+}
+
+function PayOption({
+  value, active, onSelect, title, desc, badge,
+}: {
+  value: PayMethod;
+  active: boolean;
+  onSelect: (v: PayMethod) => void;
+  title: string;
+  desc: string;
+  badge?: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(value)}
+      style={{
+        textAlign: "left",
+        padding: "14px 18px",
+        borderRadius: 14,
+        background: active ? "rgba(167,139,250,0.10)" : "rgba(255,255,255,0.02)",
+        border: active ? "1px solid rgba(167,139,250,0.45)" : "1px solid rgba(196,181,253,0.10)",
+        cursor: "pointer",
+        display: "flex",
+        gap: 14,
+        alignItems: "center",
+        transition: "background .2s, border-color .2s",
+      }}
+    >
+      <span
+        aria-hidden
+        style={{
+          width: 16, height: 16, borderRadius: "50%", flexShrink: 0,
+          border: active ? "5px solid #A78BFA" : "1.5px solid #4A4459",
+        }}
+      />
+      <span style={{ flex: 1, minWidth: 0 }}>
+        <span style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14, fontWeight: 600, color: active ? "#C4B5FD" : "#F5F3FA" }}>
+          {title}
+          {badge}
+        </span>
+        <span style={{ display: "block", fontSize: 12, color: "#9B95B5", marginTop: 4 }}>{desc}</span>
+      </span>
+    </button>
   );
 }

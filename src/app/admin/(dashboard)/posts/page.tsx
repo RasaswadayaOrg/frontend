@@ -47,7 +47,7 @@ export default async function AdminPostsPage() {
             <input 
               type="text" 
               placeholder="Search posts..." 
-              className="w-full pl-9 pr-4 py-2 text-sm border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full pl-9 pr-4 py-2 text-sm border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
           </div>
         </div>
@@ -175,7 +175,7 @@ export default async function AdminPostsPage() {
                             href={post.videoUrl} 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-colors"
+                            className="p-2 text-slate-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-lg transition-colors"
                             title="View video"
                           >
                             <ExternalLink className="w-4 h-4" />

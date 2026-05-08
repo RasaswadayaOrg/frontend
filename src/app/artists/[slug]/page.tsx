@@ -1,119 +1,170 @@
 import { ArtistActions } from "../../../components/ArtistActions";
+import { ArtistFollowerCount } from "../../../components/ArtistFollowerCount";
 import { ArtistPerformancesList } from "../../../components/ArtistPerformancesList";
 import { ArtistFeed } from "../../../components/ArtistFeed";
 import Link from "next/link";
-import { MapPin, Users, Calendar, ShoppingBag, Play, Music, ArrowLeft } from "lucide-react";
-import { getArtist } from "../../../lib/db";
+import { MapPin, Music, ArrowLeft } from "lucide-react";
+import { getArtistBySlug } from "../../../lib/db";
 import { ImageWithFallback } from "../../../components/ImageWithFallback";
 import { notFound } from "next/navigation";
+import { HP2Frame } from "../../../components/hp2/Frame";
+import { Reveal } from "../../../components/hp2/Reveal";
 
 export default async function ArtistProfilePage(props: { params: Promise<{ slug: string }> }) {
   const params = await props.params;
-  const artist = await getArtist(params.slug);
+  const artist = await getArtistBySlug(params.slug);
 
   if (!artist) {
     notFound();
   }
 
   return (
-    <div className="space-y-8">
-      {/* Back Link */}
-      <div>
-        <Link 
-          href="/artists" 
-          className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-brand-600 dark:text-zinc-400 dark:hover:text-brand-400 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Artists
-        </Link>
-      </div>
+    <HP2Frame activePath="/artists">
 
-      {/* Hero Section */}
-      <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-slate-200 dark:border-zinc-800 p-6 lg:p-8">
-        <div className="flex flex-col md:flex-row gap-8 items-start">
-          <div className="w-32 h-32 md:w-40 md:h-40 bg-slate-200 dark:bg-zinc-800 rounded-full flex-shrink-0 relative overflow-hidden border-4 border-slate-100 dark:border-zinc-700">
-             <ImageWithFallback
-                src={artist.photoUrl || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300"}
-                alt={artist.name}
-                fill
-                className="object-cover"
-                unoptimized={artist.photoUrl?.includes('wikimedia.org')}
-              />
-          </div>
-          
-          <div className="flex-1">
-            <div className="flex flex-col md:flex-row justify-between items-start gap-4 mb-4">
-              <div>
-                <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">{artist.name}</h1>
-                <div className="flex flex-wrap gap-4 text-sm text-slate-600 dark:text-zinc-400">
-                  <span className="flex items-center gap-1"><MapPin className="w-4 h-4" /> {artist.location || "Sri Lanka"}</span>
-                  <span className="flex items-center gap-1"><Music className="w-4 h-4" /> {artist.profession || artist.genre || "Artist"}</span>
+      <section style={{ padding: "80px 0 80px" }}>
+        <div className="hp2-container">
+
+          {/* Back link */}
+          <Reveal>
+            <div style={{ padding: "28px 0 32px" }}>
+              <Link href="/artists" className="hp2-link" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                <ArrowLeft size={14} />
+                Back to Artists
+              </Link>
+            </div>
+          </Reveal>
+
+          {/* Profile card */}
+          <Reveal delay={60} zIndex={10}>
+            <div style={{
+              background: "#15121D",
+              border: "1px solid rgba(196,181,253,0.10)",
+              borderRadius: 24,
+              padding: "32px 32px 36px",
+              marginBottom: 48,
+            }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
+
+                {/* Top: avatar + name/meta + actions */}
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 32, alignItems: "flex-start" }}>
+                  {/* Avatar */}
+                  <div style={{
+                    position: "relative",
+                    width: 200,
+                    height: 200,
+                    borderRadius: 20,
+                    overflow: "hidden",
+                    flexShrink: 0,
+                    background: "#1E1A2B",
+                    boxShadow: "0 0 0 1px rgba(196,181,253,0.12) inset",
+                  }}>
+                    <ImageWithFallback
+                      src={artist.photoUrl || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300"}
+                      alt={artist.name}
+                      fill
+                      className="object-cover"
+                      unoptimized={artist.photoUrl?.includes("wikimedia.org")}
+                    />
+                  </div>
+
+                  {/* Name + meta */}
+                  <div style={{ flex: 1, minWidth: 200, paddingTop: 6 }}>
+                    <h2 style={{
+                      fontFamily: "var(--font-outfit)",
+                      fontSize: "clamp(26px, 3.5vw, 42px)",
+                      fontWeight: 600,
+                      letterSpacing: "-0.035em",
+                      color: "#F5F3FA",
+                      margin: "0 0 12px",
+                    }}>{artist.name}</h2>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 16 }}>
+                      {(artist.profession || artist.genre) && (
+                        <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 14, color: "#9B95B5" }}>
+                          <Music size={14} />
+                          {artist.profession || artist.genre}
+                        </span>
+                      )}
+                      {artist.location && (
+                        <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 14, color: "#9B95B5" }}>
+                          <MapPin size={14} />
+                          {artist.location}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Stats row */}
+                    <div style={{ display: "flex", gap: 28, marginTop: 18 }}>
+                      <div>
+                        <span style={{ display: "block", fontFamily: "var(--font-outfit)", fontSize: 20, fontWeight: 600, color: "#F5F3FA" }}>
+                          <ArtistFollowerCount artistId={artist.id} initialCount={artist.followerCount ?? 0} />
+                        </span>
+                        <span style={{ fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "#9B95B5" }}>Followers</span>
+                      </div>
+                      <div>
+                        <span style={{ display: "block", fontFamily: "var(--font-outfit)", fontSize: 20, fontWeight: 600, color: "#F5F3FA" }}>{artist.performances?.length || 0}</span>
+                        <span style={{ fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "#9B95B5" }}>Events</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div style={{ flexShrink: 0 }}>
+                    <ArtistActions
+                      artistId={artist.id}
+                      artistName={artist.name}
+                      artistProfession={artist.profession || artist.genre}
+                      initialIsFollowing={artist.isFollowing}
+                      initialFollowerCount={artist.followerCount ?? 0}
+                    />
+                  </div>
                 </div>
+
+                {/* Bio */}
+                {artist.bio && (
+                  <p style={{
+                    fontSize: 15,
+                    lineHeight: 1.7,
+                    color: "#9B95B5",
+                    maxWidth: 720,
+                    margin: 0,
+                    paddingTop: 20,
+                    borderTop: "1px solid rgba(196,181,253,0.10)",
+                  }}>
+                    {artist.bio}
+                  </p>
+                )}
               </div>
-              <ArtistActions artistId={artist.id} initialIsFollowing={artist.isFollowing} />
             </div>
-            
-            <p className="text-slate-600 dark:text-zinc-400 max-w-2xl leading-relaxed">
-              {artist.bio || "No biography available."}
-            </p>
+          </Reveal>
 
-            <div className="flex gap-8 mt-6 pt-6 border-t border-slate-100 dark:border-zinc-800">
-              <div className="text-center">
-                <span className="block text-xl font-bold text-slate-900 dark:text-white">{artist.followerCount || 0}</span>
-                <span className="text-xs text-slate-500 uppercase tracking-wider">Followers</span>
-              </div>
-              <div className="text-center">
-                <span className="block text-xl font-bold text-slate-900 dark:text-white">{artist.performances?.length || 0}</span>
-                <span className="text-xs text-slate-500 uppercase tracking-wider">Events</span>
-              </div>
-              {/* Products count is not yet available in API, hardcoded/hidden or mocked */}
-              {/* 
-              <div className="text-center">
-                <span className="block text-xl font-bold text-slate-900 dark:text-white">0</span>
-                <span className="text-xs text-slate-500 uppercase tracking-wider">Products</span>
-              </div>
-              */}
+          {/* Performances */}
+          <Reveal delay={100}>
+            <div style={{ marginBottom: 48 }}>
+              <p className="hp2-section__kicker" style={{ marginBottom: 16 }}>Performances</p>
+              <h3 style={{
+                fontFamily: "var(--font-outfit)",
+                fontSize: "clamp(20px, 2.5vw, 28px)",
+                fontWeight: 500,
+                letterSpacing: "-0.025em",
+                color: "#F5F3FA",
+                margin: "0 0 24px",
+              }}>Upcoming Events</h3>
+              <ArtistPerformancesList events={artist.performances?.map((p: any) => p.event) || []} />
             </div>
-          </div>
-        </div>
-      </div>
+          </Reveal>
 
-      {/* Tabs & Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <div className="lg:col-span-12">
-          <div className="border-b border-slate-200 dark:border-zinc-800 mb-6">
-            <nav className="flex gap-8">
-              {['Performances', 'Content', 'Store', 'About'].map((tab, i) => (
-                <button 
-                  key={tab}
-                  className={`pb-4 text-sm font-medium border-b-2 transition-colors ${
-                    i === 0 
-                      ? 'border-brand-600 text-brand-600' 
-                      : 'border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-white'
-                  }`}
-                >
-                  {tab}
-                </button>
-              ))}
-            </nav>
-          </div>
-
-          {/* Tab Content (Placeholder for Performances) */}
-          <div className="space-y-6">
-            <h3 className="text-xl font-bold">Upcoming Performances</h3>
-            <ArtistPerformancesList events={artist.performances?.map((p: any) => p.event) || []} />
-          </div>
-
-          {/* Social Feed */}
-          <div className="space-y-6 mt-12">
-            <ArtistFeed 
-              artistId={artist.id} 
-              artistName={artist.name} 
-              artistAvatar={artist.photoUrl} 
+          {/* Feed */}
+          <Reveal delay={120}>
+            <ArtistFeed
+              artistId={artist.id}
+              artistName={artist.name}
+              artistAvatar={artist.photoUrl}
             />
-          </div>
+          </Reveal>
+
         </div>
-      </div>
-    </div>
+      </section>
+
+    </HP2Frame>
   );
 }

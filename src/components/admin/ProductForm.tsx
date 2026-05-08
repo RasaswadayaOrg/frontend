@@ -63,7 +63,7 @@ export function ProductForm({ initialData, isEdit = false }: ProductFormProps) {
                 name="name"
                 required
                 defaultValue={initialData?.name}
-                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white"
+                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-white"
                 placeholder="e.g. Traditional Mask"
               />
             </div>
@@ -75,7 +75,7 @@ export function ProductForm({ initialData, isEdit = false }: ProductFormProps) {
                 id="category"
                 name="category"
                 defaultValue={initialData?.category}
-                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white"
+                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-white"
                 placeholder="e.g. Handicrafts"
               />
             </div>
@@ -87,7 +87,7 @@ export function ProductForm({ initialData, isEdit = false }: ProductFormProps) {
                 name="description"
                 rows={4}
                 defaultValue={initialData?.description}
-                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white"
+                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-white"
                 placeholder="Product description..."
               />
             </div>
@@ -105,7 +105,7 @@ export function ProductForm({ initialData, isEdit = false }: ProductFormProps) {
                   name="stock"
                   required
                   defaultValue={initialData?.stock || 0}
-                  className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white"
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-white"
                 />
               </div>
             </div>
@@ -119,7 +119,7 @@ export function ProductForm({ initialData, isEdit = false }: ProductFormProps) {
                 required
                 readOnly={isEdit}
                 defaultValue={initialData?.storeId}
-                className={`w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white ${isEdit ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-white ${isEdit ? 'opacity-50 cursor-not-allowed' : ''}`}
                 placeholder="Store ID"
               />
               {!isEdit && <p className="text-xs text-slate-500">Required: The ID of the store this product belongs to.</p>}
@@ -132,7 +132,7 @@ export function ProductForm({ initialData, isEdit = false }: ProductFormProps) {
                  name="isActive" 
                  value="true"
                  defaultChecked={initialData?.isActive !== false}
-                 className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                 className="w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
                />
                <label htmlFor="isActive" className="text-sm font-medium text-slate-700 dark:text-slate-300">Active (Visible in store)</label>
              </div>
@@ -165,7 +165,7 @@ export function ProductForm({ initialData, isEdit = false }: ProductFormProps) {
         <button
           type="submit"
           disabled={loading}
-          className="flex items-center gap-2 px-6 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-2 px-6 py-2 text-sm font-medium text-white bg-brand-600 hover:bg-brand-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? (
             <>
