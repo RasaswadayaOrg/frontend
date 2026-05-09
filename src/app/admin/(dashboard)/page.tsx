@@ -39,8 +39,8 @@ export default async function AdminDashboardPage() {
       title: "Total Events",
       value: stats.totalEvents.toString(),
       icon: Calendar,
-      color: "text-purple-500",
-      bgColor: "bg-purple-100 dark:bg-purple-900/20",
+      color: "text-brand-500",
+      bgColor: "bg-brand-100 dark:bg-brand-900/20",
       href: "/admin/events"
     },
     {
@@ -81,7 +81,7 @@ export default async function AdminDashboardPage() {
     switch (type) {
       case 'order': return <ShoppingBag className="w-4 h-4 text-green-500" />;
       case 'user': return <Users className="w-4 h-4 text-blue-500" />;
-      case 'event': return <Calendar className="w-4 h-4 text-purple-500" />;
+      case 'event': return <Calendar className="w-4 h-4 text-brand-500" />;
       default: return <Activity className="w-4 h-4 text-slate-500" />;
     }
   };
@@ -203,20 +203,20 @@ export default async function AdminDashboardPage() {
           <div className="space-y-3">
             <Link 
               href="/admin/events"
-              className="w-full flex items-center gap-3 p-3 rounded-lg border border-dashed border-slate-300 dark:border-zinc-700 hover:border-blue-500 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-colors group"
+              className="w-full flex items-center gap-3 p-3 rounded-lg border border-dashed border-slate-300 dark:border-zinc-700 hover:border-brand-500 dark:hover:border-brand-500 hover:bg-brand-50 dark:hover:bg-blue-900/10 transition-colors group"
             >
               <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center group-hover:bg-blue-200 dark:group-hover:bg-blue-900/40">
-                <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                <Calendar className="w-4 h-4 text-brand-600 dark:text-blue-400" />
               </div>
               <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Manage Events</span>
             </Link>
             
             <Link 
               href="/admin/artists"
-              className="w-full flex items-center gap-3 p-3 rounded-lg border border-dashed border-slate-300 dark:border-zinc-700 hover:border-purple-500 dark:hover:border-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/10 transition-colors group"
+              className="w-full flex items-center gap-3 p-3 rounded-lg border border-dashed border-slate-300 dark:border-zinc-700 hover:border-brand-500 dark:hover:border-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/10 transition-colors group"
             >
-              <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center group-hover:bg-purple-200 dark:group-hover:bg-purple-900/40">
-                <Mic2 className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+              <div className="w-8 h-8 rounded-full bg-brand-100 dark:bg-brand-900/20 flex items-center justify-center group-hover:bg-brand-200 dark:group-hover:bg-brand-900/40">
+                <Mic2 className="w-4 h-4 text-brand-600 dark:text-brand-400" />
               </div>
               <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Manage Artists</span>
             </Link>

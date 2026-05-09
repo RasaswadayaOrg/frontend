@@ -1,6 +1,7 @@
 'use server'
 
 import { getEvents, getArtists, getProducts, getAcademies } from "@/lib/db";
+import { buildSlug } from "@/lib/slug";
 
 export type SearchSuggestion = {
   id: string;
@@ -34,7 +35,7 @@ export async function getSearchSuggestions(query: string): Promise<SearchSuggest
         id: e.id, 
         title: e.title, 
         type: 'event', 
-        url: `/events/${e.id}`,
+        url: `/events/${buildSlug(e.id, e.title)}`,
         image: e.imageUrl,
         subtitle: new Date(e.eventDate).toLocaleDateString()
       })),
@@ -50,7 +51,7 @@ export async function getSearchSuggestions(query: string): Promise<SearchSuggest
         id: p.id, 
         title: p.name, 
         type: 'product', 
-        url: `/products/${p.id}`,
+        url: `/products/${buildSlug(p.id, p.name)}`,
         image: p.images?.[0],
         subtitle: p.category
       })),
@@ -58,7 +59,7 @@ export async function getSearchSuggestions(query: string): Promise<SearchSuggest
         id: a.id, 
         title: a.name, 
         type: 'academy', 
-        url: `/academies/${a.id}`,
+        url: `/academies/${buildSlug(a.id, a.name)}`,
         image: a.imageUrl,
         subtitle: a.location
       })),

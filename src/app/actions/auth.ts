@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { encrypt, decrypt } from "@/lib/auth";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
 // Get the JWT token from the session cookie
 async function getToken(): Promise<string | null> {
@@ -16,6 +16,44 @@ async function getToken(): Promise<string | null> {
     return session?.token || null;
   } catch {
     return null;
+  }
+}
+
+// Clear server-side httpOnly session cookie. Must be a server action.
+export async function logoutUser() {
+  try {
+    (await cookies()).set("session", "", { expires: new Date(0), path: "/", httpOnly: true });
+    return { success: true };
+  } catch (e: any) {
+    return { success: false, error: e?.message || "Logout failed" };
+  }
+}
+
+// Read & clear the one-time OAuth handoff cookie set by /auth/callback/route.ts.
+// Returns the user payload + JWT so the client page can persist them in
+// localStorage (where AuthContext reads them). The httpOnly `session` cookie
+// was already set by handleGoogleAuth during the route handler — we only need
+// to mirror the values into client-readable storage.
+export async function consumeOAuthHandoff(): Promise<{
+  success: boolean;
+  user?: { id: string; name: string; email: string; avatarUrl?: string; role?: string; city?: string };
+  token?: string;
+  error?: string;
+}> {
+  try {
+    const jar = await cookies();
+    const raw = jar.get("rasas_oauth_handoff")?.value;
+    if (!raw) return { success: false, error: "No handoff data found." };
+
+    // Clear the cookie regardless of outcome so it can't be replayed.
+    jar.set("rasas_oauth_handoff", "", { expires: new Date(0), path: "/", httpOnly: true });
+
+    const parsed = JSON.parse(raw) as { user: any; token?: string };
+    if (!parsed?.user) return { success: false, error: "Invalid handoff data." };
+
+    return { success: true, user: parsed.user, token: parsed.token };
+  } catch (e: any) {
+    return { success: false, error: e?.message || "Failed to read handoff" };
   }
 }
 

@@ -37,7 +37,7 @@ export default async function AdminUsersPage() {
 
   const roleColors: Record<string, string> = {
     USER: 'bg-slate-100 text-slate-800 dark:bg-slate-900/30 dark:text-slate-400',
-    ARTIST: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400',
+    ARTIST: 'bg-brand-100 text-brand-800 dark:bg-brand-900/30 dark:text-brand-400',
     ORGANIZER: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
     STORE_OWNER: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400',
     ADMIN: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
@@ -69,7 +69,7 @@ export default async function AdminUsersPage() {
               <div className="flex items-center gap-2">
                 <Shield className={`w-4 h-4 ${
                   role === 'ADMIN' ? 'text-red-500' :
-                  role === 'ARTIST' ? 'text-purple-500' :
+                  role === 'ARTIST' ? 'text-brand-500' :
                   role === 'ORGANIZER' ? 'text-blue-500' :
                   role === 'STORE_OWNER' ? 'text-amber-500' : 'text-slate-500'
                 }`} />

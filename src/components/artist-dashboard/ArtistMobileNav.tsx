@@ -33,14 +33,14 @@ export function ArtistMobileNav() {
               href={link.href}
               className={`flex flex-col items-center justify-center gap-0.5 p-2 rounded-xl transition-all duration-200 min-w-[56px] ${
                 isActive
-                  ? "text-violet-600 dark:text-violet-400"
+                  ? "text-brand-600 dark:text-brand-400"
                   : "text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300"
               }`}
             >
               <div className="relative">
                 <Icon className="w-5 h-5" />
                 {isActive && (
-                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-violet-600 dark:bg-violet-400" />
+                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-brand-600 dark:bg-brand-400" />
                 )}
               </div>
               <span className={`text-[10px] leading-tight ${isActive ? "font-semibold" : "font-medium"}`}>

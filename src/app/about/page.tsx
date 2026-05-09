@@ -1,161 +1,179 @@
-import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, ArrowLeft, Heart, Globe, Users, Sparkles } from "lucide-react";
+import { Globe, Heart, Users, Sparkles, Mic, Music, BookOpen, Trophy } from "lucide-react";
+import { HP2Frame } from "../../components/hp2/Frame";
+import { Reveal } from "../../components/hp2/Reveal";
 
 export const metadata = {
-  title: "About Us | Rasaswadaya",
+  title: "About · Rasaswadaya",
   description: "Learn about our mission to preserve and promote Sri Lankan arts and culture.",
 };
 
+const VALUES = [
+  {
+    icon: Heart,
+    title: "Cultural Respect",
+    text: "We honour every art form — from Kandyan classical to contemporary — as equally valid expressions of identity.",
+  },
+  {
+    icon: Users,
+    title: "Community First",
+    text: "Every feature is built around practitioners, learners, and audiences, not algorithms.",
+  },
+  {
+    icon: Globe,
+    title: "Radical Openness",
+    text: "Knowledge of Sri Lankan heritage belongs to everyone. We share freely and openly.",
+  },
+  {
+    icon: Sparkles,
+    title: "Joyful Craft",
+    text: "Beautiful, responsive, accessible design — because arts deserves a stage worth standing on.",
+  },
+];
+
+const STATS = [
+  { num: "800+",  label: "Artists listed" },
+  { num: "2,400+", label: "Events hosted" },
+  { num: "18",   label: "Disciplines covered" },
+  { num: "25",   label: "Districts reached" },
+];
+
+const TEAM = [
+  { name: "Sithara Jayawardena", role: "Founder & Vision", icon: Mic },
+  { name: "Ravindu Perera",     role: "Technology & AI",   icon: Sparkles },
+  { name: "Amali Gunaratne",    role: "Cultural Research", icon: BookOpen },
+  { name: "Pradeep Silva",      role: "Community Growth",  icon: Trophy },
+];
+
 export default function AboutPage() {
   return (
-    <div className="flex flex-col gap-16 pb-16">
-      {/* Back Link */}
-      <div className="pt-4">
-        <Link 
-          href="/" 
-          className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-brand-600 dark:text-zinc-400 dark:hover:text-brand-400 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Home
-        </Link>
-      </div>
+    <HP2Frame activePath="/about">
+      {/* Cover hero */}
+      <header className="hp2-cover">
+        <div className="hp2-cover__media hp2-cover__media--violet" aria-hidden />
+        <div className="hp2-container">
+          <Reveal>
+            <div className="hp2-cover__inner">
+              <p className="hp2-cover__kicker">About · Rasaswadaya</p>
+              <h1 className="hp2-cover__title">For the artists, <em>by those who care.</em></h1>
+              <p className="hp2-cover__lede">A platform built to make Sri Lanka&rsquo;s arts visible.</p>
+            </div>
+          </Reveal>
+        </div>
+      </header>
 
-      {/* Hero Section */}
-      <section className="relative h-[60vh] min-h-[400px] w-full flex items-center justify-center overflow-hidden rounded-3xl mt-4">
-        <Image
-          src="https://images.unsplash.com/photo-1590076842067-17eb04ec607a?q=80&w=2000&auto=format&fit=crop"
-          alt="Sri Lankan Culture"
-          fill
-          className="object-cover"
-          priority
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20" />
-        <div className="relative z-10 text-center max-w-4xl px-4">
-          <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 font-serif tracking-wide">
-            Preserving Heritage, <br />
-            Empowering Artists
-          </h1>
-          <p className="text-lg md:text-xl text-slate-200 max-w-2xl mx-auto leading-relaxed">
-            Rasaswadaya is Sri Lanka's premier digital platform dedicated to celebrating our rich cultural legacy and connecting local talent with the global stage.
-          </p>
+      {/* Stats */}
+      <section style={{ padding: "36px 0 0" }}>
+        <div className="hp2-container">
+          <Reveal>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 16, marginBottom: 80 }}>
+              {STATS.map((s) => (
+                <div key={s.label} className="hp2-stat">
+                  <span className="hp2-stat__num">{s.num}</span>
+                  <span className="hp2-stat__label">{s.label}</span>
+                </div>
+              ))}
+            </div>
+          </Reveal>
         </div>
       </section>
 
-      {/* Mission & Vision */}
-      <section className="grid md:grid-cols-2 gap-12 items-center px-4">
-        <div className="space-y-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 text-sm font-medium">
-            <Sparkles className="w-4 h-4" />
-            Our Mission
-          </div>
-          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white">
-            Bridging Tradition with the Digital Future
-          </h2>
-          <p className="text-slate-600 dark:text-slate-300 text-lg leading-relaxed">
-            We believe that art is the soul of a nation. In an increasingly digital world, traditional arts risk being left behind. Rasaswadaya serves as a bridge, bringing centuries-old traditions into the modern era without losing their essence.
-          </p>
-          <div className="grid grid-cols-2 gap-6 pt-4">
-            <div className="bg-slate-50 dark:bg-zinc-800/50 p-4 rounded-xl">
-              <Globe className="w-8 h-8 text-brand-600 mb-3" />
-              <h3 className="font-semibold text-slate-900 dark:text-white">Global Reach</h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400">Connecting local artisans to international audiences.</p>
+      {/* Mission */}
+      <section className="hp2-section" id="mission">
+        <div className="hp2-container">
+          <Reveal>
+            <p className="hp2-section__kicker">Why we exist</p>
+            <h2 className="hp2-section__title">
+              Visibility for<br />every practitioner.
+            </h2>
+          </Reveal>
+          <Reveal delay={60}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 20 }}>
+              {(["Sri Lanka has an almost incomprehensible richness of intangible cultural heritage — Kandyan dance that dates back six centuries, drumming traditions handed person-to-person for generations, theatre forms known only to small communities. Yet most of these artists have no digital presence, no ticketing infrastructure, no marketplace.",
+                "We are building the connective tissue: a platform where artists can be discovered, events can be found by the right audience, teachers can attract students, and crafts can reach buyers who understand their significance.",
+                "We are not just a directory. We are an ongoing conversation between tradition and the present — powered by AI recommendations, genuine curation, and a deep commitment to the human beings behind every performance."
+              ]).map((para, i) => (
+                <p key={i} style={{ fontSize: 17, lineHeight: 1.7, color: i === 0 ? "#F5F3FA" : "#9B95B5", maxWidth: 720 }}>
+                  {para}
+                </p>
+              ))}
             </div>
-            <div className="bg-slate-50 dark:bg-zinc-800/50 p-4 rounded-xl">
-              <Users className="w-8 h-8 text-brand-600 mb-3" />
-              <h3 className="font-semibold text-slate-900 dark:text-white">Community</h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400">Fostering a supportive ecosystem for creators.</p>
-            </div>
-          </div>
-        </div>
-        <div className="relative h-[500px] rounded-2xl overflow-hidden shadow-xl">
-          <Image
-            src="https://images.unsplash.com/photo-1544967082-d9d25d867d66?q=80&w=1000&auto=format&fit=crop"
-            alt="Traditional Dancer"
-            fill
-            className="object-cover hover:scale-105 transition-transform duration-700"
-          />
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="bg-brand-600 dark:bg-brand-900 rounded-3xl p-12 text-center text-white">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-          <div className="space-y-2">
-            <h3 className="text-4xl font-bold">500+</h3>
-            <p className="text-brand-100">Artists Registered</p>
-          </div>
-          <div className="space-y-2">
-            <h3 className="text-4xl font-bold">1.2k</h3>
-            <p className="text-brand-100">Events Hosted</p>
-          </div>
-          <div className="space-y-2">
-            <h3 className="text-4xl font-bold">50k+</h3>
-            <p className="text-brand-100">Monthly Visitors</p>
-          </div>
-          <div className="space-y-2">
-            <h3 className="text-4xl font-bold">200+</h3>
-            <p className="text-brand-100">Artisan Stores</p>
-          </div>
+          </Reveal>
         </div>
       </section>
 
       {/* Values */}
-      <section className="px-4">
-        <h2 className="text-3xl font-bold text-slate-900 dark:text-white text-center mb-12">Our Core Values</h2>
-        <div className="grid md:grid-cols-3 gap-8">
-          {[
-            {
-              title: "Authenticity",
-              description: "We verify every artist and product to ensure genuine Sri Lankan craftsmanship.",
-              icon: <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center mb-4"><Sparkles className="w-6 h-6" /></div>
-            },
-            {
-              title: "Inclusivity",
-              description: "Providing equal opportunities for artists from all corners of the island.",
-              icon: <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center mb-4"><Heart className="w-6 h-6" /></div>
-            },
-            {
-              title: "Innovation",
-              description: "Leveraging technology to create new revenue streams for traditional artists.",
-              icon: <div className="w-12 h-12 bg-orange-100 text-orange-600 rounded-xl flex items-center justify-center mb-4"><Globe className="w-6 h-6" /></div>
-            }
-          ].map((value, index) => (
-            <div key={index} className="bg-white dark:bg-zinc-900/50 p-8 rounded-2xl border border-slate-100 dark:border-zinc-800 hover:shadow-lg transition-shadow">
-              {value.icon}
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">{value.title}</h3>
-              <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                {value.description}
-              </p>
+      <section className="hp2-section" id="values">
+        <div className="hp2-container">
+          <Reveal>
+            <p className="hp2-section__kicker">What we stand for</p>
+            <h2 className="hp2-section__title">Our values.</h2>
+          </Reveal>
+          <Reveal delay={60}>
+            <div className="hp2-values-grid">
+              {VALUES.map((v) => (
+                <div key={v.title} className="hp2-value-card">
+                  <div className="hp2-value-card__icon">
+                    <v.icon size={18} strokeWidth={1.5} />
+                  </div>
+                  <p className="hp2-value-card__title">{v.title}</p>
+                  <p className="hp2-value-card__text">{v.text}</p>
+                </div>
+              ))}
             </div>
-          ))}
+          </Reveal>
+        </div>
+      </section>
+
+      {/* Team */}
+      <section className="hp2-section" id="team">
+        <div className="hp2-container">
+          <Reveal>
+            <p className="hp2-section__kicker">The people</p>
+            <h2 className="hp2-section__title">Meet the team.</h2>
+          </Reveal>
+          <Reveal delay={60}>
+            <div className="hp2-artist-grid">
+              {TEAM.map((m, i) => (
+                <div key={m.name} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                  <div style={{
+                    aspectRatio: "1/1", borderRadius: 18, background: "#1E1A2B",
+                    border: "1px solid rgba(196,181,253,0.10)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    color: "#A78BFA",
+                  }}>
+                    <m.icon size={36} strokeWidth={1} />
+                  </div>
+                  <div>
+                    <p className="hp2-artist__name">{m.name}</p>
+                    <p className="hp2-artist__genre">{m.role}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Reveal>
         </div>
       </section>
 
       {/* CTA */}
-      <section className="bg-slate-900 dark:bg-black rounded-3xl p-12 md:p-20 text-center relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-        <div className="relative z-10 max-w-2xl mx-auto space-y-6">
-          <h2 className="text-3xl md:text-4xl font-bold text-white">Join the Movement</h2>
-          <p className="text-slate-300 text-lg">
-            Whether you are an artist looking to share your work or an enthusiast seeking authentic experiences, there is a place for you here.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-            <Link
-              href="/signup"
-              className="px-8 py-3 bg-brand-600 text-white font-semibold rounded-full hover:bg-brand-500 transition-colors flex items-center justify-center gap-2"
-            >
-              Get Started <ArrowRight className="w-4 h-4" />
-            </Link>
-            <Link
-              href="/marketplace"
-              className="px-8 py-3 bg-white/10 text-white font-semibold rounded-full hover:bg-white/20 transition-colors backdrop-blur-sm"
-            >
-              Browse Marketplace
-            </Link>
-          </div>
+      <section className="hp2-section">
+        <div className="hp2-container" style={{ textAlign: "center" }}>
+          <Reveal>
+            <p className="hp2-page-head__kicker">Get involved</p>
+            <h2 style={{ fontFamily: "var(--font-outfit)", fontSize: "clamp(32px,5vw,64px)", fontWeight: 500, letterSpacing: "-0.03em", marginBottom: 20 }}>
+              Join the ecosystem.
+            </h2>
+            <p style={{ color: "#9B95B5", fontSize: 16, lineHeight: 1.6, maxWidth: 480, margin: "0 auto 32px" }}>
+              Whether you&apos;re an artist, organiser, student, or lover of culture —
+              there is a place for you here.
+            </p>
+            <div className="hp2-cta-row hp2-cta-row--center">
+              <Link href="/auth?tab=signup" className="hp2-btn hp2-btn--primary">Create account</Link>
+              <Link href="/artists"         className="hp2-btn hp2-btn--ghost">Explore artists</Link>
+            </div>
+          </Reveal>
         </div>
       </section>
-    </div>
+    </HP2Frame>
   );
 }

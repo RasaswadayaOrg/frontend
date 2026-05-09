@@ -2,14 +2,18 @@ import { AcademyActions } from "../../../components/AcademyActions";
 import { ImageWithFallback } from "../../../components/ImageWithFallback";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { MapPin, Phone, Mail, Globe, ArrowLeft, CheckCircle2, Star, Calendar } from "lucide-react";
+import { MapPin, Phone, Mail, Globe, ArrowLeft, Star, GraduationCap } from "lucide-react";
 import { getAcademy } from "../../../lib/db";
+import { extractId } from "../../../lib/slug";
+import { HP2Frame } from "../../../components/hp2/Frame";
+import { Reveal } from "../../../components/hp2/Reveal";
+
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
-  const academy = await getAcademy(params.id);
+  const academy = await getAcademy(extractId(params.id));
   if (!academy) return { title: "Academy Not Found" };
-  
   return {
     title: `${academy.name} | Rasas Academies`,
     description: academy.description,
@@ -18,158 +22,273 @@ export async function generateMetadata(props: { params: Promise<{ id: string }> 
 
 export default async function AcademyDetailPage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
-  const academy = await getAcademy(params.id);
-  
-  if (!academy) {
-    return notFound();
-  }
-
-  // Mock some extra data since our DB mock is simple
-  const features = ["Certified Instructors", "Performance Opportunities", "Traditional Curriculum", "Air Conditioned Studios"];
-  const detailedDescription = academy.description + " This academy has been a cornerstone of Sri Lankan arts education, fostering generations of talent through rigorous training and cultural immersion. Students benefit from direct mentorship and opportunities to perform at national festivals.";
+  const academy = await getAcademy(extractId(params.id));
+  if (!academy) return notFound();
 
   return (
-    <div className="min-h-screen pb-12">
-      {/* Breadcrumb / Back */}
-      <div className="container mx-auto px-4 py-6">
-        <Link 
-          href="/academies" 
-          className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-brand-600 dark:text-zinc-400 dark:hover:text-brand-400 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Academies
-        </Link>
-      </div>
-
-      {/* Hero Section */}
-      <section className="container mx-auto px-4 mb-12">
-        <div className="relative rounded-3xl overflow-hidden aspect-[21/9] shadow-2xl">
-           <ImageWithFallback
-            src={academy.imageUrl || "https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?q=80&w=2000"}
-            alt={academy.name}
+    <HP2Frame activePath="/academies">
+      {/* Cover hero with academy image */}
+      <header className="hp2-cover hp2-cover--detail">
+        <div className="hp2-cover__media hp2-cover__media--green" aria-hidden />
+        <div className="hp2-cover__bgimg" aria-hidden>
+          <ImageWithFallback
+            src={academy.imageUrl || "https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?q=80&w=1600"}
+            alt=""
             fill
             className="object-cover"
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-          
-          <div className="absolute bottom-0 left-0 p-8 md:p-12 text-white">
-            <span className="bg-brand-600 text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4 inline-block">
-                {academy.type}
-            </span>
-            <h1 className="text-3xl md:text-5xl font-bold mb-4 max-w-4xl">{academy.name}</h1>
-            <div className="flex flex-wrap items-center gap-6 text-sm md:text-base text-slate-200">
-                <div className="flex items-center gap-2">
-                    <MapPin className="w-5 h-5 text-brand-400" />
-                    <span>{academy.location}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                    <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
-                    <span>4.9 (120 Reviews)</span>
-                </div>
+        </div>
+        <div className="hp2-container">
+          <Reveal>
+            <Link href="/academies" className="hp2-back-link">
+              <ArrowLeft size={14} /> Back to Academies
+            </Link>
+
+            <div className="hp2-cover__inner">
+              <div className="hp2-cover__tags">
+                <span className="hp2-tag hp2-tag--accent">{academy.type || "Academy"}</span>
+                {academy.location && (
+                  <span className="hp2-tag">
+                    <MapPin size={11} /> {academy.location.split(",")[0]}
+                  </span>
+                )}
+              </div>
+              <p className="hp2-cover__kicker">Where tradition is taught</p>
+              <h1 className="hp2-cover__title">{academy.name}</h1>
+
+              <div className="hp2-cover__meta">
+                {academy.location && (
+                  <span className="hp2-meta-pill">
+                    <MapPin size={14} /> {academy.location}
+                  </span>
+                )}
+                {academy.rating != null && (
+                  <span className="hp2-meta-pill">
+                    <Star size={14} style={{ color: "#FFD86B", fill: "#FFD86B" }} /> {academy.rating}
+                    {academy.reviewCount != null && <span style={{ color: "#9B95B5", marginLeft: 4 }}>({academy.reviewCount} reviews)</span>}
+                  </span>
+                )}
+                {academy.courses && academy.courses.length > 0 && (
+                  <span className="hp2-meta-pill">
+                    <GraduationCap size={14} /> {academy.courses.length} {academy.courses.length === 1 ? "Course" : "Courses"}
+                  </span>
+                )}
+              </div>
             </div>
+          </Reveal>
+        </div>
+      </header>
+
+      <section style={{ padding: "44px 0 96px" }}>
+        <div className="hp2-container">
+          <div className="hp2-detail-grid">
+            <div className="hp2-detail-main">
+              {academy.description && (
+                <Reveal>
+                  <div className="hp2-panel">
+                    <h2 className="hp2-panel__title">About the academy</h2>
+                    <p className="hp2-panel__body">{academy.description}</p>
+                  </div>
+                </Reveal>
+              )}
+
+              {academy.courses && academy.courses.length > 0 && (
+                <Reveal delay={80}>
+                  <div className="hp2-panel">
+                    <h2 className="hp2-panel__title">Courses offered</h2>
+                    <div className="hp2-course-grid">
+                      {academy.courses.map((course: any, idx: number) => (
+                        <div key={idx} className="hp2-course">
+                          <div className="hp2-course__badge">
+                            {(course.name || "C").charAt(0)}
+                          </div>
+                          <span className="hp2-course__name">{course.name || "Unnamed course"}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </Reveal>
+              )}
+            </div>
+
+            <aside className="hp2-detail-aside">
+              <Reveal delay={120}>
+                <div className="hp2-panel hp2-panel--sticky">
+                  <p className="hp2-section__kicker" style={{ margin: "0 0 16px" }}>Contact Information</p>
+
+                  <div className="hp2-contact-list">
+                    {academy.phone && (
+                      <a href={`tel:${academy.phone}`} className="hp2-contact">
+                        <span className="hp2-contact__icon"><Phone size={16} /></span>
+                        <span>
+                          <span className="hp2-contact__label">Phone</span>
+                          <span className="hp2-contact__value">{academy.phone}</span>
+                        </span>
+                      </a>
+                    )}
+                    {academy.website && (
+                      <a href={academy.website.startsWith("http") ? academy.website : `https://${academy.website}`} target="_blank" rel="noopener noreferrer" className="hp2-contact">
+                        <span className="hp2-contact__icon"><Globe size={16} /></span>
+                        <span>
+                          <span className="hp2-contact__label">Website</span>
+                          <span className="hp2-contact__value">{academy.website}</span>
+                        </span>
+                      </a>
+                    )}
+                    {academy.email && (
+                      <a href={`mailto:${academy.email}`} className="hp2-contact">
+                        <span className="hp2-contact__icon"><Mail size={16} /></span>
+                        <span>
+                          <span className="hp2-contact__label">Email</span>
+                          <span className="hp2-contact__value">{academy.email}</span>
+                        </span>
+                      </a>
+                    )}
+                  </div>
+
+                  <div style={{ marginTop: 22 }}>
+                    <AcademyActions />
+                  </div>
+                </div>
+              </Reveal>
+            </aside>
           </div>
         </div>
       </section>
 
-      {/* Content Grid */}
-      <section className="container mx-auto px-4">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-            
-            {/* Left Col: Info */}
-            <div className="lg:col-span-8 space-y-10">
-                <div>
-                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">About the Academy</h2>
-                    <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg">
-                        {detailedDescription}
-                    </p>
-                </div>
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+            .hp2-cover--detail { padding: 0; min-height: 0; }
+            .hp2-cover--detail .hp2-container { position: relative; padding-top: 96px; padding-bottom: 56px; z-index: 2; }
+            .hp2-cover__bgimg { position: absolute; inset: 0; overflow: hidden; }
+            .hp2-cover__bgimg::after {
+              content: ""; position: absolute; inset: 0;
+              background:
+                linear-gradient(180deg, rgba(7,6,10,0.50) 0%, rgba(7,6,10,0.86) 70%, #07060A 100%),
+                radial-gradient(ellipse at 30% 20%, rgba(132,225,196,0.16), transparent 60%);
+            }
+            .hp2-cover__bgimg img { filter: saturate(1.05); }
 
-                <div>
-                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">Courses Offered</h2>
-                    <div className="grid sm:grid-cols-2 gap-4">
-                        {academy.courses && academy.courses.map((course: any, idx: number) => (
-                            <div key={idx} className="flex items-center gap-3 p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm hover:border-brand-500/50 transition-colors">
-                                <div className="w-10 h-10 rounded-full bg-brand-50 dark:bg-brand-900/20 flex items-center justify-center text-brand-600 dark:text-brand-400 font-bold text-lg">
-                                    {course.name ? course.name.charAt(0) : 'C'}
-                                </div>
-                                <span className="font-semibold text-slate-900 dark:text-white">{course.name || 'Unnamed Course'}</span>
-                            </div>
-                        ))}
-                    </div>
-                </div>
+            .hp2-back-link {
+              display: inline-flex; align-items: center; gap: 8px;
+              color: #9B95B5; font-size: 13px; text-decoration: none;
+              padding: 8px 14px; border: 1px solid rgba(196,181,253,0.16);
+              border-radius: 999px; background: rgba(21,18,29,0.55);
+              backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+              transition: color .2s ease, border-color .2s ease;
+              margin-bottom: 28px;
+            }
+            .hp2-back-link:hover { color: #F5F3FA; border-color: rgba(196,181,253,0.30); }
 
-                <div>
-                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">Academy Features</h2>
-                    <ul className="grid sm:grid-cols-2 gap-3">
-                        {features.map((feature, i) => (
-                            <li key={i} className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
-                                <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
-                                <span>{feature}</span>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-            </div>
+            .hp2-cover__tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+            .hp2-tag {
+              display: inline-flex; align-items: center; gap: 5px;
+              font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 600;
+              padding: 6px 12px; border-radius: 6px;
+              background: rgba(21,18,29,0.65); color: #F5F3FA;
+              border: 1px solid rgba(196,181,253,0.14);
+              backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            }
+            .hp2-tag--accent { background: #A78BFA; color: #0a0a0b; border-color: #A78BFA; }
 
-            {/* Right Col: Contact & Action */}
-            <div className="lg:col-span-4">
-                <div className="sticky top-24 space-y-6">
-                    {/* Contact Card */}
-                    <div className="p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl shadow-slate-200/50 dark:shadow-black/50">
-                        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Contact Information</h3>
-                        
-                        <div className="space-y-4 mb-8">
-                            <div className="flex items-start gap-4">
-                                <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
-                                    <Phone className="w-5 h-5 text-slate-600 dark:text-slate-400" />
-                                </div>
-                                <div>
-                                    <p className="text-xs font-bold uppercase text-slate-400 mb-1">Phone</p>
-                                    <a href={`tel:${academy.phone}`} className="font-medium hover:text-brand-600 transition-colors">{academy.phone || "Not Available"}</a>
-                                </div>
-                            </div>
-                            
-                            <div className="flex items-start gap-4">
-                                <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
-                                    <Globe className="w-5 h-5 text-slate-600 dark:text-slate-400" />
-                                </div>
-                                <div>
-                                    <p className="text-xs font-bold uppercase text-slate-400 mb-1">Website</p>
-                                    <a href={`https://${academy.website}`} target="_blank" rel="noopener noreferrer" className="font-medium hover:text-brand-600 transition-colors">{academy.website || "Not Available"}</a>
-                                </div>
-                            </div>
+            .hp2-cover__meta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+            .hp2-meta-pill {
+              display: inline-flex; align-items: center; gap: 8px;
+              font-size: 13px; color: #F5F3FA; font-weight: 500;
+              padding: 9px 14px; border-radius: 999px;
+              background: rgba(21,18,29,0.55); border: 1px solid rgba(196,181,253,0.10);
+              backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            }
+            .hp2-meta-pill svg { color: #C4B5FD; }
 
-                             <div className="flex items-start gap-4">
-                                <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
-                                    <Mail className="w-5 h-5 text-slate-600 dark:text-slate-400" />
-                                </div>
-                                <div>
-                                    <p className="text-xs font-bold uppercase text-slate-400 mb-1">Email</p>
-                                    <a href={`mailto:${academy.email}`} className="font-medium hover:text-brand-600 transition-colors">{academy.email || "Not Available"}</a>
-                                </div>
-                            </div>
-                        </div>
+            .hp2-detail-grid { display: grid; grid-template-columns: 1fr; gap: 32px; }
+            @media (min-width: 1000px) {
+              .hp2-detail-grid { grid-template-columns: minmax(0,1fr) 360px; gap: 36px; }
+            }
+            .hp2-detail-main { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+            .hp2-detail-aside { min-width: 0; }
 
-                        <AcademyActions />
-                    </div>
+            .hp2-panel {
+              padding: 28px;
+              border-radius: 20px;
+              background: #15121D;
+              border: 1px solid rgba(196,181,253,0.10);
+            }
+            .hp2-panel--sticky { position: sticky; top: 100px; }
+            .hp2-panel--accent {
+              background: linear-gradient(180deg, rgba(167,139,250,0.10) 0%, rgba(167,139,250,0.04) 100%);
+              border-color: rgba(167,139,250,0.22);
+            }
+            .hp2-panel__title {
+              font-family: var(--font-outfit);
+              font-size: 22px; font-weight: 500; letter-spacing: -0.015em;
+              color: #F5F3FA; margin: 0 0 14px;
+            }
+            .hp2-panel__body { color: #C4B0DA; font-size: 15px; line-height: 1.7; margin: 0; }
 
-                    {/* Upcoming Batches (Mock) */}
-                     <div className="p-6 rounded-2xl bg-brand-50 dark:bg-brand-900/10 border border-brand-100 dark:border-brand-900/20">
-                        <div className="flex items-center gap-3 mb-3">
-                            <Calendar className="w-5 h-5 text-brand-600" />
-                            <h4 className="font-bold text-brand-900 dark:text-brand-100">Next Intake</h4>
-                        </div>
-                        <p className="text-sm text-brand-800 dark:text-brand-200">
-                            Applications closing on <span className="font-bold">Jan 31st</span> for the upcoming semester.
-                        </p>
-                     </div>
+            .hp2-course-grid {
+              display: grid; gap: 12px;
+              grid-template-columns: 1fr;
+            }
+            @media (min-width: 600px) {
+              .hp2-course-grid { grid-template-columns: 1fr 1fr; }
+            }
+            .hp2-course {
+              display: flex; align-items: center; gap: 14px;
+              padding: 14px 16px; border-radius: 14px;
+              background: #1E1A2B; border: 1px solid rgba(196,181,253,0.08);
+              transition: border-color .2s ease, background .2s ease;
+            }
+            .hp2-course:hover { border-color: rgba(167,139,250,0.30); background: #221d31; }
+            .hp2-course__badge {
+              width: 38px; height: 38px; border-radius: 10px;
+              display: flex; align-items: center; justify-content: center;
+              background: linear-gradient(135deg, #A78BFA 0%, #C4B5FD 100%);
+              color: #0a0a0b; font-family: var(--font-outfit); font-size: 16px; font-weight: 600;
+              flex-shrink: 0;
+            }
+            .hp2-course__name { font-size: 14px; font-weight: 500; color: #F5F3FA; }
 
-                </div>
-            </div>
+            .hp2-feature-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; grid-template-columns: 1fr; }
+            @media (min-width: 600px) { .hp2-feature-list { grid-template-columns: 1fr 1fr; } }
+            .hp2-feature-list li {
+              padding: 12px 14px 12px 38px; position: relative;
+              color: #C4B0DA; font-size: 14px; line-height: 1.55;
+              background: #1E1A2B; border: 1px solid rgba(196,181,253,0.08);
+              border-radius: 12px;
+            }
+            .hp2-feature-list li::before {
+              content: "✓"; position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+              width: 20px; height: 20px; border-radius: 50%;
+              background: linear-gradient(135deg, #34d399, #10b981);
+              color: #06281c; font-size: 11px; font-weight: 700;
+              display: flex; align-items: center; justify-content: center;
+            }
 
-        </div>
-      </section>
-    </div>
+            .hp2-contact-list { display: flex; flex-direction: column; gap: 4px; }
+            .hp2-contact {
+              display: flex; align-items: center; gap: 14px;
+              padding: 12px 14px; border-radius: 12px;
+              text-decoration: none; transition: background .2s ease;
+            }
+            .hp2-contact:hover { background: #1E1A2B; }
+            .hp2-contact__icon {
+              width: 38px; height: 38px; border-radius: 50%;
+              display: flex; align-items: center; justify-content: center;
+              background: #1E1A2B; color: #C4B5FD;
+              border: 1px solid rgba(196,181,253,0.12);
+              flex-shrink: 0;
+            }
+            .hp2-contact__label {
+              display: block; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+              color: #9B95B5; font-weight: 600; margin-bottom: 2px;
+            }
+            .hp2-contact__value { display: block; font-size: 14px; color: #F5F3FA; font-weight: 500; word-break: break-word; }
+          `,
+        }}
+      />
+    </HP2Frame>
   );
 }

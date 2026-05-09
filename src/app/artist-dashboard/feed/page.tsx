@@ -48,7 +48,7 @@ export default function ArtistFeedPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
 
   const fetchData = useCallback(async () => {
     try {
@@ -111,7 +111,7 @@ export default function ArtistFeedPage() {
   if (loading && !posts.length) {
       return (
           <div className="flex justify-center items-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
+              <Loader2 className="w-8 h-8 animate-spin text-brand-500" />
           </div>
       );
   }
@@ -175,7 +175,7 @@ export default function ArtistFeedPage() {
                   key={i}
                   className="px-5 py-3 hover:bg-neutral-50/80 dark:hover:bg-zinc-800/30 cursor-pointer transition-colors duration-200"
                 >
-                  <div className="text-sm font-semibold text-neutral-800 dark:text-neutral-200 hover:text-violet-600 transition-colors">
+                  <div className="text-sm font-semibold text-neutral-800 dark:text-neutral-200 hover:text-brand-600 transition-colors">
                     {trend.title}
                   </div>
                   <div className="text-[11px] text-neutral-500 mt-0.5">
@@ -185,7 +185,7 @@ export default function ArtistFeedPage() {
               ))}
             </div>
             <div className="px-5 py-3 border-t border-neutral-100 dark:border-neutral-800/60">
-              <button className="text-xs font-medium text-violet-600 hover:text-violet-700 transition-colors">
+              <button className="text-xs font-medium text-brand-600 hover:text-brand-700 transition-colors">
                 Show more →
               </button>
             </div>
@@ -209,7 +209,7 @@ export default function ArtistFeedPage() {
                     key={follower.id}
                     className="flex items-center gap-3 px-5 py-3.5"
                   >
-                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-100 to-fuchsia-100 dark:from-violet-900/30 dark:to-fuchsia-900/20 flex items-center justify-center overflow-hidden flex-shrink-0">
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-brand-100 to-fuchsia-100 dark:from-brand-900/30 dark:to-fuchsia-900/20 flex items-center justify-center overflow-hidden flex-shrink-0">
                       {follower.user.avatarUrl ? (
                         <img
                           src={follower.user.avatarUrl}
@@ -217,7 +217,7 @@ export default function ArtistFeedPage() {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <span className="text-sm font-bold text-violet-600 dark:text-violet-400">
+                        <span className="text-sm font-bold text-brand-600 dark:text-brand-400">
                           {follower.user.fullName.charAt(0)}
                         </span>
                       )}

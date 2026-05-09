@@ -7,7 +7,7 @@ export function ArtistFeed({ artistId, artistName, artistAvatar }: { artistId: s
   const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
   useEffect(() => {
     async function fetchPosts() {

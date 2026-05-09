@@ -12,7 +12,7 @@ export default function BookingsPage() {
             Manage incoming gig offers from organizers.
           </p>
         </div>
-        <select className="bg-white dark:bg-zinc-900 border border-neutral-200/80 dark:border-neutral-800/80 px-3.5 py-2 rounded-xl text-sm font-medium outline-none focus:border-violet-300 dark:focus:border-violet-700 transition-colors">
+        <select className="bg-white dark:bg-zinc-900 border border-neutral-200/80 dark:border-neutral-800/80 px-3.5 py-2 rounded-xl text-sm font-medium outline-none focus:border-brand-300 dark:focus:border-brand-700 transition-colors">
           <option>All Status</option>
           <option>Pending</option>
           <option>Accepted</option>

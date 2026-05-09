@@ -19,7 +19,7 @@ export default async function AdminEventsPage() {
            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Events Management</h1>
            <p className="text-sm text-slate-500">{totalCount} total events in the system.</p>
         </div>
-        <Link href="/admin/events/new" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium">
+        <Link href="/admin/events/new" className="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium">
           <Plus className="w-4 h-4" />
           Create Event
         </Link>
@@ -32,7 +32,7 @@ export default async function AdminEventsPage() {
               <input 
                 type="text" 
                 placeholder="Search events..." 
-                className="w-full pl-9 pr-4 py-2 text-sm border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full pl-9 pr-4 py-2 text-sm border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
             </div>
          </div>
@@ -77,7 +77,7 @@ export default async function AdminEventsPage() {
                    </td>
                    <td className="px-6 py-4">
                      {event.category ? (
-                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400">
+                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-brand-100 text-brand-800 dark:bg-brand-900/30 dark:text-brand-400">
                          {event.category}
                        </span>
                      ) : (
@@ -92,7 +92,7 @@ export default async function AdminEventsPage() {
                    </td>
                    <td className="px-6 py-4 text-right">
                      <div className="flex items-center justify-end gap-2">
-                       <Link href={`/admin/events/${event.id}/edit`} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors">
+                       <Link href={`/admin/events/${event.id}/edit`} className="p-2 text-slate-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-lg transition-colors">
                          <Pencil className="w-4 h-4" />
                        </Link>
                        <DeleteEventButton eventId={event.id} eventTitle={event.title} />

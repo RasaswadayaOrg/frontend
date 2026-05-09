@@ -64,7 +64,7 @@ export function RoleApplicationForm({ role }: RoleApplicationFormProps) {
           name="bio"
           required
           rows={4}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
           placeholder={`Tell us about your experience as ${role === "ARTIST" ? "an artist" : "an organizer"}...`}
         />
       </div>
@@ -77,7 +77,7 @@ export function RoleApplicationForm({ role }: RoleApplicationFormProps) {
           type="url"
           id="portfolioUrl"
           name="portfolioUrl"
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
           placeholder="https://your-portfolio.com"
         />
       </div>
@@ -91,7 +91,7 @@ export function RoleApplicationForm({ role }: RoleApplicationFormProps) {
           id="proofDocument"
           name="proofDocument"
           accept=".pdf,.jpg,.jpeg,.png"
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
         />
         <p className="text-sm text-gray-500 mt-1">
           Upload certificates, credentials, or relevant documents
@@ -101,7 +101,7 @@ export function RoleApplicationForm({ role }: RoleApplicationFormProps) {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full bg-brand-600 hover:bg-brand-700 text-white font-semibold py-3 px-6 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isSubmitting ? "Submitting..." : "Submit Application"}
       </button>

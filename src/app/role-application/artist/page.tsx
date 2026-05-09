@@ -5,8 +5,8 @@ export default function ArtistApplicationPage() {
   return (
     <div className="max-w-2xl mx-auto py-12 px-4">
       <div className="mb-8 text-center">
-        <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Palette className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+        <div className="w-16 h-16 bg-brand-100 dark:bg-brand-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+          <Palette className="w-8 h-8 text-brand-600 dark:text-brand-400" />
         </div>
         <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Become an Artist</h1>
         <p className="text-slate-600 dark:text-zinc-400">

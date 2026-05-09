@@ -130,7 +130,7 @@ export function ImageUpload({
 
   return (
     <div className="space-y-2">
-      <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{label}</label>
+      {label && <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{label}</label>}
       
       {/* Hidden input for form submission */}
       <input type="hidden" name={name} value={imageUrl} />
@@ -169,7 +169,7 @@ export function ImageUpload({
           onDragLeave={handleDragLeave}
           className={`${aspectRatioClass} w-full rounded-xl border-2 border-dashed transition-colors cursor-pointer flex flex-col items-center justify-center gap-3 ${
             isDragging
-              ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+              ? "border-brand-500 bg-blue-50 dark:bg-blue-900/20"
               : "border-slate-300 dark:border-zinc-700 hover:border-blue-400 hover:bg-slate-50 dark:hover:bg-zinc-800/50"
           }`}
         >
@@ -222,7 +222,7 @@ export function ImageUpload({
               setImageUrl(e.target.value);
               onImageChange?.(e.target.value);
             }}
-            className="mt-2 w-full px-3 py-2 text-sm border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white"
+            className="mt-2 w-full px-3 py-2 text-sm border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-white"
           />
         </details>
       </div>

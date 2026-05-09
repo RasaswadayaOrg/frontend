@@ -1,167 +1,160 @@
-import { ImageWithFallback } from "../../components/ImageWithFallback";
 import Link from "next/link";
-import { School, ArrowLeft, MapPin, ArrowRight, Filter } from "lucide-react";
+import { MapPin, School } from "lucide-react";
+import { ImageWithFallback } from "../../components/ImageWithFallback";
 import { getAcademies, getAcademiesCount } from "../../lib/db";
-import { Pagination } from "../../components/Pagination";
-import { FilterList } from "../../components/FilterList";
+import { buildSlug } from "../../lib/slug";
+import { HP2Frame } from "../../components/hp2/Frame";
+import { Reveal } from "../../components/hp2/Reveal";
+import { LiveSearchBar } from "../../components/hp2/LiveSearchBar";
 
-export const metadata = {
-  title: "Music Academies | Rasas",
-  description: "Find the best music and dance academies in Sri Lanka.",
-};
+export const dynamic = "force-dynamic";
 
-export default async function AcademiesPage(props: { searchParams: Promise<{ page?: string; search?: string; type?: string }> }) {
+const TYPES = [
+  { id: "",           label: "All" },
+  { id: "Music",      label: "Music" },
+  { id: "Dance",      label: "Dance" },
+  { id: "Theatre",    label: "Theatre" },
+  { id: "Art",        label: "Art" },
+  { id: "Percussion", label: "Percussion" },
+  { id: "Vocals",     label: "Vocals" },
+];
+
+function buildHref(base: string, params: Record<string, string | undefined>): string {
+  const sp = new URLSearchParams();
+  for (const k of Object.keys(params)) { const v = params[k]; if (v) sp.set(k, v); }
+  const qs = sp.toString();
+  return qs ? base + "?" + qs : base;
+}
+
+export default async function AcademiesPage(props: {
+  searchParams: Promise<{ page?: string; search?: string; type?: string }>;
+}) {
   const searchParams = await props.searchParams;
-  const page = Number(searchParams.page) || 1;
-  const search = searchParams.search;
-  const type = searchParams.type;
+  const page   = Number(searchParams.page) || 1;
+  const search = searchParams.search || "";
+  const type   = searchParams.type || "";
+  const limit  = 9;
 
-  const limit = 6;
   const [academies, total] = await Promise.all([
-      getAcademies(limit, page, search, type),
-      getAcademiesCount(search, type)
+    getAcademies(limit, page, search, type),
+    getAcademiesCount(search, type),
   ]);
-  const totalPages = Math.ceil(total / limit);
-  
-  // Mock categories or fetch them.
-  const academyTypes = [
-    { id: "Music", name: "Music" },
-    { id: "Dance", name: "Dance" },
-    { id: "Theatre", name: "Theatre" },
-    { id: "Art", name: "Art" },
-    { id: "Percussion", name: "Percussion" },
-    { id: "Vocals", name: "Vocals" }
-  ];
+  const totalPages = Math.max(1, Math.ceil(total / limit));
 
   return (
-    <div className="space-y-8">
-       {/* Back Link */}
-      <div>
-        <Link 
-          href="/" 
-          className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-brand-600 dark:text-zinc-400 dark:hover:text-brand-400 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Home
-        </Link>
-      </div>
+    <HP2Frame activePath="/academies">
+      {/* Cover hero */}
+      <header className="hp2-cover">
+        <div className="hp2-cover__media hp2-cover__media--green" aria-hidden />
+        <div className="hp2-container">
+          <Reveal>
+            <div className="hp2-cover__inner">
+              <p className="hp2-cover__kicker">Academies · Learn</p>
+              <h1 className="hp2-cover__title">Where <em>tradition</em> is taught.</h1>
+              <p className="hp2-cover__lede">Find masters of dance, music, percussion and theatre.</p>
+            </div>
+          </Reveal>
+        </div>
+      </header>
 
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
-            Music & Dance Academies
-          </h1>
-          <p className="text-slate-500 dark:text-zinc-400 mt-1">
-            Premier institutions preserving Sri Lankan heritage and arts
+      <section style={{ padding: "36px 0 80px" }}>
+        <div className="hp2-container">
+
+          <Reveal delay={80} zIndex={10}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 36 }}>
+              <LiveSearchBar action="/academies" defaultValue={search} placeholder="Search academies, disciplines, locations…" type="academies" hiddenFields={type ? { type } : {}} />
+              <div className="hp2-chips" role="tablist" aria-label="Filter by discipline">
+                {TYPES.map((t) => (
+                  <Link
+                    key={t.id || "all"}
+                    href={buildHref("/academies", { search, type: t.id || undefined })}
+                    className={"hp2-chip" + (type === t.id ? " is-active" : "")}
+                    role="tab"
+                    aria-selected={type === t.id}
+                  >
+                    {t.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </Reveal>
+
+          <p className="hp2-section__kicker" style={{ marginBottom: 20 }}>
+            {total > 0
+              ? "Showing " + ((page - 1) * limit + 1) + "–" + Math.min(page * limit, total) + " of " + total
+              : "No academies match"}
           </p>
-        </div>
-        
 
-      </div>
-
-      {/* Filters */}
-      <FilterList 
-        filters={academyTypes} 
-        paramName="type"
-        allLabel="All Academies"
-      />
-
-      {/* Main Grid */}
-      {academies.length > 0 ? (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {academies.map((academy: any) => (
-                <div key={academy.id} className="group flex flex-col bg-white dark:bg-zinc-900 rounded-2xl overflow-hidden border border-slate-200 dark:border-zinc-800 hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
-                    {/* Image */}
-                    <div className="relative h-48 w-full overflow-hidden bg-slate-100 dark:bg-zinc-800">
-                        <ImageWithFallback
-                            src={academy.imageUrl || "https://images.unsplash.com/photo-1507838153414-b4b713384ebd?q=80&w=800"}
-                            alt={academy.name}
-                            fill
-                            className="object-cover transition-transform duration-700 group-hover:scale-105"
-                        />
-                        <div className="absolute top-3 right-3">
-                            <span className="px-3 py-1 bg-white/90 dark:bg-black/80 backdrop-blur text-xs font-bold rounded-full shadow-sm text-slate-800 dark:text-white">
-                                {academy.type}
-                            </span>
-                        </div>
+          {academies.length === 0 ? (
+            <div className="hp2-empty">
+              <p className="hp2-empty__title">No academies found</p>
+              <p className="hp2-empty__lede">Try a different filter or check back soon.</p>
+            </div>
+          ) : (
+            <div className="hp2-card-grid">
+              {academies.map((ac: any, i: number) => (
+                <Reveal key={ac.id} delay={i * 55}>
+                  <Link href={"/academies/" + buildSlug(ac.id, ac.name)} className="hp2-card">
+                    <div className="hp2-card__img">
+                      <ImageWithFallback
+                        src={ac.imageUrl || "https://images.unsplash.com/photo-1544027993-37dbfe43562a?q=80&w=800"}
+                        alt={ac.name}
+                        fill
+                        className="object-cover"
+                      />
+                      <span className="hp2-card__cat">
+                        <School size={10} style={{ display: "inline", marginRight: 4 }} />
+                        {ac.type || "Academy"}
+                      </span>
                     </div>
-
-                    {/* Content */}
-                    <div className="p-5 flex-1 flex flex-col">
-                        <div className="mb-3">
-                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 line-clamp-2 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
-                                {academy.name}
-                            </h3>
-                            <div className="flex items-center gap-2 text-slate-500 dark:text-zinc-400 text-sm">
-                                <MapPin className="w-4 h-4 shrink-0" />
-                                <span>{academy.location}</span>
-                            </div>
-                        </div>
-                        
-                        <p className="text-sm text-slate-600 dark:text-zinc-400 mb-6 line-clamp-2">
-                            {academy.description}
+                    <div className="hp2-card__body">
+                      <h3 className="hp2-card__title">{ac.name}</h3>
+                      {ac.description && (
+                        <p style={{ fontSize: 13, color: "#9B95B5", lineHeight: 1.5, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                          {ac.description}
                         </p>
-
-                        <div className="mt-auto pt-4 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-between">
-                            <span className="text-sm font-medium text-slate-900 dark:text-white truncate max-w-[150px]">
-                                {academy.phone || "Contact for info"}
-                            </span>
-                            
-                            <Link 
-                                href={`/academies/${academy.id}`}
-                                className="flex items-center gap-2 text-sm font-bold text-brand-600 hover:text-brand-700 transition-colors"
-                            >
-                                View Details
-                                <ArrowRight className="w-4 h-4" />
-                            </Link>
-                        </div>
+                      )}
+                      <div className="hp2-card__meta">
+                        {(ac.city || ac.location) && (
+                          <span className="hp2-card__meta-item">
+                            <MapPin size={12} strokeWidth={1.5} />
+                            {ac.city || ac.location}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                </div>
-            ))}
-        </div>
-      ) : (
-        <div className="py-20 text-center">
-            <div className="w-16 h-16 bg-slate-100 dark:bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-4">
-                <School className="w-8 h-8 text-slate-400" />
+                  </Link>
+                </Reveal>
+              ))}
             </div>
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white">No academies found</h3>
-            <p className="text-slate-500 dark:text-zinc-400 mt-2">Try adjusting your filters or search terms</p>
-            {(search || type) && (
-                <Link href="/academies" className="inline-block mt-4 text-brand-600 font-medium hover:underline">
-                    Clear all filters
-                </Link>
-            )}
-        </div>
-      )}
+          )}
 
-      {/* Promotion / CTA (Styled to match container) */}
-      <div className="relative rounded-3xl overflow-hidden bg-brand-900 text-white p-8 md:p-12 mt-12">
-            <div className="absolute inset-0 opacity-20">
-                <ImageWithFallback 
-                    src="https://images.unsplash.com/photo-1511192336575-5a79af67a629?q=81&w=2000"
-                    alt="Background Pattern"
-                    fill
-                    className="object-cover"
-                />
-            </div>
-            
-            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
-                <div className="max-w-xl">
-                    <h2 className="text-2xl md:text-3xl font-bold mb-4">Are you an Instructor?</h2>
-                    <p className="text-brand-100 mb-6 text-lg">
-                        Join Rasas to reach thousands of students passionate about Sri Lankan arts. List your academy today.
-                    </p>
-                    <button className="px-6 py-3 bg-white text-brand-900 rounded-full font-bold hover:bg-brand-50 transition-colors inline-flex items-center gap-2">
-                        <School className="w-5 h-5" />
-                        List Your Academy
-                    </button>
-                </div>
-            </div>
-      </div>
-
-      {/* Pagination */}
-      <Pagination currentPage={page} totalPages={totalPages} baseUrl="/academies" />
-    </div>
+          {totalPages > 1 && (
+            <nav className="hp2-pager" aria-label="Pagination">
+              <Link
+                href={buildHref("/academies", { search, type, page: page > 1 ? String(page - 1) : undefined })}
+                className={"hp2-pager__btn" + (page <= 1 ? " hp2-pager__btn--disabled" : "")}
+              >← Prev</Link>
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .filter((n) => n === 1 || n === totalPages || Math.abs(n - page) <= 2)
+                .reduce<(number | "…")[]>((acc, n) => {
+                  if (acc.length > 0 && typeof acc[acc.length - 1] === "number" && n - (acc[acc.length - 1] as number) > 1) acc.push("…");
+                  acc.push(n); return acc;
+                }, [])
+                .map((n, i) => n === "…"
+                  ? <span key={"e" + i} className="hp2-pager__btn hp2-pager__btn--disabled">…</span>
+                  : <Link key={n} href={buildHref("/academies", { search, type, page: n === 1 ? undefined : String(n) })}
+                      className={"hp2-pager__btn" + (n === page ? " is-active" : "")}
+                      aria-current={n === page ? "page" : undefined}>{n}</Link>
+                )}
+              <Link
+                href={buildHref("/academies", { search, type, page: page < totalPages ? String(page + 1) : undefined })}
+                className={"hp2-pager__btn" + (page >= totalPages ? " hp2-pager__btn--disabled" : "")}
+              >Next →</Link>
+            </nav>
+          )}
+        </div>
+      </section>
+    </HP2Frame>
   );
 }

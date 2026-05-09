@@ -2,9 +2,9 @@
 
 import { cookies } from "next/headers";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
 
-export async function updateUserPreferences({ categories, interests }: { categories: string[]; interests: string[] }) {
+export async function updateUserPreferences({ categories, interests, city }: { categories: string[]; interests: string[]; city?: string }) {
   const sessionCookie = (await cookies()).get("session")?.value;
   if (!sessionCookie) return null;
 
@@ -21,7 +21,7 @@ export async function updateUserPreferences({ categories, interests }: { categor
       "Authorization": `Bearer ${token}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ categories, interests }),
+    body: JSON.stringify({ categories, interests, ...(city ? { city } : {}) }),
   });
 
   if (!res.ok) return null;

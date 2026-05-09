@@ -17,7 +17,7 @@ export default async function AdminAcademiesPage() {
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Academies Management</h1>
           <p className="text-sm text-slate-500">{totalCount} total academies in the system.</p>
         </div>
-        <Link href="/admin/academies/new" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium">
+        <Link href="/admin/academies/new" className="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium">
           <Plus className="w-4 h-4" />
           Add Academy
         </Link>
@@ -30,7 +30,7 @@ export default async function AdminAcademiesPage() {
             <input 
               type="text" 
               placeholder="Search academies..." 
-              className="w-full pl-9 pr-4 py-2 text-sm border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full pl-9 pr-4 py-2 text-sm border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
           </div>
         </div>
@@ -97,7 +97,7 @@ export default async function AdminAcademiesPage() {
                       {academy.website && (
                         <div className="flex items-center gap-1 text-xs text-slate-500">
                           <Globe className="w-3 h-3" />
-                          <a href={academy.website} target="_blank" rel="noopener noreferrer" className="truncate max-w-[120px] hover:text-blue-600">
+                          <a href={academy.website} target="_blank" rel="noopener noreferrer" className="truncate max-w-[120px] hover:text-brand-600">
                             Website
                           </a>
                         </div>
@@ -109,7 +109,7 @@ export default async function AdminAcademiesPage() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <Link href={`/admin/academies/${academy.id}/edit`} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors">
+                      <Link href={`/admin/academies/${academy.id}/edit`} className="p-2 text-slate-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-lg transition-colors">
                         <Pencil className="w-4 h-4" />
                       </Link>
                       <DeleteAcademyButton academyId={academy.id} academyName={academy.name} />

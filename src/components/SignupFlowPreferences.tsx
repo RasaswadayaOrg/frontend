@@ -3,77 +3,89 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { saveUserPreferences, updateUserProfile } from "@/app/actions/auth";
-import { ArrowLeft, ArrowRight, Check, MapPin, Music, Theater, PersonStanding } from "lucide-react";
+import { CULTURAL_CATEGORIES, SRI_LANKAN_DISTRICTS, formatCityLabel } from "@/lib/cultural-preferences";
+import { ArrowLeft, ArrowRight, Check, Film, MapPin, Music, PersonStanding, Theater, Sparkles } from "lucide-react";
 
-// All 25 Sri Lankan Districts
-const SRI_LANKAN_DISTRICTS = [
-  "Ampara",
-  "Anuradhapura",
-  "Badulla",
-  "Batticaloa",
-  "Colombo",
-  "Galle",
-  "Gampaha",
-  "Hambantota",
-  "Jaffna",
-  "Kalutara",
-  "Kandy",
-  "Kegalle",
-  "Kilinochchi",
-  "Kurunegala",
-  "Mannar",
-  "Matale",
-  "Matara",
-  "Monaragala",
-  "Mullaitivu",
-  "Nuwara Eliya",
-  "Polonnaruwa",
-  "Puttalam",
-  "Ratnapura",
-  "Trincomalee",
-  "Vavuniya",
-];
+const CATEGORY_UI: Record<string, { icon: React.ElementType; grad: string; glow: string }> = {
+  music: { icon: Music,          grad: "linear-gradient(135deg,#f59e0b,#ea580c)", glow: "rgba(245,158,11,0.35)" },
+  dance: { icon: PersonStanding, grad: "linear-gradient(135deg,#ec4899,#f43f5e)", glow: "rgba(236,72,153,0.35)" },
+  film:  { icon: Film,           grad: "linear-gradient(135deg,#10b981,#0d9488)", glow: "rgba(16,185,129,0.35)" },
+  drama: { icon: Theater,        grad: "linear-gradient(135deg,#6366f1,#4f46e5)", glow: "rgba(99,102,241,0.35)" },
+};
 
-// Cultural categories with sub-preferences
-const CULTURAL_CATEGORIES = [
-  {
-    id: "music",
-    name: "Music (සංගීතය)",
-    icon: Music,
-    color: "from-amber-500 to-orange-500",
-    examples: [
-      { id: "classical-music", name: "Classical (ශාස්ත්‍රීය)", image: "🎶" },
-      { id: "folk-music", name: "Folk Music (ජන ගී)", image: "🪕" },
-      { id: "sarala-gee", name: "Sarala Gee (සරල ගී)", image: "🎵" },
-      { id: "fusion-modern", name: "Fusion / Modern", image: "🎸" },
-      { id: "instrumental", name: "Instrumental", image: "🥁" },
-    ],
-  },
-  {
-    id: "drama",
-    name: "Drama (නාට්‍ය කලාව)",
-    icon: Theater,
-    color: "from-blue-500 to-indigo-500",
-    examples: [
-      { id: "stylized-drama", name: "Stylized (දෘශ්‍ය කාව්‍ය)", image: "🎭" },
-      { id: "realistic-drama", name: "Realistic (යථාර්ථවාදී)", image: "🎬" },
-      { id: "comedy-drama", name: "Comedy (හාස්‍ය)", image: "😂" },
-      { id: "street-drama", name: "Street Drama (වීදි නාට්‍ය)", image: "🎤" },
-    ],
-  },
-  {
-    id: "dance",
-    name: "Dance (නර්තනය)",
-    icon: PersonStanding,
-    color: "from-pink-500 to-rose-500",
-    examples: [
-      { id: "upcountry-dance", name: "Upcountry (උඩරට)", image: "💃" },
-      { id: "lowcountry-dance", name: "Low Country (පහතරට)", image: "👹" },
-      { id: "sabaragamuwa-dance", name: "Sabaragamuwa", image: "👯" },
-      { id: "contemporary-dance", name: "Contemporary (නව නර්තන)", image: "🩰" },
-    ],
-  },
-];
+const ONBOARD_CSS = `
+.ob-wrap{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
+  background:#07060A;background-image:
+    radial-gradient(60% 80% at 18% 28%,rgba(167,139,250,.45),transparent 62%),
+    radial-gradient(50% 70% at 82% 18%,rgba(240,166,248,.32),transparent 60%),
+    radial-gradient(70% 90% at 60% 95%,rgba(124,58,237,.40),transparent 70%),
+    linear-gradient(180deg,#1E1A2B 0%,#07060A 100%);}
+.ob-card{width:100%;max-width:480px;background:rgba(21,18,29,0.78);border:1px solid rgba(196,181,253,0.13);
+  border-radius:20px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  box-shadow:0 32px 80px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.06);}
+.ob-head{padding:28px 28px 20px;border-bottom:1px solid rgba(196,181,253,0.08);}
+.ob-logo{display:flex;align-items:center;gap:10px;margin-bottom:20px;}
+.ob-logo-dot{width:32px;height:32px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;}
+.ob-logo-mark{width:12px;height:12px;border-radius:50%;background:#07060a;}
+.ob-logo-name{font-size:14px;font-weight:600;color:#F5F3FA;letter-spacing:-0.02em;}
+.ob-title{font-size:20px;font-weight:700;color:#F5F3FA;letter-spacing:-0.03em;margin:0 0 4px;}
+.ob-sub{font-size:13px;color:#9B95B5;margin:0;}
+.ob-steps{display:flex;align-items:center;gap:0;padding:20px 28px;border-bottom:1px solid rgba(196,181,253,0.08);}
+.ob-step{display:flex;align-items:center;gap:6px;font-size:12px;color:#9B95B5;}
+.ob-step.active{color:#A78BFA;}
+.ob-step.done{color:#10b981;}
+.ob-step-num{width:24px;height:24px;border-radius:50%;border:1.5px solid rgba(196,181,253,0.18);
+  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;}
+.ob-step.active .ob-step-num{background:rgba(167,139,250,0.2);border-color:#A78BFA;color:#A78BFA;}
+.ob-step.done .ob-step-num{background:rgba(16,185,129,0.18);border-color:#10b981;color:#10b981;}
+.ob-step-line{flex:1;height:1px;background:rgba(196,181,253,0.10);margin:0 6px;}
+.ob-step-line.done{background:rgba(16,185,129,0.35);}
+.ob-body{padding:24px 28px;}
+.ob-icon-ring{width:56px;height:56px;border-radius:50%;background:rgba(167,139,250,0.12);border:1px solid rgba(167,139,250,0.2);
+  display:flex;align-items:center;justify-content:center;margin:0 auto 16px;}
+.ob-section-title{font-size:17px;font-weight:600;color:#F5F3FA;text-align:center;margin:0 0 4px;}
+.ob-section-sub{font-size:13px;color:#9B95B5;text-align:center;margin:0 0 20px;}
+.ob-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.ob-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.ob-chip{padding:10px 8px;border-radius:12px;border:1px solid rgba(196,181,253,0.12);background:rgba(255,255,255,0.03);
+  color:#9B95B5;font-size:12px;font-weight:500;cursor:pointer;transition:all .18s ease;text-align:center;}
+.ob-chip:hover{border-color:rgba(167,139,250,0.3);background:rgba(167,139,250,0.07);color:#C4B5FD;}
+.ob-chip.sel{border-color:#A78BFA;background:rgba(167,139,250,0.14);color:#F5F3FA;}
+.ob-cat-card{padding:16px 14px;border-radius:14px;border:1px solid rgba(196,181,253,0.10);background:rgba(255,255,255,0.02);
+  cursor:pointer;transition:all .2s ease;position:relative;text-align:left;}
+.ob-cat-card:hover{border-color:rgba(167,139,250,0.25);background:rgba(167,139,250,0.05);}
+.ob-cat-card.sel{border-color:rgba(167,139,250,0.5);background:rgba(167,139,250,0.10);}
+.ob-cat-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;}
+.ob-cat-name{font-size:13px;font-weight:600;color:#F5F3FA;}
+.ob-cat-check{position:absolute;top:10px;right:10px;width:18px;height:18px;border-radius:50%;
+  background:#A78BFA;display:flex;align-items:center;justify-content:center;}
+.ob-interest-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;
+  border:1px solid rgba(196,181,253,0.10);background:rgba(255,255,255,0.02);cursor:pointer;transition:all .18s ease;}
+.ob-interest-row:hover{border-color:rgba(167,139,250,0.25);background:rgba(167,139,250,0.06);}
+.ob-interest-row.sel{border-color:rgba(167,139,250,0.45);background:rgba(167,139,250,0.10);}
+.ob-interest-emoji{font-size:20px;line-height:1;flex-shrink:0;}
+.ob-interest-name{font-size:13px;color:#C4B5FD;font-weight:500;flex:1;}
+.ob-interest-check{width:16px;height:16px;border-radius:50%;background:#A78BFA;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ob-cat-label{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#9B95B5;margin:0 0 8px;}
+.ob-scroll{max-height:300px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;}
+.ob-scroll::-webkit-scrollbar{width:4px;}
+.ob-scroll::-webkit-scrollbar-track{background:transparent;}
+.ob-scroll::-webkit-scrollbar-thumb{background:rgba(167,139,250,0.25);border-radius:2px;}
+.ob-btn{width:100%;padding:13px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s ease;margin-top:20px;}
+.ob-btn-primary{background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;border:none;
+  box-shadow:0 4px 20px rgba(124,58,237,0.4);}
+.ob-btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 28px rgba(124,58,237,0.55);}
+.ob-btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+.ob-back{background:none;border:none;color:#9B95B5;cursor:pointer;display:flex;align-items:center;gap:4px;font-size:13px;padding:0;margin-bottom:16px;}
+.ob-back:hover{color:#C4B5FD;}
+.ob-error{padding:12px 14px;border-radius:10px;border:1px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.08);
+  color:#fca5a5;font-size:13px;margin-bottom:16px;}
+.ob-success-ring{width:72px;height:72px;border-radius:50%;background:rgba(16,185,129,0.12);border:1.5px solid rgba(16,185,129,0.35);
+  display:flex;align-items:center;justify-content:center;margin:0 auto 20px;}
+.ob-spinner{width:20px;height:20px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:ob-spin .7s linear infinite;}
+@keyframes ob-spin{to{transform:rotate(360deg);}}
+`;
 
 
 interface SignupFlowPreferencesProps {
@@ -91,365 +103,217 @@ export function SignupFlowPreferences({ onComplete }: SignupFlowPreferencesProps
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const toggleCategory = (categoryId: string) => {
-    setSelectedCategories((prev) =>
-      prev.includes(categoryId)
-        ? prev.filter((id) => id !== categoryId)
-        : [...prev, categoryId]
-    );
-  };
+  const toggleCategory = (id: string) =>
+    setSelectedCategories((p) => p.includes(id) ? p.filter((x) => x !== id) : [...p, id]);
 
-  const toggleExample = (exampleId: string) => {
-    setSelectedExamples((prev) =>
-      prev.includes(exampleId)
-        ? prev.filter((id) => id !== exampleId)
-        : [...prev, exampleId]
-    );
-  };
+  const toggleExample = (id: string) =>
+    setSelectedExamples((p) => p.includes(id) ? p.filter((x) => x !== id) : [...p, id]);
 
   const handleComplete = async () => {
     setIsSubmitting(true);
     setError(null);
-    
     try {
-      // First update user profile with city (this updates User table)
-      const profileResult = await updateUserProfile({
-        city: selectedCity,
-      });
-
-      if (!profileResult.success) {
-        console.error("Failed to update profile:", profileResult.error);
-        setError(profileResult.error || "Failed to save profile");
-      }
-
-      // Then save cultural preferences (this updates UserPreference table)
-      const prefsResult = await saveUserPreferences({
-        city: selectedCity,
-        categories: selectedCategories,
-        interests: selectedExamples,
-      });
-
-      if (prefsResult.success) {
-        console.log("All data saved successfully!");
-        setCurrentStep("complete");
-        setTimeout(() => {
-          onComplete?.();
-          router.push("/");
-        }, 2000);
-      } else {
-        console.error("Failed to save preferences:", prefsResult.error);
-        // Still complete the flow even if preferences fail to save
-        setCurrentStep("complete");
-        setTimeout(() => {
-          onComplete?.();
-          router.push("/");
-        }, 2000);
-      }
-    } catch (error: any) {
-      console.error("Failed to save data:", error);
-      setError(error.message || "Failed to save preferences");
-      // Still complete the flow even if saving fails
+      const profileResult = await updateUserProfile({ city: selectedCity });
+      if (!profileResult.success) throw new Error(profileResult.error || "Could not save location.");
+      const prefsResult = await saveUserPreferences({ city: selectedCity, categories: selectedCategories, interests: selectedExamples });
+      if (!prefsResult.success) throw new Error(prefsResult.error || "Could not save preferences.");
       setCurrentStep("complete");
-      setTimeout(() => {
-        onComplete?.();
-        router.push("/");
-      }, 2000);
+      setTimeout(() => { onComplete?.(); router.push("/"); }, 2200);
+    } catch (e: any) {
+      setError(e.message || "Something went wrong. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const getStepNumber = () => {
-    switch (currentStep) {
-      case "location": return 1;
-      case "categories": return 2;
-      case "examples": return 3;
-      case "complete": return 4;
-      default: return 1;
-    }
-  };
+  const stepIndex = { location: 0, categories: 1, examples: 2, complete: 3 }[currentStep];
 
-  const renderProgressBar = () => {
-    const steps = ["Location", "Interests", "Preferences"];
-    const currentIndex = getStepNumber() - 1;
-
-    return (
-      <div className="px-6 pt-4">
-        <div className="flex items-center justify-between mb-2">
-          {steps.map((step, index) => (
-            <div key={step} className="flex items-center">
-              <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all ${
-                  index <= currentIndex
-                    ? "bg-violet-600 text-white"
-                    : "bg-zinc-200 dark:bg-zinc-700 text-zinc-500"
-                }`}
-              >
-                {index < currentIndex ? <Check size={16} /> : index + 1}
-              </div>
-              {index < steps.length - 1 && (
-                <div
-                  className={`w-16 sm:w-24 h-1 mx-2 rounded transition-all ${
-                    index < currentIndex
-                      ? "bg-violet-600"
-                      : "bg-zinc-200 dark:bg-zinc-700"
-                  }`}
-                />
-              )}
-            </div>
-          ))}
-        </div>
-        <div className="flex justify-between text-xs text-zinc-500">
-          {steps.map((step) => (
-            <span key={step}>{step}</span>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
-  // Step 1: Location Selection
-  if (currentStep === "location") {
-    return (
-      <div className="w-full">
-        <div className="flex items-center p-6 border-b dark:border-zinc-800">
-          <h2 className="text-xl font-bold bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
-            Complete Your Profile
-          </h2>
-        </div>
-
-        {renderProgressBar()}
-
-        <div className="p-6 space-y-4">
-          <div className="text-center space-y-2">
-            <div className="w-16 h-16 bg-violet-100 dark:bg-violet-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-              <MapPin className="w-8 h-8 text-violet-600" />
-            </div>
-            <h3 className="text-lg font-medium dark:text-white">Where are you located?</h3>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              We'll show you cultural events near you
-            </p>
+  const Steps = () => (
+    <div className="ob-steps">
+      {["Location", "Interests", "Preferences"].map((label, i) => (
+        <div key={label} style={{ display: "contents" }}>
+          <div className={`ob-step ${i < stepIndex ? "done" : i === stepIndex ? "active" : ""}`}>
+            <span className="ob-step-num">
+              {i < stepIndex ? <Check size={12} /> : i + 1}
+            </span>
+            <span>{label}</span>
           </div>
+          {i < 2 && <div className={`ob-step-line ${i < stepIndex ? "done" : ""}`} />}
+        </div>
+      ))}
+    </div>
+  );
 
-          {error && (
-            <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-600 dark:text-red-400 text-sm">
-              {error}
-            </div>
-          )}
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-72 overflow-y-auto pr-2 scrollbar-thin">
-            {SRI_LANKAN_DISTRICTS.map((district) => (
-              <button
-                key={district}
-                onClick={() => setSelectedCity(district)}
-                className={`px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-                  selectedCity === district
-                    ? "bg-violet-600 text-white shadow-lg shadow-violet-500/30"
-                    : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700"
-                }`}
-              >
-                {district}
+  // ── Step 1: Location ──
+  if (currentStep === "location") return (
+    <div className="ob-wrap">
+      <style dangerouslySetInnerHTML={{ __html: ONBOARD_CSS }} />
+      <div className="ob-card">
+        <div className="ob-head">
+          <div className="ob-logo">
+            <div className="ob-logo-dot"><div className="ob-logo-mark" /></div>
+            <span className="ob-logo-name">Rasaswadaya</span>
+          </div>
+          <h1 className="ob-title">Set up your profile</h1>
+          <p className="ob-sub">Personalise your experience in 3 quick steps</p>
+        </div>
+        <Steps />
+        <div className="ob-body">
+          <div className="ob-icon-ring">
+            <MapPin size={24} color="#A78BFA" />
+          </div>
+          <p className="ob-section-title">Where are you based?</p>
+          <p className="ob-section-sub">We'll show you cultural events closest to you</p>
+          {error && <div className="ob-error">{error}</div>}
+          <div className="ob-grid-3" style={{ maxHeight: 280, overflowY: "auto" }}>
+            {SRI_LANKAN_DISTRICTS.map((d) => (
+              <button key={d.id} className={`ob-chip ${selectedCity === d.id ? "sel" : ""}`}
+                onClick={() => setSelectedCity(d.id)}>
+                {d.name}
               </button>
             ))}
           </div>
-
-          <p className="text-xs text-center text-zinc-400 dark:text-zinc-500 mt-1">
-            Scroll to see all 25 districts
-          </p>
-
-          <button
-            onClick={() => setCurrentStep("categories")}
-            disabled={!selectedCity}
-            className="w-full py-3 px-4 bg-violet-600 hover:bg-violet-700 disabled:bg-zinc-300 disabled:cursor-not-allowed text-white font-medium rounded-xl transition-colors flex items-center justify-center gap-2 mt-4"
-          >
-            Continue <ArrowRight size={18} />
+          <button className="ob-btn ob-btn-primary" disabled={!selectedCity}
+            onClick={() => setCurrentStep("categories")}>
+            Continue <ArrowRight size={16} />
           </button>
         </div>
       </div>
-    );
-  }
+    </div>
+  );
 
-  // Step 2: Category Selection
-  if (currentStep === "categories") {
-    return (
-      <div className="w-full">
-        <div className="flex items-center p-6 border-b dark:border-zinc-800">
-          <button onClick={() => setCurrentStep("location")} className="mr-3 text-zinc-500 hover:text-zinc-700">
-            <ArrowLeft size={20} />
-          </button>
-          <h2 className="text-xl font-bold bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
-            Your Interests
-          </h2>
-        </div>
-
-        {renderProgressBar()}
-
-        <div className="p-6 space-y-4">
-          <div className="text-center space-y-2">
-            <h3 className="text-lg font-medium dark:text-white">What interests you?</h3>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              Select the cultural categories you'd like to explore
-            </p>
+  // ── Step 2: Categories ──
+  if (currentStep === "categories") return (
+    <div className="ob-wrap">
+      <style dangerouslySetInnerHTML={{ __html: ONBOARD_CSS }} />
+      <div className="ob-card">
+        <div className="ob-head">
+          <div className="ob-logo">
+            <div className="ob-logo-dot"><div className="ob-logo-mark" /></div>
+            <span className="ob-logo-name">Rasaswadaya</span>
           </div>
-
-          <div className="grid grid-cols-2 gap-3 max-h-80 overflow-y-auto">
-            {CULTURAL_CATEGORIES.map((category) => {
-              const Icon = category.icon;
-              const isSelected = selectedCategories.includes(category.id);
+          <h1 className="ob-title">What moves you?</h1>
+          <p className="ob-sub">Pick the art forms you love</p>
+        </div>
+        <Steps />
+        <div className="ob-body">
+          <button className="ob-back" onClick={() => setCurrentStep("location")}>
+            <ArrowLeft size={14} /> Back
+          </button>
+          <p className="ob-section-title">Choose your interests</p>
+          <p className="ob-section-sub">Select all that resonate with you</p>
+          <div className="ob-grid-2">
+            {CULTURAL_CATEGORIES.map((cat) => {
+              const { icon: Icon, grad, glow } = CATEGORY_UI[cat.id] ?? CATEGORY_UI.music;
+              const sel = selectedCategories.includes(cat.id);
               return (
-                <button
-                  key={category.id}
-                  onClick={() => toggleCategory(category.id)}
-                  className={`p-4 rounded-xl border-2 transition-all text-left relative ${
-                    isSelected
-                      ? "border-violet-500 bg-violet-50 dark:bg-violet-900/20"
-                      : "border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600"
-                  }`}
-                >
-                  <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${category.color} flex items-center justify-center mb-2`}>
-                    <Icon className="w-5 h-5 text-white" />
+                <button key={cat.id} className={`ob-cat-card ${sel ? "sel" : ""}`}
+                  onClick={() => toggleCategory(cat.id)}>
+                  <div className="ob-cat-icon"
+                    style={{ background: grad, boxShadow: sel ? `0 4px 16px ${glow}` : "none" }}>
+                    <Icon size={20} color="#fff" />
                   </div>
-                  <h4 className="font-medium text-sm dark:text-white">{category.name}</h4>
-                  {isSelected && (
-                    <div className="absolute top-2 right-2 w-5 h-5 bg-violet-600 rounded-full flex items-center justify-center">
-                      <Check size={12} className="text-white" />
+                  <div className="ob-cat-name">{cat.name}</div>
+                  {sel && (
+                    <div className="ob-cat-check">
+                      <Check size={10} color="#fff" />
                     </div>
                   )}
                 </button>
               );
             })}
           </div>
-
-          <button
-            onClick={() => setCurrentStep("examples")}
-            disabled={selectedCategories.length === 0}
-            className="w-full py-3 px-4 bg-violet-600 hover:bg-violet-700 disabled:bg-zinc-300 disabled:cursor-not-allowed text-white font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
-          >
-            Continue <ArrowRight size={18} />
+          <button className="ob-btn ob-btn-primary" disabled={selectedCategories.length === 0}
+            onClick={() => setCurrentStep("examples")}>
+            Continue <ArrowRight size={16} />
           </button>
         </div>
       </div>
-    );
-  }
+    </div>
+  );
 
-  // Step 3: Example Selection
+  // ── Step 3: Specific preferences ──
   if (currentStep === "examples") {
-    const selectedCategoryData = CULTURAL_CATEGORIES.filter((c) =>
-      selectedCategories.includes(c.id)
-    );
-
+    const selectedCats = CULTURAL_CATEGORIES.filter((c) => selectedCategories.includes(c.id));
     return (
-      <div className="w-full">
-        <div className="flex items-center p-6 border-b dark:border-zinc-800">
-          <button onClick={() => setCurrentStep("categories")} className="mr-3 text-zinc-500 hover:text-zinc-700">
-            <ArrowLeft size={20} />
-          </button>
-          <h2 className="text-xl font-bold bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
-            Your Preferences
-          </h2>
-        </div>
-
-        {renderProgressBar()}
-
-        <div className="p-6 space-y-4">
-          <div className="text-center space-y-2">
-            <h3 className="text-lg font-medium dark:text-white">Pick specific interests</h3>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              Select the events and art forms you'd like to see
-            </p>
+      <div className="ob-wrap">
+        <style dangerouslySetInnerHTML={{ __html: ONBOARD_CSS }} />
+        <div className="ob-card">
+          <div className="ob-head">
+            <div className="ob-logo">
+              <div className="ob-logo-dot"><div className="ob-logo-mark" /></div>
+              <span className="ob-logo-name">Rasaswadaya</span>
+            </div>
+            <h1 className="ob-title">Fine-tune your taste</h1>
+            <p className="ob-sub">Pick specific styles for better AI recommendations</p>
           </div>
-
-          <div className="space-y-4 max-h-80 overflow-y-auto">
-            {selectedCategoryData.map((category) => (
-              <div key={category.id}>
-                <h4 className="font-medium text-sm text-zinc-600 dark:text-zinc-400 mb-2">
-                  {category.name}
-                </h4>
-                <div className="grid grid-cols-2 gap-2">
-                  {category.examples.map((example) => {
-                    const isSelected = selectedExamples.includes(example.id);
-                    return (
-                      <button
-                        key={example.id}
-                        onClick={() => toggleExample(example.id)}
-                        className={`p-3 rounded-xl border transition-all flex items-center gap-3 ${
-                          isSelected
-                            ? "border-violet-500 bg-violet-50 dark:bg-violet-900/20"
-                            : "border-zinc-200 dark:border-zinc-700 hover:border-zinc-300"
-                        }`}
-                      >
-                        <span className="text-2xl">{example.image}</span>
-                        <span className="text-sm font-medium dark:text-white text-left">
-                          {example.name}
-                        </span>
-                        {isSelected && (
-                          <Check size={16} className="text-violet-600 ml-auto" />
-                        )}
-                      </button>
-                    );
-                  })}
+          <Steps />
+          <div className="ob-body">
+            <button className="ob-back" onClick={() => setCurrentStep("categories")}>
+              <ArrowLeft size={14} /> Back
+            </button>
+            {error && <div className="ob-error">{error}</div>}
+            <div className="ob-scroll">
+              {selectedCats.map((cat) => (
+                <div key={cat.id} style={{ marginBottom: 16 }}>
+                  <p className="ob-cat-label">{cat.name}</p>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    {cat.examples.map((ex) => {
+                      const sel = selectedExamples.includes(ex.id);
+                      return (
+                        <button key={ex.id} className={`ob-interest-row ${sel ? "sel" : ""}`}
+                          onClick={() => toggleExample(ex.id)}>
+                          <span className="ob-interest-emoji">{ex.image}</span>
+                          <span className="ob-interest-name">{ex.name}</span>
+                          {sel && <div className="ob-interest-check"><Check size={9} color="#fff" /></div>}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+            <button className="ob-btn ob-btn-primary" disabled={isSubmitting} onClick={handleComplete}>
+              {isSubmitting
+                ? <><div className="ob-spinner" /> Saving…</>
+                : <><Sparkles size={16} /> Complete setup</>}
+            </button>
           </div>
-
-          <button
-            onClick={handleComplete}
-            disabled={isSubmitting}
-            className="w-full py-3 px-4 bg-violet-600 hover:bg-violet-700 disabled:bg-violet-400 text-white font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
-          >
-            {isSubmitting ? (
-              <>
-                <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
-                Saving...
-              </>
-            ) : (
-              <>
-                Complete Setup <Check size={18} />
-              </>
-            )}
-          </button>
         </div>
       </div>
     );
   }
 
-  // Step 4: Complete
-  if (currentStep === "complete") {
-    return (
-      <div className="w-full p-6">
-        <div className="text-center space-y-4 py-8">
-          <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto">
-            <Check className="w-10 h-10 text-green-600" />
+  // ── Step 4: Done ──
+  return (
+    <div className="ob-wrap">
+      <style dangerouslySetInnerHTML={{ __html: ONBOARD_CSS }} />
+      <div className="ob-card">
+        <div className="ob-body" style={{ padding: "48px 28px", textAlign: "center" }}>
+          <div className="ob-success-ring">
+            <Check size={32} color="#10b981" />
           </div>
-          <h2 className="text-2xl font-bold dark:text-white">Welcome to Rasaswadaya!</h2>
-          <p className="text-zinc-500 dark:text-zinc-400">
-            Your profile is complete. Discover amazing cultural events in {selectedCity}!
+          <h2 className="ob-title" style={{ textAlign: "center", fontSize: 22 }}>You're all set!</h2>
+          <p className="ob-sub" style={{ marginTop: 8, marginBottom: 20 }}>
+            Discovering cultural events near {formatCityLabel(selectedCity)} for you…
           </p>
-          <div className="flex flex-wrap justify-center gap-2 mt-4">
-            {selectedCategories.slice(0, 3).map((catId) => {
-              const cat = CULTURAL_CATEGORIES.find((c) => c.id === catId);
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center" }}>
+            {selectedCategories.map((cid) => {
+              const cat = CULTURAL_CATEGORIES.find((c) => c.id === cid);
               return cat ? (
-                <span
-                  key={catId}
-                  className="px-3 py-1 bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 rounded-full text-sm"
-                >
-                  {cat.name}
-                </span>
+                <span key={cid} style={{
+                  padding: "4px 14px", borderRadius: 999,
+                  background: "rgba(167,139,250,0.15)", border: "1px solid rgba(167,139,250,0.3)",
+                  color: "#C4B5FD", fontSize: 12, fontWeight: 600,
+                }}>{cat.name}</span>
               ) : null;
             })}
           </div>
-          <button
-            onClick={() => router.push("/")}
-            className="mt-6 px-6 py-3 bg-violet-600 hover:bg-violet-700 text-white font-medium rounded-xl transition-colors inline-flex items-center gap-2"
-          >
-            Go to Home <ArrowRight size={18} />
-          </button>
-          <p className="text-xs text-zinc-400 mt-2">Redirecting automatically...</p>
+          <p style={{ fontSize: 12, color: "#9B95B5", marginTop: 24 }}>Redirecting to home…</p>
         </div>
       </div>
-    );
-  }
-
-  return null;
+    </div>
+  );
 }
+
+

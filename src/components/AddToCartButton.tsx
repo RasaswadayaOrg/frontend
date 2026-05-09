@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { AlertCircle, Check, ShoppingBag, X } from "lucide-react";
+import { AlertCircle, Check, ShoppingBag } from "lucide-react";
 import { MouseEvent, useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
@@ -18,7 +18,7 @@ type Product = {
 interface AddToCartButtonProps {
   product: Product;
   quantity?: number;
-  variant?: "icon" | "full" | "ecommerce";
+  variant?: "icon" | "full" | "ecommerce" | "hp2";
 }
 
 export function AddToCartButton({ product, quantity = 1, variant = "icon" }: AddToCartButtonProps) {
@@ -27,7 +27,6 @@ export function AddToCartButton({ product, quantity = 1, variant = "icon" }: Add
   const { addToCart, items } = useCart();
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState<"idle" | "success" | "error">("idle");
-  const [showConfirmation, setShowConfirmation] = useState(false);
 
   useEffect(() => {
     if (feedback !== "error") return;
@@ -60,35 +59,17 @@ export function AddToCartButton({ product, quantity = 1, variant = "icon" }: Add
     setFeedback("idle");
 
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
-      const token = typeof window !== "undefined" ? localStorage.getItem("rasas_token") : null;
-
-      const res = await fetch(`${API_URL}/cart`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({ productId: product.id, quantity }),
-      });
-
-      const data = await res.json().catch(() => ({}));
-
-      if (!res.ok) {
-        console.error("Add to cart failed", data);
+      const ok = await addToCart(product, quantity);
+      if (!ok) {
         setFeedback("error");
-        setLoading(false);
         return;
       }
-
       setFeedback("success");
-      setShowConfirmation(true);
     } catch (err) {
       console.error("Add to cart error", err);
       setFeedback("error");
     } finally {
       setLoading(false);
-      // Reset status after short timeout so button returns to normal
       setTimeout(() => setFeedback("idle"), 1800);
     }
   };
@@ -99,72 +80,68 @@ export function AddToCartButton({ product, quantity = 1, variant = "icon" }: Add
       ? "Add Another"
       : "Add to Cart";
 
-  const confirmationPanel = showConfirmation && feedback === "success" ? (
-    <div
-      aria-live="polite"
-      className="fixed bottom-6 right-6 z-50 w-[min(94vw,420px)] rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 shadow-xl"
-    >
-      <div className="px-5 py-4 border-b border-slate-200 dark:border-zinc-800 flex items-center justify-between">
-        <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300">
-          <Check className="w-4 h-4" />
-          <p className="text-sm font-semibold">Added to Cart</p>
-        </div>
-        <button
-          aria-label="Close confirmation"
-          onClick={() => setShowConfirmation(false)}
-          className="p-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors"
-        >
-          <X className="w-4 h-4" />
-        </button>
-      </div>
 
-      <div className="px-5 py-4 flex gap-4">
-        <img
-          src={product.imageUrl}
-          alt={product.name}
-          className="w-16 h-16 rounded-xl object-cover bg-slate-100 dark:bg-zinc-800"
-        />
-        <div className="min-w-0 flex-1 space-y-2">
-          <p className="text-[15px] font-semibold text-slate-900 dark:text-white leading-snug line-clamp-2">{product.name}</p>
-          <div className="grid grid-cols-3 gap-2 text-xs">
-            <div className="rounded-lg bg-slate-50 dark:bg-zinc-800 px-2.5 py-2">
-              <p className="text-slate-500 dark:text-zinc-400">Added</p>
-              <p className="font-semibold text-slate-900 dark:text-white">{quantity}</p>
-            </div>
-            <div className="rounded-lg bg-slate-50 dark:bg-zinc-800 px-2.5 py-2">
-              <p className="text-slate-500 dark:text-zinc-400">Price</p>
-              <p className="font-semibold text-slate-900 dark:text-white">Rs. {Number(product.price || 0).toLocaleString()}</p>
-            </div>
-            <div className="rounded-lg bg-slate-50 dark:bg-zinc-800 px-2.5 py-2">
-              <p className="text-slate-500 dark:text-zinc-400">In Cart</p>
-              <p className="font-semibold text-slate-900 dark:text-white">{inCartQuantity}</p>
-            </div>
+  if (variant === "hp2") {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <button
+          className="hp2-btn hp2-btn--ghost"
+          style={{
+            width: "100%",
+            gap: 8,
+            opacity: loading ? 0.6 : 1,
+            cursor: loading ? "not-allowed" : "pointer",
+            ...(feedback === "success" ? { borderColor: "rgba(134,239,172,0.5)", color: "#86EFAC" } : {}),
+          }}
+          onClick={handleAddToCart}
+          disabled={loading}
+          aria-label="Add to cart"
+        >
+          {feedback === "success" ? <Check size={16} /> : <ShoppingBag size={16} />}
+          {label}
+        </button>
+
+        <button
+          className="hp2-btn hp2-btn--accent"
+          style={{
+            width: "100%",
+            gap: 8,
+            opacity: loading ? 0.6 : 1,
+            cursor: loading ? "not-allowed" : "pointer",
+          }}
+          onClick={async (e) => {
+            if (!loading && inCartQuantity === 0) {
+              await handleAddToCart(e);
+            }
+            if (typeof window !== "undefined") window.location.href = "/checkout";
+          }}
+          disabled={loading}
+        >
+          Buy It Now
+        </button>
+
+        {feedback === "error" && (
+          <div
+            aria-live="polite"
+            style={{
+              position: "fixed", bottom: 20, right: 20, zIndex: 9999,
+              width: "min(92vw, 340px)",
+              background: "#1E1A2B",
+              border: "1px solid rgba(251,113,133,0.3)",
+              borderRadius: 16,
+              padding: "14px 18px",
+              display: "flex", alignItems: "center", gap: 10,
+              color: "#FCA5A5",
+              fontSize: 13,
+            }}
+          >
+            <AlertCircle size={16} style={{ flexShrink: 0 }} />
+            <span>Could not add to cart. Please try again.</span>
           </div>
-        </div>
+        )}
       </div>
-
-      <div className="px-5 pb-5 pt-1 flex items-center gap-2">
-        <button
-          onClick={() => setShowConfirmation(false)}
-          className="px-3.5 py-2.5 rounded-lg border border-slate-200 dark:border-zinc-700 text-sm font-medium hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors"
-        >
-          Continue shopping
-        </button>
-        <button
-          onClick={() => { setShowConfirmation(false); router.push("/cart"); }}
-          className="px-3.5 py-2.5 rounded-lg border border-brand-300 dark:border-brand-800 text-brand-700 dark:text-brand-300 text-sm font-medium hover:bg-brand-50 dark:hover:bg-brand-900/30 transition-colors"
-        >
-          View cart
-        </button>
-        <button
-          onClick={() => { setShowConfirmation(false); router.push("/checkout"); }}
-          className="ml-auto px-3.5 py-2.5 rounded-lg bg-brand-600 text-white text-sm font-semibold hover:bg-brand-700 transition-colors"
-        >
-          Checkout
-        </button>
-      </div>
-    </div>
-  ) : null;
+    );
+  }
 
   if (variant === "ecommerce") {
     return (
@@ -195,7 +172,6 @@ export function AddToCartButton({ product, quantity = 1, variant = "icon" }: Add
         >
           Buy It Now
         </button>
-        {confirmationPanel}
         {feedback === "error" && (
           <div
             aria-live="polite"
@@ -225,8 +201,6 @@ export function AddToCartButton({ product, quantity = 1, variant = "icon" }: Add
           {feedback === "success" ? <Check className="w-5 h-5" /> : <ShoppingBag className={`w-5 h-5 ${loading ? "animate-pulse" : ""}`} />}
           {label}
         </button>
-
-        {confirmationPanel}
 
         {feedback === "error" && (
           <div
@@ -265,8 +239,6 @@ export function AddToCartButton({ product, quantity = 1, variant = "icon" }: Add
           {inCartQuantity}
         </span>
       )}
-
-      {confirmationPanel}
 
       {feedback === "error" && (
         <div

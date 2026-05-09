@@ -3,8 +3,9 @@ import { getSession } from "@/lib/auth";
 import Link from "next/link";
 import { Plus, Calendar } from "lucide-react";
 import { redirect } from "next/navigation";
+import { buildSlug } from "@/lib/slug";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
 export default async function OrganizerDashboard() {
   const session = await getSession();
@@ -57,7 +58,7 @@ export default async function OrganizerDashboard() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {events.map((event) => (
-            <Link key={event.id} href={`/events/${event.id}`}>
+            <Link key={event.id} href={`/events/${buildSlug(event.id, event.title)}`}>
               <div className="bg-white dark:bg-zinc-900 rounded-xl border border-slate-200 dark:border-zinc-800 overflow-hidden hover:border-brand-500 transition-colors group">
                 <div className="aspect-video relative overflow-hidden bg-slate-100 dark:bg-zinc-800">
                   <img

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Plus, MapPin, Calendar, Users, Eye, Edit3, Trash2 } from "lucide-react";
 import { getOrganizerEvents } from "@/app/actions/event";
+import { buildSlug } from "@/lib/slug";
 
 export const dynamic = "force-dynamic";
 
@@ -138,7 +139,7 @@ export default async function EventsPage() {
                     {/* Actions */}
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                       <Link
-                        href={`/events/${event.id}`}
+                        href={`/events/${buildSlug(event.id, event.title)}`}
                         className="p-2 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
                         title="View public page"
                       >

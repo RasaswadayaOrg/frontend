@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ImageWithFallback } from "./ImageWithFallback";
+import { buildSlug } from "../lib/slug";
 
 interface Performance {
     id: string;
@@ -33,7 +34,7 @@ export function ArtistPerformancesList({ events = [] }: { events?: Performance[]
             {new Date(performance.eventDate).toLocaleDateString()}
           </p>
           <Link 
-            href={`/events/${performance.id}`}
+            href={`/events/${buildSlug(performance.id, performance.title)}`}
             className="text-sm font-medium text-brand-600 hover:underline"
           >
             Get Tickets

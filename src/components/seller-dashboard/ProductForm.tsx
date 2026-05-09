@@ -88,7 +88,7 @@ export function ProductForm({ initial, mode }: Props) {
   };
 
   const inputClass =
-    "w-full bg-neutral-50 dark:bg-zinc-800/50 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-violet-300 dark:focus:border-violet-700 transition-colors";
+    "w-full bg-neutral-50 dark:bg-zinc-800/50 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-brand-300 dark:focus:border-brand-700 transition-colors";
 
   return (
     <form
@@ -197,7 +197,7 @@ export function ProductForm({ initial, mode }: Props) {
         <button
           type="submit"
           disabled={saving}
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-violet-600 hover:bg-violet-700 disabled:opacity-60 text-white rounded-xl text-sm font-semibold transition-all duration-200 hover:shadow-lg hover:shadow-violet-200/40 dark:hover:shadow-none active:scale-[0.98]"
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 hover:bg-brand-700 disabled:opacity-60 text-white rounded-xl text-sm font-semibold transition-all duration-200 hover:shadow-lg hover:shadow-brand-200/40 dark:hover:shadow-none active:scale-[0.98]"
         >
           <Save className="w-4 h-4" /> {saving ? "Saving…" : mode === "create" ? "Create Product" : "Save Changes"}
         </button>

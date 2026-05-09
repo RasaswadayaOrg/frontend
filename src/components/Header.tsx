@@ -9,19 +9,22 @@ import { useCart } from "@/context/CartContext";
 import { useState, useEffect, useRef } from "react";
 import { getSearchSuggestions, type SearchSuggestionsResult } from "@/app/actions/search";
 import { ImageWithFallback } from "./ImageWithFallback";
+import { ThemeToggle } from "./ThemeToggle";
 
 export function Header() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { replace } = useRouter();
-  const { user, openAuthModal } = useAuth();
+  const { user, openAuthModal, logout } = useAuth();
   const { itemCount } = useCart();
   
   const [term, setTerm] = useState("");
   const [suggestions, setSuggestions] = useState<SearchSuggestionsResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
 
   // Handle outside click to close suggestions
   useEffect(() => {
@@ -33,6 +36,43 @@ export function Header() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+
+    const focusableSelector = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+    const focusable = Array.from(
+      mobileMenuRef.current?.querySelectorAll<HTMLElement>(focusableSelector) || []
+    );
+    focusable[0]?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setMobileMenuOpen(false);
+        return;
+      }
+      if (event.key !== "Tab" || focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "";
+    };
+  }, [mobileMenuOpen]);
 
   // Debounced search for suggestions
   useEffect(() => {
@@ -65,6 +105,11 @@ export function Header() {
     }
   }
 
+  const handleMobileSearch = (e: React.FormEvent) => {
+    handleSearch(e);
+    setMobileMenuOpen(false);
+  };
+
   const handleSuggestionClick = () => {
     setShowSuggestions(false);
     setTerm(""); 
@@ -76,6 +121,25 @@ export function Header() {
     suggestions.products.length > 0 || 
     suggestions.academies.length > 0
   );
+
+  const navLinks = [
+    { href: "/songs", label: "Songs" },
+    { href: "/events", label: "Events" },
+    { href: "/artists", label: "Artists" },
+    { href: "/academies", label: "Academies" },
+    { href: "/marketplace", label: "Marketplace" },
+    { href: "/about", label: "About" },
+  ];
+
+  const userRole = user?.role?.toUpperCase();
+  const roleDashboardHref =
+    userRole === "ARTIST"
+      ? "/artist-dashboard"
+      : userRole === "ORGANIZER"
+        ? "/organizer-dashboard"
+        : userRole === "STORE_OWNER"
+          ? "/seller-dashboard"
+          : null;
 
   return (
     <header className="sticky top-0 z-50 w-full">
@@ -113,6 +177,7 @@ export function Header() {
                 {!isLoading && term && (
                   <button 
                     type="button"
+                    aria-label="Clear search"
                     onClick={() => { setTerm(""); setSuggestions(null); }}
                     className="absolute right-3 top-2.5 text-brand-400 hover:text-brand-600"
                   >
@@ -262,7 +327,7 @@ export function Header() {
                     Switch to Store Owner Mode
                   </Link>
                 )}
-                <Link href="/cart" className="relative p-2 hover:bg-brand-500 rounded-full transition-colors flex items-center justify-center">
+                <Link href="/cart" className="relative p-2 hover:bg-brand-500 rounded-full transition-colors flex items-center justify-center" aria-label="Shopping cart">
                   <ShoppingBag className="w-5 h-5 text-white" />
                   {itemCount > 0 && (
                     <span className="absolute top-0 right-0 -mr-1 -mt-0 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
@@ -273,24 +338,35 @@ export function Header() {
                 <Link href="/orders" className="p-2 hover:bg-brand-500 rounded-full transition-colors flex items-center justify-center" aria-label="My Orders">
                   <Package className="w-5 h-5 text-white" />
                 </Link>
-                <button className="p-2 hover:bg-brand-500 rounded-full transition-colors">
+                <button className="p-2 hover:bg-brand-500 rounded-full transition-colors" aria-label="Notifications">
                   <Bell className="w-5 h-5 text-white" />
                 </button>
+                <ThemeToggle />
                 <Link href="/profile" className="flex items-center gap-2 pl-2 pr-4 py-1.5 bg-brand-700/50 hover:bg-brand-500 rounded-full transition-colors">
                   <User className="w-4 h-4 text-white" />
                   <span className="text-white font-medium text-xs hidden sm:block">{user.name.split(' ')[0]}</span>
                 </Link>
               </>
             ) : (
-              <button 
-                onClick={openAuthModal}
-                className="flex items-center gap-2 px-4 py-1.5 bg-white text-brand-700 hover:bg-brand-50 rounded-full font-medium transition-colors text-xs"
-              >
-                <LogIn className="w-4 h-4" />
-                Sign Up / Login
-              </button>
+              <>
+                <button 
+                  onClick={openAuthModal}
+                  className="flex items-center gap-2 px-4 py-1.5 bg-white text-brand-700 hover:bg-brand-50 rounded-full font-medium transition-colors text-xs"
+                >
+                  <LogIn className="w-4 h-4" />
+                  Sign Up / Login
+                </button>
+                <ThemeToggle />
+              </>
             )}
-            <button className="md:hidden p-2 hover:bg-brand-500 rounded-full transition-colors">
+            <button
+              type="button"
+              aria-label="Open navigation menu"
+              aria-expanded={mobileMenuOpen}
+              aria-controls="mobile-menu"
+              onClick={() => setMobileMenuOpen(true)}
+              className="md:hidden p-2 hover:bg-brand-500 rounded-full transition-colors"
+            >
               <Menu className="w-5 h-5 text-white" />
             </button>
           </div>
@@ -300,12 +376,11 @@ export function Header() {
       {/* Tier 2: Primary Nav */}
       <nav className="w-full bg-brand-700 text-white shadow-lg shadow-brand-900/20 hidden md:block">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-12 flex items-center gap-8 font-ui font-medium text-sm">
-          <Link href="/songs" className="hover:text-white/80 transition-colors">Songs</Link>
-          <Link href="/events" className="hover:text-white/80 transition-colors">Events</Link>
-          <Link href="/artists" className="hover:text-white/80 transition-colors">Artists</Link>
-          <Link href="/academies" className="hover:text-white/80 transition-colors">Academies</Link>
-          <Link href="/marketplace" className="hover:text-white/80 transition-colors">Marketplace</Link>
-          <Link href="/about" className="hover:text-white/80 transition-colors">About</Link>
+          {navLinks.map((link) => (
+            <Link key={link.href} href={link.href} className="hover:text-white/80 transition-colors">
+              {link.label}
+            </Link>
+          ))}
 {/*           
           {user && (user.role === 'ARTIST' || user.role === 'artist') && (
             <Link 
@@ -328,6 +403,124 @@ export function Header() {
           )} */}
         </div>
       </nav>
+
+      {mobileMenuOpen && (
+        <div
+          id="mobile-menu"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Navigation menu"
+          className="fixed inset-0 z-[60] md:hidden"
+        >
+          <div className="absolute inset-0 bg-black/50" onClick={() => setMobileMenuOpen(false)} />
+          <div
+            ref={mobileMenuRef}
+            className="absolute right-0 top-0 flex h-full w-[min(22rem,calc(100vw-2rem))] flex-col overflow-y-auto bg-white p-5 shadow-2xl dark:bg-zinc-950"
+          >
+            <div className="mb-5 flex items-center justify-between">
+              <Link href="/" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2">
+                <Image src="/logo.png" alt="Rasaswadaya" width={28} height={28} className="h-7 w-7" />
+                <span className="font-sinhala text-xl font-bold text-brand-700 dark:text-brand-300">රසාස්වාදය</span>
+              </Link>
+              <button
+                type="button"
+                aria-label="Close navigation menu"
+                onClick={() => setMobileMenuOpen(false)}
+                className="rounded-xl p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleMobileSearch} className="relative mb-5">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input
+                type="search"
+                value={term}
+                onChange={(event) => setTerm(event.target.value)}
+                placeholder="Search artists, events..."
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-4 text-sm text-slate-900 outline-none focus:border-brand-400 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
+              />
+            </form>
+
+            <nav className="flex-1 space-y-1">
+              {navLinks.map((link) => {
+                const isActive = pathname === link.href;
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`block rounded-xl px-3 py-3 text-sm font-semibold transition-colors ${
+                      isActive
+                        ? "bg-brand-50 text-brand-700 dark:bg-brand-950/40 dark:text-brand-300"
+                        : "text-slate-700 hover:bg-slate-100 dark:text-zinc-200 dark:hover:bg-zinc-900"
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                );
+              })}
+            </nav>
+
+            <div className="mt-6 border-t border-slate-200 pt-5 dark:border-zinc-800">
+              {user ? (
+                <div className="space-y-3">
+                  <p className="text-xs font-medium text-slate-500 dark:text-zinc-400">
+                    Signed in as {user.name}
+                  </p>
+                  {roleDashboardHref && (
+                    <Link
+                      href={roleDashboardHref}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white hover:bg-brand-700"
+                    >
+                      <LayoutDashboard className="h-4 w-4" />
+                      Open Dashboard
+                    </Link>
+                  )}
+                  <div className="grid grid-cols-2 gap-2">
+                    <Link href="/cart" onClick={() => setMobileMenuOpen(false)} className="rounded-xl border border-slate-200 px-3 py-2 text-center text-sm font-medium text-slate-700 dark:border-zinc-800 dark:text-zinc-200">
+                      Cart {itemCount > 0 ? `(${itemCount})` : ""}
+                    </Link>
+                    <Link href="/orders" onClick={() => setMobileMenuOpen(false)} className="rounded-xl border border-slate-200 px-3 py-2 text-center text-sm font-medium text-slate-700 dark:border-zinc-800 dark:text-zinc-200">
+                      Orders
+                    </Link>
+                  </div>
+                  <Link href="/profile" onClick={() => setMobileMenuOpen(false)} className="block rounded-xl px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 dark:text-zinc-200 dark:hover:bg-zinc-900">
+                    My Profile
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      logout();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="w-full rounded-xl px-3 py-2 text-left text-sm font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    openAuthModal();
+                  }}
+                  className="w-full rounded-xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white hover:bg-brand-700"
+                >
+                  Sign In / Sign Up
+                </button>
+              )}
+            </div>
+            <div className="mt-4 pt-4 border-t border-slate-200 dark:border-zinc-800 flex items-center justify-between">
+              <span className="text-xs text-slate-500 dark:text-zinc-400">Toggle theme</span>
+              <ThemeToggle />
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

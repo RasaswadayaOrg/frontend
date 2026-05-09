@@ -1,558 +1,913 @@
-import { ImageWithFallback } from "../components/ImageWithFallback";
 import Link from "next/link";
-import { 
-  Sparkles, 
-  MapPin, 
-  Calendar, 
-  ArrowRight, 
-  ShoppingBag, 
-  Music, 
-  Theater, 
-  Palette, 
-  Mic2, 
-  Shapes,
-  Info,
-  Bot,
-  Heart,
-  MessageSquare,
-  ChevronRight
-} from "lucide-react";
-import { HeroSlider } from "../components/HeroSlider";
-import { AdPlaceholder } from "../components/AdPlaceholder";
-import { getEvents, getArtists, getStores, getProducts, getTrendingEvents, getMyReminders, getRecommendations, getActiveAdsForPlacement } from "../lib/db";
-import { SidebarStats } from "../components/SidebarStats";
+import { ImageWithFallback } from "../components/ImageWithFallback";
+import {
+  getEvents,
+  getArtists,
+  getProducts,
+  getTrendingEvents,
+  getRecommendations,
+} from "../lib/db";
 import { getSession } from "../lib/auth";
+import { buildSlug } from "../lib/slug";
+import { Music, PersonStanding, Clapperboard, Theater, MapPin, Calendar } from "lucide-react";
+import { HeroStage, type HeroFrame } from "../components/hp2/HeroStage";
+import { toArtistSlug } from "../lib/slugs";
+import { Marquee } from "../components/hp2/Marquee";
+import { Reveal } from "../components/hp2/Reveal";
+import { AIThinking } from "../components/hp2/AIThinking";
 
-// Mock Types
-type Event = any;
-type Artist = any;
+export const dynamic = "force-dynamic";
 
-export const dynamic = 'force-dynamic';
+// ─────────────────────────────────────────────────────────────────────────────
+// homepage-2 — full UX content parity with original homepage
+// Design language: Dieter Rams 10 principles + Apple HIG + lifeatspotify.com
+// Structure:
+//   1. Cinematic hero stage (full-bleed)
+//   2. Tagline introduction band
+//   3. Category browser
+//   4. AI Suggestions Engine (conditional on auth)
+//   5. Featured Events + cultural sidebar
+//   6. Artist marquee
+//   7. Latest events list
+//   8. Marketplace
+//   9. CTA
+// ─────────────────────────────────────────────────────────────────────────────
 
-export default async function Home() {
-  const session = await getSession();
+// Violet-tinted dark palette — never light.
+const BG     = "#07060A";                       // near-black with cool violet undertone
+const SURF   = "#15121D";                       // raised surface
+const SURF2  = "#1E1A2B";                       // higher surface
+const LINE   = "rgba(196,181,253,0.10)";        // hairline (violet tint)
+const TEXT   = "#F5F3FA";                       // off-white, slightly cool
+const MUTED  = "#9B95B5";                       // muted lavender-grey
+const ACCENT = "#A78BFA";                       // primary violet (accent)
+const AI_CLR = "#C4B5FD";                       // soft lavender for AI accents
+
+function tintFor(seed: string, base: number): string {
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) {
+    h = (h * 31 + seed.charCodeAt(i)) | 0;
+  }
+  // Bias every gradient toward the violet/indigo region (250–310°).
+  const hue  = 250 + (Math.abs(h) % 60);
+  const hue2 = (hue + 30) % 360;
+  return (
+    "linear-gradient(135deg, hsl(" + hue + " 38% " + (base + 10) + "%)," +
+    " hsl(" + hue2 + " 32% " + (base - 4) + "%))"
+  );
+}
+
+function cinemaTone(seed: string): string {
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) {
+    h = (h * 33 + seed.charCodeAt(i)) | 0;
+  }
+  // Cinematic violet→indigo→magenta range (240–310°).
+  const hue  = 240 + (Math.abs(h) % 70);
+  const hue2 = (hue + 35) % 360;
+  return (
+    "radial-gradient(120% 80% at 30% 20%, hsl(" + hue + " 70% 48% / 0.95) 0%, transparent 55%)," +
+    "radial-gradient(100% 80% at 80% 80%, hsl(" + hue2 + " 65% 24% / 0.95) 0%, transparent 60%)," +
+    "linear-gradient(135deg, hsl(" + hue + " 45% 18%) 0%, hsl(" + hue2 + " 38% 9%) 100%)"
+  );
+}
+
+const CATEGORIES = [
+  { name: "Music",  href: "/events?category=music",  Icon: Music          },
+  { name: "Dance",  href: "/events?category=dance",  Icon: PersonStanding },
+  { name: "Film",   href: "/events?category=film",   Icon: Clapperboard   },
+  { name: "Drama",  href: "/events?category=drama",  Icon: Theater        },
+];
+
+export default async function HomeTwo() {
+  const session    = await getSession();
   const isLoggedIn = !!session?.token;
-  const reminders = isLoggedIn ? await getMyReminders(session.token) : [];
-  
-  // Fetch real data from the database
-  const [events, artists, stores, products, trendingEvents, sidebarAds, bannerAds, seasonalAds] = await Promise.all([
+  const token      = (session?.token as string) || "";
+
+  const [events, trending, artists, products, recResult] = await Promise.all([
     getEvents(6),
-    getArtists(4),
-    getStores(4),
-    getProducts(4),
     getTrendingEvents(6),
-    getActiveAdsForPlacement('home-sidebar'),
-    getActiveAdsForPlacement('home-banner'),
-    getActiveAdsForPlacement('home-seasonal'),
+    getArtists(8),
+    getProducts(4),
+    isLoggedIn ? getRecommendations(token) : Promise.resolve({ data: [] }),
   ]);
 
-  // Fetch AI Recommendations
-  const recommendationsResult = isLoggedIn ? await getRecommendations(session.token) : { data: [] };
-  const recommendations = recommendationsResult?.data || [];
-  const recommendedEvents = recommendations.filter((r: any) => r.type === 'event').map((r: any) => ({ ...r.item, aiScore: r.score }));
-  const recommendedArtists = recommendations.filter((r: any) => r.type === 'artist').map((r: any) => ({ ...r.item, aiScore: r.score }));
+  const recs              = recResult?.data || [];
+  // Scores from AI model are 0–1 decimals; convert to whole-number percent for display
+  const toPercent = (s: number | undefined) => s != null ? Math.round(s * 100) : null;
+  const recEvents         = recs.filter((r: any) => r.type === "event").map((r: any) => ({ ...r.item, aiScore: toPercent(r.score) }));
+  const recArtists        = recs.filter((r: any) => r.type === "artist").map((r: any) => ({ ...r.item, aiScore: toPercent(r.score) }));
+  const featuredArtist    = artists.length > 0 ? (artists[3] || artists[0]) : null;
+  const aiEvent1          = recEvents.length  > 0 ? recEvents[0]  : (events.length  > 0 ? events[0]  : null);
+  const aiEvent2          = recEvents.length  > 1 ? recEvents[1]  : (events.length  > 1 ? events[1]  : null);
+  const aiArtist          = recArtists.length > 0 ? recArtists[0] : featuredArtist;
+  // Top match % for the header — only set if real AI results came back
+  const topMatchPct       = recEvents[0]?.aiScore ?? recArtists[0]?.aiScore ?? null;
 
-  // Select a featured artist for the AI recommendation (use the 4th one or fallback to 1st)
-  const featuredArtist = artists.length > 0 ? (artists[3] || artists[0]) : null;
+  // Concert image lookup — maps "e-{eventId}" to public image path
+  const CONCERT_IMG: Record<string, string> = {
+    "e-evt-extra-shots-2026":    "/assets/concerts/extra-shots-concert.webp",
+    "e-evt-jothi-unplugged-2026": "/assets/concerts/jothi-unplugged-concert.webp",
+    "e-evt-legends-2026":        "/assets/concerts/legends-concert.webp",
+    "e-evt-vibe-district-2026":  "/assets/concerts/vibe-district-concert.webp",
+  };
 
-  // Setup AI override vars
-  const aiEvent1 = recommendedEvents.length > 0 ? recommendedEvents[0] : (events.length > 0 ? events[0] : null);
-  const aiEvent2 = recommendedEvents.length > 1 ? recommendedEvents[1] : (events.length > 1 ? events[1] : null);
-  const aiArtist = recommendedArtists.length > 0 ? recommendedArtists[0] : featuredArtist;
-
-  const categories = [
-    { name: "Music", icon: Music, href: "/events?category=music", color: "bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400" },
-    { name: "Dance", icon: Theater, href: "/events?category=dance", color: "bg-purple-100 text-purple-600 dark:bg-purple-900/40 dark:text-purple-400" },
-    { name: "Theater", icon: Mic2, href: "/events?category=theater", color: "bg-pink-100 text-pink-600 dark:bg-pink-900/40 dark:text-pink-400" },
-    { name: "Arts", icon: Palette, href: "/products", color: "bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400" },
-    { name: "Crafts", icon: Shapes, href: "/marketplace", color: "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-400" },
+  // Hero frames — events only
+  type RF = { id: string; href: string; category: string; role: string };
+  const heroSrc: RF[] = [
+    ...trending.map((e: any) => ({
+      id:       "e-" + String(e.id),
+      href:     "/events/" + buildSlug(e.id, e.title),
+      category: (e.category || "Event").toUpperCase(),
+      role:     e.title,
+    })),
   ];
+  const fallbackFrames: RF[] = Array.from({ length: 4 }, (_, i) => ({
+    id: "ph-" + i, href: "/events", category: "COMING SOON", role: "Stories from the island",
+  }));
+  const frames: HeroFrame[] = (heroSrc.length >= 4 ? heroSrc : [...heroSrc, ...fallbackFrames])
+    .slice(0, 6)
+    .map((f) => ({ ...f, tone: cinemaTone(f.id), imageUrl: CONCERT_IMG[f.id] }));
+
+  // ── CSS ─────────────────────────────────────────────────────────────────
+  const css = (
+    ".hp2 { font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, system-ui, sans-serif; letter-spacing: -0.005em; position: relative; isolation: isolate; }" +
+
+    /* ── AMBIENT VIOLET WASH · two drifting hotspots ── */
+    ".hp2::before, .hp2::after { content: ''; position: fixed; z-index: -1; pointer-events: none; border-radius: 50%; filter: blur(80px); will-change: transform, opacity; }" +
+    ".hp2::before { top: -20vh; left: -15vw; width: 80vw; height: 80vh;" +
+    " background: radial-gradient(circle, hsla(258, 75%, 32%, 0.65) 0%, hsla(258, 60%, 22%, 0.35) 35%, transparent 70%);" +
+    " animation: hp2-drift-a 28s ease-in-out infinite alternate; }" +
+    ".hp2::after { bottom: -25vh; right: -20vw; width: 70vw; height: 70vh;" +
+    " background: radial-gradient(circle, hsla(290, 55%, 28%, 0.45) 0%, hsla(290, 50%, 20%, 0.20) 40%, transparent 70%);" +
+    " animation: hp2-drift-b 36s ease-in-out infinite alternate; }" +
+    "@keyframes hp2-drift-a {" +
+    "  0%   { transform: translate3d(0,0,0)       scale(1);    filter: blur(80px) hue-rotate(0deg);  }" +
+    "  50%  { transform: translate3d(8%,6%,0)     scale(1.12); filter: blur(90px) hue-rotate(15deg); }" +
+    "  100% { transform: translate3d(-4%,10%,0)   scale(1.05); filter: blur(85px) hue-rotate(-10deg); }" +
+    "}" +
+    "@keyframes hp2-drift-b {" +
+    "  0%   { transform: translate3d(0,0,0)       scale(1);    filter: blur(80px) hue-rotate(0deg);  }" +
+    "  50%  { transform: translate3d(-10%,-8%,0)  scale(1.18); filter: blur(95px) hue-rotate(-12deg); }" +
+    "  100% { transform: translate3d(6%,-4%,0)    scale(1.08); filter: blur(85px) hue-rotate(8deg);  }" +
+    "}" +
+    "@media (prefers-reduced-motion: reduce) { .hp2::before, .hp2::after { animation: none; } }" +
+
+    ".hp2-container { max-width: 1280px; margin: 0 auto; padding: 0 28px; }" +
+    "@media (min-width: 768px) { .hp2-container { padding: 0 48px; } }" +
+
+    /* ── INTRO BAND ── */
+    ".hp2-intro { padding: 100px 0 88px; }" +
+    ".hp2-intro__layout { display: flex; align-items: center; justify-content: space-between; gap: 64px; }" +
+    ".hp2-intro__content { flex: 1 1 0; min-width: 0; }" +
+    ".hp2-intro__map { flex: 0 0 auto; width: clamp(200px, 22vw, 320px); display: flex; align-items: center; justify-content: center; opacity: 0; animation: hp2-map-in 1.2s ease forwards 0.4s; }" +
+    "@media (max-width: 640px) { .hp2-intro__map { display: none; } }" +
+    "@keyframes hp2-map-in { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }" +
+    ".hp2-intro__map svg { width: 100%; height: auto; filter: drop-shadow(0 0 28px rgba(167,139,250,0.45)) drop-shadow(0 0 8px rgba(196,181,253,0.25)); }" +
+    ".hp2-intro__title { font-family: var(--font-outfit); font-size: clamp(48px, 7.5vw, 104px); line-height: 0.98; letter-spacing: -0.04em; font-weight: 600; margin: 22px 0 28px; max-width: 14ch; }" +
+    ".hp2-intro__title em { font-style: normal; color: " + ACCENT + "; }" +
+    ".hp2-intro__lede { color: " + MUTED + "; font-size: clamp(17px, 1.4vw, 20px); line-height: 1.55; max-width: 560px; margin-bottom: 36px; }" +
+
+    /* ── BUTTONS ── */
+    ".hp2-cta-row { display: flex; gap: 14px; flex-wrap: wrap; }" +
+    ".hp2-cta-row--center { justify-content: center; }" +
+    ".hp2-btn { display: inline-flex; align-items: center; justify-content: center; height: 48px; padding: 0 22px; border-radius: 999px; font-size: 15px; font-weight: 500; letter-spacing: -0.005em; transition: transform .25s ease, background .25s ease, color .25s ease, border-color .25s ease; }" +
+    ".hp2-btn--primary { background: " + TEXT + "; color: #0a0a0b; }" +
+    ".hp2-btn--primary:hover { transform: translateY(-1px); background: #fff; }" +
+    ".hp2-btn--ghost { color: " + TEXT + "; border: 1px solid " + LINE + "; background: transparent; }" +
+    ".hp2-btn--ghost:hover { border-color: rgba(255,255,255,0.3); }" +
+    ".hp2-btn--ai { position: relative; background: linear-gradient(110deg, #7C3AED, #A78BFA, #6366F1); color: #fff; font-weight: 600; box-shadow: 0 0 18px rgba(167,139,250,0.45), 0 0 6px rgba(167,139,250,0.25); border: 1px solid rgba(196,181,253,0.3); overflow: hidden; text-decoration: none; cursor: pointer; }" +
+    ".hp2-btn--ai::before { content: ''; position: absolute; inset: 0; background: linear-gradient(110deg, #A78BFA, #C4B5FD, #818CF8); opacity: 0; transition: opacity .3s; }" +
+    ".hp2-btn--ai:hover::before { opacity: 1; }" +
+    ".hp2-btn--ai:hover { transform: translateY(-1px); box-shadow: 0 0 28px rgba(167,139,250,0.65), 0 0 10px rgba(167,139,250,0.35); }" +
+    ".hp2-btn--ai span { position: relative; z-index: 1; }" +
+
+    /* ── CATEGORY STRIP ── */
+    ".hp2-cats-section { padding: 0 0 80px; border-top: 1px solid " + LINE + "; padding-top: 56px; }" +
+    ".hp2-cats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }" +
+    "@media (min-width: 640px) { .hp2-cats { grid-template-columns: repeat(3, 1fr); } }" +
+    "@media (min-width: 900px) { .hp2-cats { grid-template-columns: repeat(5, 1fr); gap: 16px; } }" +
+    ".hp2-cat { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 28px 16px; border-radius: 20px; background: " + SURF + "; border: 1px solid " + LINE + "; color: " + MUTED + "; transition: transform .3s ease, color .25s ease, border-color .25s ease, background .25s ease; text-decoration: none; }" +
+    ".hp2-cat:hover { transform: translateY(-4px); color: " + TEXT + "; border-color: rgba(255,255,255,0.18); background: " + SURF2 + "; }" +
+    ".hp2-cat__name { font-size: 14px; font-weight: 500; letter-spacing: -0.005em; }" +
+
+    /* ── AI SECTION ── */
+    ".hp2-ai { border-top: 1px solid " + LINE + "; margin-bottom: 0; }" +
+    ".hp2-ai--guest { padding: 80px 0 96px; text-align: center; }" +
+    ".hp2-ai__badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px; border-radius: 999px; border: 1px solid " + AI_CLR + "40; color: " + AI_CLR + "; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 600; margin-bottom: 24px; }" +
+    ".hp2-ai__pulse { width: 6px; height: 6px; border-radius: 50%; background: " + AI_CLR + "; animation: aipulse 2s ease-in-out infinite; }" +
+    "@keyframes aipulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }" +
+    ".hp2-ai__guest-title { font-family: var(--font-outfit); font-size: clamp(36px, 6vw, 80px); font-weight: 700; line-height: 1; letter-spacing: -0.04em; margin: 0 auto 20px; max-width: 18ch; }" +
+    ".hp2-ai__guest-title span { color: " + MUTED + "; }" +
+    ".hp2-ai__guest-lede { color: " + MUTED + "; font-size: 18px; max-width: 540px; margin: 0 auto 36px; line-height: 1.6; }" +
+    ".hp2-ai--loggedin { padding: 64px 0 80px; }" +
+    ".hp2-ai__header { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 40px; padding-bottom: 32px; border-bottom: 1px solid " + LINE + "; flex-wrap: wrap; }" +
+    ".hp2-ai__title { font-family: var(--font-outfit); font-size: clamp(36px, 5.5vw, 72px); font-weight: 700; letter-spacing: -0.04em; line-height: 1; margin: 8px 0 12px; }" +
+    ".hp2-grad { background: linear-gradient(110deg, #C4B5FD 0%, #A78BFA 35%, #818CF8 70%, #C084FC 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }" +
+    ".hp2-ai__sub { font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: " + MUTED + "; }" +
+    ".hp2-ai__sub span { color: " + TEXT + "; }" +
+    ".hp2-ai__cards { display: grid; grid-template-columns: 1fr; gap: 0; border: 1px solid " + LINE + "; border-radius: 20px; overflow: hidden; background: " + SURF + "; }" +
+    "@media (min-width: 900px) { .hp2-ai__cards { grid-template-columns: repeat(3, 1fr); } }" +
+    ".hp2-ai-card { display: flex; flex-direction: column; padding: 24px; border-bottom: 1px solid " + LINE + "; transition: background .25s ease; text-decoration: none; }" +
+    ".hp2-ai-card:last-child { border-bottom: none; }" +
+    "@media (min-width: 900px) { .hp2-ai-card { border-bottom: none; border-right: 1px solid " + LINE + "; } .hp2-ai-card:last-child { border-right: none; } }" +
+    ".hp2-ai-card:hover { background: " + SURF2 + "; }" +
+    ".hp2-ai-card__img { position: relative; aspect-ratio: 16/9; overflow: hidden; border-radius: 12px; background: " + SURF2 + "; margin-bottom: 16px; }" +
+    ".hp2-ai-card__badge { position: absolute; top: 10px; left: 10px; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 700; padding: 4px 10px; border-radius: 6px; }" +
+    ".hp2-ai-card__badge--ai { background: " + AI_CLR + "; color: #fff; }" +
+    ".hp2-ai-card__badge--cat { background: rgba(20,20,22,0.8); color: " + TEXT + "; border: 1px solid " + LINE + "; }" +
+    ".hp2-ai-card__badge--artist { background: rgba(20,20,22,0.8); color: " + AI_CLR + "; border: 1px solid " + AI_CLR + "40; }" +
+    ".hp2-ai-card__meta-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }" +
+    ".hp2-ai-card__date { font-size: 11px; letter-spacing: 0.14em; color: " + MUTED + "; font-weight: 500; }" +
+    ".hp2-ai-card__score { font-family: var(--font-outfit); font-size: 22px; font-weight: 600; color: " + AI_CLR + "; }" +
+    ".hp2-ai-card__title { font-family: var(--font-outfit); font-size: 20px; font-weight: 600; letter-spacing: -0.015em; color: " + TEXT + "; margin-bottom: 8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }" +
+    ".hp2-ai-card__desc { font-size: 13px; color: " + MUTED + "; line-height: 1.55; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 16px; flex: 1; }" +
+    ".hp2-ai-card__cta { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: " + MUTED + "; margin-top: auto; padding-top: 16px; border-top: 1px solid " + LINE + "; transition: color .2s ease; }" +
+    ".hp2-ai-card:hover .hp2-ai-card__cta { color: " + TEXT + "; }" +
+
+    /* ── SECTIONS ── */
+    ".hp2-section { padding: 88px 0; border-top: 1px solid " + LINE + "; }" +
+    ".hp2-section--tight { padding: 88px 0 64px; }" +
+    ".hp2-section__kicker { font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: " + MUTED + "; margin: 0 0 16px; font-weight: 500; }" +
+    ".hp2-section__title { font-family: var(--font-outfit); font-size: clamp(32px, 4.8vw, 64px); line-height: 1.02; letter-spacing: -0.035em; font-weight: 500; margin: 0 0 48px; max-width: 16ch; }" +
+    ".hp2-section__title--sm { font-size: clamp(26px, 3.2vw, 44px); margin-bottom: 0; max-width: none; }" +
+    ".hp2-row-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 40px; flex-wrap: wrap; }" +
+    ".hp2-link { font-size: 14px; color: " + MUTED + "; transition: color .2s ease; text-decoration: none; }" +
+    ".hp2-link:hover { color: " + TEXT + "; }" +
+
+    /* ── FEATURED EVENTS + SIDEBAR ── */
+    ".hp2-discover { display: grid; grid-template-columns: 1fr; gap: 32px; }" +
+    "@media (min-width: 1024px) { .hp2-discover { grid-template-columns: 1fr 320px; gap: 48px; } }" +
+    ".hp2-events-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }" +
+    "@media (min-width: 600px) { .hp2-events-grid { grid-template-columns: repeat(2, 1fr); } }" +
+    ".hp2-event-card { display: flex; flex-direction: column; border-radius: 16px; overflow: hidden; background: " + SURF + "; border: 1px solid " + LINE + "; text-decoration: none; transition: transform .3s ease, border-color .3s ease; }" +
+    ".hp2-event-card:hover { transform: translateY(-4px); border-color: rgba(255,255,255,0.16); }" +
+    ".hp2-event-card__img { position: relative; height: 180px; overflow: hidden; background: " + SURF2 + "; }" +
+    ".hp2-event-card__cat { position: absolute; top: 10px; left: 10px; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 700; padding: 4px 10px; border-radius: 6px; background: rgba(11,11,12,0.75); color: " + TEXT + "; backdrop-filter: blur(8px); }" +
+    ".hp2-event-card__body { padding: 16px 18px 20px; display: flex; flex-direction: column; gap: 8px; flex: 1; }" +
+    ".hp2-event-card__title { font-family: var(--font-outfit); font-size: 17px; font-weight: 500; letter-spacing: -0.01em; color: " + TEXT + "; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }" +
+    ".hp2-event-card:hover .hp2-event-card__title { color: " + ACCENT + "; }" +
+    ".hp2-event-card__meta { display: flex; flex-direction: column; gap: 4px; margin-top: auto; }" +
+    ".hp2-event-card__meta-item { display: flex; align-items: center; gap: 6px; font-size: 13px; color: " + MUTED + "; }" +
+
+    /* ── SIDEBAR ── */
+    ".hp2-sidebar { display: flex; flex-direction: column; gap: 24px; }" +
+    ".hp2-cultural { padding: 24px; border-radius: 16px; background: linear-gradient(135deg, hsl(265 40% 22%) 0%, hsl(285 32% 14%) 100%); border: 1px solid hsl(265 40% 35% / 0.4); }" +
+    ".hp2-cultural__label { font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: hsl(265 75% 78%); font-weight: 600; margin-bottom: 12px; }" +
+    ".hp2-cultural__text { font-size: 14px; color: hsl(265 18% 82%); line-height: 1.65; margin-bottom: 16px; }" +
+    ".hp2-cultural__text strong { color: hsl(265 75% 82%); }" +
+    ".hp2-cultural__link { font-size: 12px; font-weight: 600; color: hsl(265 70% 75%); text-decoration: none; transition: color .2s; }" +
+    ".hp2-cultural__link:hover { color: hsl(265 80% 82%); }" +
+    ".hp2-artists-sidebar { padding: 24px; border-radius: 16px; background: " + SURF + "; border: 1px solid " + LINE + "; }" +
+    ".hp2-artist-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid " + LINE + "; text-decoration: none; transition: opacity .2s; }" +
+    ".hp2-artist-row:last-of-type { border-bottom: none; }" +
+    ".hp2-artist-row:hover { opacity: 0.8; }" +
+    ".hp2-artist-row__avatar { position: relative; width: 44px; height: 44px; border-radius: 50%; overflow: hidden; flex-shrink: 0; background: " + SURF2 + "; }" +
+    ".hp2-artist-row__name { font-size: 14px; font-weight: 500; color: " + TEXT + "; }" +
+    ".hp2-artist-row__genre { font-size: 12px; color: " + MUTED + "; margin-top: 2px; }" +
+
+    /* ── PILLARS ── */
+    ".hp2-pillars { display: grid; grid-template-columns: 1fr; gap: 0; border-top: 1px solid " + LINE + "; }" +
+    "@media (min-width: 768px) { .hp2-pillars { grid-template-columns: repeat(3, 1fr); } }" +
+    ".hp2-pillar { padding: 40px 32px 40px 0; border-bottom: 1px solid " + LINE + "; }" +
+    "@media (min-width: 768px) { .hp2-pillar { padding: 48px 32px 48px 0; border-bottom: none; border-right: 1px solid " + LINE + "; } .hp2-pillar:last-child { border-right: none; padding-right: 0; } .hp2-pillar:not(:first-child) { padding-left: 32px; } }" +
+    ".hp2-pillar__num { font-family: var(--font-outfit); font-size: 12px; letter-spacing: 0.16em; color: " + ACCENT + "; }" +
+    ".hp2-pillar__title { font-family: var(--font-outfit); font-size: 28px; font-weight: 500; letter-spacing: -0.02em; margin: 14px 0 12px; color: " + TEXT + "; }" +
+    ".hp2-pillar__body { color: " + MUTED + "; font-size: 15px; line-height: 1.6; }" +
+    ".hp2-pillar__cta { display: inline-flex; align-items: center; gap: 6px; margin-top: 24px; font-size: 13px; font-weight: 500; color: " + ACCENT + "; letter-spacing: 0.02em; text-decoration: none; border-bottom: 1px solid transparent; transition: border-color .2s, opacity .2s; }" +
+    ".hp2-pillar__cta:hover { border-color: " + ACCENT + "; opacity: .8; }" +
+
+    /* ── ARTIST MARQUEE ── */
+    ".hp2-marquee-wrap { margin-top: 40px; }" +
+    ".hp2-art-card { display: flex; flex-direction: column; width: 220px; gap: 12px; text-decoration: none; }" +
+    ".hp2-art-card__art { position: relative; width: 100%; aspect-ratio: 1/1; border-radius: 14px; box-shadow: 0 0 0 1px " + LINE + " inset; transition: transform .4s ease; overflow: hidden; }" +
+    ".hp2-art-card:hover .hp2-art-card__art { transform: translateY(-3px); }" +
+    ".hp2-art-card__name { font-size: 14px; font-weight: 500; letter-spacing: -0.01em; color: " + TEXT + "; }" +
+    ".hp2-art-card__genre { font-size: 12px; color: " + MUTED + "; }" +
+
+    /* ── EVENT LIST ── */
+    ".hp2-list { list-style: none; padding: 0; margin: 0; border-top: 1px solid " + LINE + "; }" +
+    ".hp2-list__row { display: grid; grid-template-columns: 140px 1fr auto auto; align-items: center; gap: 24px; padding: 26px 0; border-bottom: 1px solid " + LINE + "; text-decoration: none; transition: padding-left .25s ease; }" +
+    ".hp2-list__row:hover { padding-left: 10px; }" +
+    "@media (max-width: 720px) { .hp2-list__row { grid-template-columns: 1fr auto; grid-template-areas: 'cat cta' 'title title' 'city city'; gap: 4px; padding: 20px 0; } .hp2-list__cat { grid-area: cat; } .hp2-list__title { grid-area: title; font-size: 20px; } .hp2-list__city { grid-area: city; } .hp2-list__cta { grid-area: cta; } }" +
+    ".hp2-list__cat { font-size: 11px; letter-spacing: 0.18em; color: " + MUTED + "; font-weight: 500; }" +
+    ".hp2-list__title { font-family: var(--font-outfit); font-size: 22px; font-weight: 500; letter-spacing: -0.015em; color: " + TEXT + "; }" +
+    ".hp2-list__city { font-size: 14px; color: " + MUTED + "; }" +
+    ".hp2-list__cta { font-size: 13px; color: " + TEXT + "; opacity: 0.55; transition: opacity .25s ease, color .25s ease; }" +
+    ".hp2-list__row:hover .hp2-list__cta { opacity: 1; color: " + ACCENT + "; }" +
+
+    /* ── FEATURED EVENT PANEL ── */
+    ".hp2-feat-panel { display: grid; grid-template-columns: 1fr; }" +
+    "@media (min-width: 860px) { .hp2-feat-panel { grid-template-columns: 1fr 380px; } }" +
+    ".hp2-feat-hero { display: block; text-decoration: none; border-bottom: 1px solid rgba(196,181,253,0.10); }" +
+    "@media (min-width: 860px) { .hp2-feat-hero { border-bottom: none; border-right: 1px solid rgba(196,181,253,0.10); } }" +
+    ".hp2-feat-hero:hover .hp2-feat-hero__img img { transform: scale(1.04); }" +
+    ".hp2-feat-hero__img { position: relative; aspect-ratio: 16/9; overflow: hidden; background: " + SURF2 + "; }" +
+    ".hp2-feat-hero__img img { transition: transform .6s cubic-bezier(.2,.7,.2,1); }" +
+    ".hp2-feat-row { display: flex; gap: 14px; align-items: flex-start; text-decoration: none; transition: background .2s ease; }" +
+    ".hp2-feat-row:hover { background: #1E1A2B; }" +
+
+    /* ── MARKETPLACE ── */
+    ".hp2-market { border-top: 1px solid " + LINE + "; }" +
+    ".hp2-market__inner { padding: 72px 0 88px; }" +
+    ".hp2-market-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }" +
+    "@media (min-width: 720px) { .hp2-market-grid { grid-template-columns: repeat(3, 1fr); gap: 16px; } }" +
+    "@media (min-width: 1080px) { .hp2-market-grid { grid-template-columns: repeat(4, 1fr); gap: 18px; } }" +
+    ".hp2-product { position: relative; display: flex; flex-direction: column; text-decoration: none; background: " + SURF + "; border-radius: 14px; overflow: hidden; border: 1px solid " + LINE + "; transition: border-color .2s, transform .2s; }" +
+    ".hp2-product:hover { border-color: rgba(167,139,250,0.35); transform: translateY(-2px); }" +
+    ".hp2-product__art { aspect-ratio: 1/1; position: relative; overflow: hidden; background: " + SURF2 + "; }" +
+    ".hp2-product__art img { transition: transform .6s cubic-bezier(.2,.7,.2,1); }" +
+    ".hp2-product:hover .hp2-product__art img { transform: scale(1.06); }" +
+    ".hp2-product__badge { position: absolute; top: 10px; left: 10px; z-index: 2; font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 9px; border-radius: 999px; background: rgba(7,6,10,0.78); backdrop-filter: blur(8px); color: " + AI_CLR + "; border: 1px solid rgba(196,181,253,0.18); }" +
+    ".hp2-product__heart { position: absolute; top: 10px; right: 10px; z-index: 2; width: 30px; height: 30px; border-radius: 50%; background: rgba(7,6,10,0.78); backdrop-filter: blur(8px); border: 1px solid rgba(196,181,253,0.14); display: flex; align-items: center; justify-content: center; color: " + MUTED + "; opacity: 0; transform: translateY(-4px); transition: opacity .2s, transform .2s, color .15s; cursor: pointer; }" +
+    ".hp2-product:hover .hp2-product__heart { opacity: 1; transform: translateY(0); }" +
+    ".hp2-product__heart:hover { color: #FCA5A5; border-color: rgba(252,165,165,0.4); }" +
+    ".hp2-product__quick { position: absolute; left: 12px; right: 12px; bottom: 12px; z-index: 2; height: 38px; border-radius: 10px; background: " + ACCENT + "; color: #0B0B0E; font-size: 13px; font-weight: 600; letter-spacing: -0.01em; display: flex; align-items: center; justify-content: center; gap: 6px; opacity: 0; transform: translateY(8px); transition: opacity .2s, transform .2s; }" +
+    ".hp2-product:hover .hp2-product__quick { opacity: 1; transform: translateY(0); }" +
+    ".hp2-product__info { padding: 14px 14px 16px; display: flex; flex-direction: column; gap: 6px; }" +
+    ".hp2-product__store { font-size: 11px; color: " + MUTED + "; letter-spacing: 0.04em; text-transform: uppercase; }" +
+    ".hp2-product__name { font-size: 14px; font-weight: 500; letter-spacing: -0.01em; color: " + TEXT + "; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 38px; }" +
+    ".hp2-product__price-row { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; gap: 10px; }" +
+    ".hp2-product__price { font-size: 15px; font-weight: 600; color: " + TEXT + "; letter-spacing: -0.01em; }" +
+    ".hp2-product__price-cur { font-size: 11px; color: " + MUTED + "; font-weight: 500; margin-right: 2px; }" +
+    ".hp2-product__rating { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; color: " + MUTED + "; }" +
+    ".hp2-market__filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 24px 0 28px; }" +
+    ".hp2-market__chip { font-size: 12px; font-weight: 500; padding: 7px 14px; border-radius: 999px; background: " + SURF + "; color: " + MUTED + "; border: 1px solid " + LINE + "; text-decoration: none; transition: color .15s, border-color .15s, background .15s; cursor: pointer; }" +
+    ".hp2-market__chip:hover { color: " + TEXT + "; border-color: rgba(196,181,253,0.25); }" +
+    ".hp2-market__chip--active { background: rgba(167,139,250,0.12); color: " + AI_CLR + "; border-color: rgba(167,139,250,0.35); }" +
+
+    /* ── CTA ── */
+    ".hp2-cta { border-top: 1px solid " + LINE + "; padding: 120px 0 140px; }" +
+    ".hp2-cta__inner { text-align: center; max-width: 720px; margin: 0 auto; }" +
+    ".hp2-cta__title { font-family: var(--font-outfit); font-size: clamp(40px, 7vw, 88px); line-height: 1; letter-spacing: -0.04em; font-weight: 600; margin: 0 0 20px; color: " + TEXT + "; }" +
+    ".hp2-cta__title span { background: linear-gradient(110deg, #C4B5FD 0%, #A78BFA 40%, #818CF8 75%, #C084FC 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; filter: drop-shadow(0 0 18px rgba(167,139,250,0.55)); }" +
+    ".hp2-cta__lede { color: " + MUTED + "; font-size: 18px; margin: 0 auto 36px; max-width: 480px; line-height: 1.6; }" +
+
+    /* ── AD SLOTS ── */
+    /* Wrapper gives every ad slot the same horizontal container as sections */
+    /* and symmetrical 40px top/bottom breathing room */
+    ".hp2-ad-slot { padding: 40px 0; }" +
+    ".hp2-ad { position: relative; display: flex; align-items: center; justify-content: center;" +
+    " border-radius: 12px; overflow: hidden;" +
+    " border: 1px dashed rgba(167,139,250,0.15);" +
+    " background: rgba(21,18,29,0.45); }" +
+    ".hp2-ad__inner { display: flex; flex-direction: column; align-items: center;" +
+    " justify-content: center; gap: 4px; width: 100%; height: 100%; }" +
+    ".hp2-ad__label { font-size: 9px; letter-spacing: 0.24em; text-transform: uppercase;" +
+    " color: rgba(167,139,250,0.28); font-weight: 600; position: absolute; top: 9px; left: 13px; }" +
+    ".hp2-ad__placeholder { font-size: 12px; color: rgba(167,139,250,0.25); letter-spacing: -0.01em; }" +
+    ".hp2-ad__dims { font-size: 10px; color: rgba(155,149,181,0.22); }" +
+    /* Leaderboard 728x90 */
+    ".hp2-ad--leaderboard { width: 100%; height: 90px; }" +
+    "@media (max-width: 768px) { .hp2-ad--leaderboard { height: 56px; } }" +
+    /* Sidebar rect — fills sidebar card naturally */
+    ".hp2-ad--rect { width: 100%; height: 180px; border-radius: 16px; }" +
+    /* Billboard 970x100 */
+    ".hp2-ad--billboard { width: 100%; height: 90px; }" +
+    "@media (max-width: 768px) { .hp2-ad--billboard { height: 60px; } }" +
+
+    /* ── FOOTER ── */
+    ".hp2-footer { border-top: 1px solid " + LINE + "; background: " + SURF + "; }" +
+    ".hp2-footer__top { padding: 72px 0 56px; display: grid; grid-template-columns: 1fr; gap: 48px; }" +
+    "@media (min-width: 768px) { .hp2-footer__top { grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; } }" +
+    ".hp2-footer__brand-mark { display: inline-flex; align-items: center; justify-content: center;" +
+    " width: 40px; height: 40px; border-radius: 50%; background: " + ACCENT + "; margin-bottom: 20px; }" +
+    ".hp2-footer__brand-inner { width: 16px; height: 16px; border-radius: 50%; background: " + BG + "; }" +
+    ".hp2-footer__brand-name { font-family: var(--font-outfit); font-size: 22px; font-weight: 600;" +
+    " letter-spacing: -0.025em; color: " + TEXT + "; margin-bottom: 12px; }" +
+    ".hp2-footer__tagline { font-size: 14px; color: " + MUTED + "; line-height: 1.65; max-width: 280px; margin-bottom: 28px; }" +
+    ".hp2-footer__social { display: flex; gap: 10px; }" +
+    ".hp2-footer__social-link { display: flex; align-items: center; justify-content: center;" +
+    " width: 36px; height: 36px; border-radius: 50%; border: 1px solid " + LINE + ";" +
+    " color: " + MUTED + "; font-size: 13px; font-weight: 600; text-decoration: none;" +
+    " transition: border-color .25s ease, color .25s ease, background .25s ease; }" +
+    ".hp2-footer__social-link:hover { border-color: " + ACCENT + "; color: " + ACCENT + "; background: rgba(167,139,250,0.08); }" +
+    ".hp2-footer__col-title { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;" +
+    " color: " + TEXT + "; font-weight: 600; margin-bottom: 20px; }" +
+    ".hp2-footer__links { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; }" +
+    ".hp2-footer__link { font-size: 14px; color: " + MUTED + "; text-decoration: none;" +
+    " transition: color .2s ease; }" +
+    ".hp2-footer__link:hover { color: " + TEXT + "; }" +
+    ".hp2-footer__bottom { padding: 24px 0; border-top: 1px solid " + LINE + ";" +
+    " display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }" +
+    ".hp2-footer__legal { font-size: 13px; color: " + MUTED + "; }" +
+    ".hp2-footer__legal a { color: " + MUTED + "; text-decoration: none; transition: color .2s; }" +
+    ".hp2-footer__legal a:hover { color: " + TEXT + "; }" +
+    ".hp2-footer__locale { display: flex; align-items: center; gap: 6px; font-size: 13px; color: " + MUTED + "; }"
+  );
 
   return (
-    <div className="home-container space-y-12 pb-12">
-      
-      {/* 1) Hero Section with Sidebar Ad */}
-      <section className="container mx-auto px-4 mt-4">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Main Slider (resized) */}
-          <div className="lg:col-span-9">
-            <HeroSlider events={trendingEvents} />
-          </div>
-          
-          {/* Right Sidebar Ad */}
-          <div className="hidden lg:block lg:col-span-3">
-             <div className="flex flex-col" style={{ height: '500px' }}>
-               <SidebarStats 
-                 reminders={reminders} 
-                 trendingEvents={trendingEvents} 
-                 isLoggedIn={isLoggedIn}
-                 city={session?.user?.city} // Might be undefined
-               />
-               <div className="mt-2 flex-1 min-h-0">
-                  <AdPlaceholder size="medium" label="Sponsorship" placement="home-sidebar" ad={sidebarAds[0] || null} className="!h-full" />
-               </div>
-             </div>
-          </div>
-        </div>
-      </section>
+    <main style={{ background: BG, color: TEXT }} className="hp2">
 
-      {/* 2) Categories - Browse Options */}
-      <section className="container mx-auto px-4">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white">Browse by Category</h2>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          {categories.map((cat) => (
-            <Link 
-              key={cat.name} 
-              href={cat.href}
-              className={`flex flex-col items-center justify-center p-6 rounded-2xl transition-all hover:scale-105 hover:shadow-lg cursor-pointer ${cat.color} bg-opacity-50`}
-            >
-              <cat.icon className="w-8 h-8 mb-2" />
-              <span className="font-semibold">{cat.name}</span>
-            </Link>
-          ))}
-        </div>
-      </section>
+      {/* ── 1. CINEMATIC HERO ── */}
+      <HeroStage
+        frames={frames}
+        navLinks={[
+          { label: "Artists",     href: "/artists" },
+          { label: "Events",      href: "/events" },
+          { label: "Academies",   href: "/academies" },
+          { label: "Marketplace", href: "/marketplace" },
+          { label: "About",       href: "/about" },
+        ]}
+        ctaLabel="Sign Up"
+        ctaHref="/auth?tab=signup"
+      />
 
-      {/* Ad Section: Top Banner */}
-      <section className="container mx-auto px-4">
-         <div className="w-full">
-            <AdPlaceholder size="leaderboard" label="Sponsored Banner" placement="home-banner" ad={bannerAds[0] || null} />
-         </div>
-      </section>
-
-      {/* AI Recommendations Section */}
-      <section className="container mx-auto px-4">
-        {/* Darker, deeper gradient background */}
-        <div className="relative rounded-3xl overflow-hidden bg-[conic-gradient(at_bottom_left,_var(--tw-gradient-stops))] from-slate-900 via-purple-900 to-slate-900 p-[1px]">
-          {/* Animated decorative blobs */}
-          <div className="absolute top-0 right-0 w-96 h-96 bg-purple-600/20 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 animate-pulse"></div>
-          <div className="absolute bottom-0 left-0 w-96 h-96 bg-indigo-600/20 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/2"></div>
-          
-          <div className="relative bg-slate-950/90 backdrop-blur-xl rounded-[23px] p-6 md:p-8">
-            
-            {/* Header with more detail */}
-            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 mb-10 border-b border-white/5 pb-8">
-              <div className="flex items-center gap-5">
-                <div className="relative">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/20">
-                    <Bot className="w-8 h-8 text-white" />
-                  </div>
-                  <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 rounded-full border-4 border-slate-950 flex items-center justify-center">
-                     <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>
-                  </div>
-                </div>
-                <div>
-                  <h2 className="text-3xl font-bold text-white flex items-center gap-3">
-                    Your Personal Culture Guide
-                    <span className="px-2.5 py-1 rounded-md bg-white/10 text-xs font-bold text-indigo-300 uppercase tracking-wider border border-white/5">Beta v0.9</span>
-                  </h2>
-                  <div className="flex items-center gap-2 mt-1">
-                    <p className="text-slate-400 text-sm">Analyzing your preferences...</p>
-                    <span className="w-1 h-1 rounded-full bg-slate-600"></span>
-                    <p className="text-emerald-400 text-xs font-medium flex items-center gap-1">
-                      <Sparkles className="w-3 h-3" /> 98% Accuracy Match
-                    </p>
-                  </div>
+      {/* ── 2. TAGLINE BAND ── */}
+      <section className="hp2-intro">
+        <div className="hp2-container">
+          <div className="hp2-intro__layout">
+            <Reveal>
+              <div className="hp2-intro__content">
+                <p className="hp2-section__kicker">Rasaswadaya · Sri Lanka</p>
+                <h2 className="hp2-intro__title">
+                  Where the island&apos;s<br />
+                  <em>artistry</em> meets you.
+                </h2>
+                <p className="hp2-intro__lede">
+                  A single place to discover Sri Lankan music, dance, theatre and film —
+                  and the people who dedicate their lives to making it.
+                </p>
+                <div className="hp2-cta-row">
+                  <Link href="/artists" className="hp2-btn hp2-btn--primary">Meet the artists</Link>
+                  <Link href="/about"   className="hp2-btn hp2-btn--ghost">Our story →</Link>
                 </div>
               </div>
-              
-              <div className="flex flex-wrap gap-2">
-                 <div className="px-4 py-2 bg-slate-900 rounded-lg border border-slate-800 flex flex-col items-center min-w-[100px]">
-                    <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Top Genre</span>
-                    <span className="text-sm font-semibold text-indigo-300">Traditional</span>
-                 </div>
-                 <div className="px-4 py-2 bg-slate-900 rounded-lg border border-slate-800 flex flex-col items-center min-w-[100px]">
-                    <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Favorite Era</span>
-                    <span className="text-sm font-semibold text-purple-300">Kandy</span>
-                 </div>
-                 <button className="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg border border-white/10 text-xs font-medium text-white transition-colors">
-                    Update Preferences
-                 </button>
-              </div>
+            </Reveal>
+            <div className="hp2-intro__map" aria-hidden>
+              <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="sl-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#C4B5FD" stopOpacity="0.9" />
+                    <stop offset="50%" stopColor="#A78BFA" stopOpacity="0.75" />
+                    <stop offset="100%" stopColor="#818CF8" stopOpacity="0.6" />
+                  </linearGradient>
+                </defs>
+                <path fill="url(#sl-grad)" d="M187.737 20.081c-2.019.404-45.235 14.136-45.235 14.136l85.22 27.06s-37.965-41.6-39.985-41.196zm23.281 41.64c-14.49-.219-26.62 2.57-39.84 6.018l-17.77 63.004c-4.761 33.46-10.786 66.5-28.273 95.719 10.939 80.264 13.738 164.088 40.389 237.478 31.632 35.377 68.531 36.233 109.855 8.078 87.857-9.33 112.196-73.646 111.47-147.011L326.266 183.65l-93.7-119.548c-7.886-1.562-14.961-2.282-21.548-2.381z"/>
+              </svg>
             </div>
+          </div>
+        </div>
+      </section>
 
-            {/* Detailed AI Cards Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative z-10">
-              {/* Card 1: Primary AI Recommendation (Featured Event) */}
-              {aiEvent1 && (
-               <div className="lg:col-span-1 bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-2xl overflow-hidden hover:border-blue-500/30 transition-all group flex flex-col hover:shadow-[0_0_30px_-5px_rgba(59,130,246,0.15)] ring-1 ring-white/5">
-                 {/* Tech Header */}
-                 <div className="h-1 w-full bg-gradient-to-r from-blue-500 via-cyan-500 to-emerald-500 opacity-70"></div>
-                 
-                 {/* Image Section - Tech Frame */}
-                 <div className="relative h-60 w-full overflow-hidden border-b border-white/5">
-                    <Link href={`/events/${aiEvent1.id}`} className="block w-full h-full">
-                        <ImageWithFallback 
-                            src={aiEvent1.imageUrl || "https://images.unsplash.com/photo-1540039155732-68096f21bb46?q=80&w=800"}
-                            alt={aiEvent1.title}
-                            fill
-                            className="object-cover group-hover:scale-105 transition-transform duration-700 blur-[2px] group-hover:blur-0"
-                        />
-                        <div className="absolute inset-0 bg-slate-950/40 mix-blend-multiply group-hover:opacity-0 transition-opacity duration-500"></div>
-                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent"></div>
-                    </Link>
-                    
-                    {/* Floating Tech Badges */}
-                    <div className="absolute top-4 left-4 flex flex-col gap-2 pointer-events-none">
-                      <span className="px-2.5 py-1 bg-slate-950/80 backdrop-blur border border-cyan-500/30 rounded text-xs font-bold text-cyan-400 uppercase tracking-wider shadow-lg flex items-center gap-2">
-                        <Sparkles className="w-3 h-3" />
-                         #1 Pick for You
-                      </span>
-                   </div>
+      {/* ── 3. AI SUGGESTIONS ENGINE ── */}
+      <section className="hp2-ai">
+        {!isLoggedIn ? (
+          <div className="hp2-ai--guest">
+            <div className="hp2-container">
+              <Reveal>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                  <span className="hp2-ai__badge">
+                    <span className="hp2-ai__pulse" />
+                    AI-Powered Suggestions
+                  </span>
+                  <h2 className="hp2-ai__guest-title">
+                    Discover Sri Lankan Arts<br />
+                    <span className="hp2-grad">Made for You.</span>
+                  </h2>
+                  <p className="hp2-ai__guest-lede">
+                    Sign up and tell us what you love. We&apos;ll find artists and events
+                    that match your taste in seconds.
+                  </p>
+                  <div className="hp2-cta-row hp2-cta-row--center">
+                    <Link href="/auth?tab=signup" className="hp2-btn hp2-btn--ai"><span>Get Personal Picks</span></Link>
+                    <Link href="/events"          className="hp2-btn hp2-btn--ghost">Browse Trending</Link>
+                  </div>
+                </div>
+              </Reveal>
+            </div>
+          </div>
+        ) : (
+          <div className="hp2-ai--loggedin">
+            <div className="hp2-container">
+              <div className="hp2-ai__header">
+                <div>
+                  <span className="hp2-ai__badge">
+                    <span className="hp2-ai__pulse" />
+                    Suggestions Engine Active
+                  </span>
+                  <h2 className="hp2-ai__title"><span className="hp2-grad">Made for You.</span></h2>
+                  <p className="hp2-ai__sub">
+                    {topMatchPct != null && <><span>{topMatchPct}% Match</span>{" · "}</>}
+                    <span style={{ color: AI_CLR }}>Personalised</span>
+                  </p>
+                </div>
+                <Link href="/profile" className="hp2-btn hp2-btn--ghost">Set Preferences</Link>
+              </div>
 
-                   {/* AI Match Overlay */}
-                   <div className="absolute top-4 right-4 group-hover:scale-110 transition-transform pointer-events-none">
-                      <div className="relative w-12 h-12 flex items-center justify-center bg-slate-950/90 backdrop-blur rounded-full border border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.5)]">
-                         <span className="text-sm font-black text-white">{aiEvent1.aiScore || '98'}%</span>
-                         <svg className="absolute inset-0 w-full h-full -rotate-90">
-                            <circle cx="24" cy="24" r="23" stroke="currentColor" strokeWidth="2" fill="none" className="text-slate-800" />
-                            <circle cx="24" cy="24" r="23" stroke="currentColor" strokeWidth="2" fill="none" strokeDasharray="144" strokeDashoffset={144 - (144 * (aiEvent1.aiScore || 98) / 100)} className="text-blue-500 transition-all duration-1000 group-hover:text-cyan-400" />
-                         </svg>
-                      </div>
-                   </div>
-
-                   {/* Title Hover State */}
-                   <div className="absolute bottom-4 left-4 right-4 pointer-events-none">
-                      <h3 className="text-2xl font-black text-white leading-tight drop-shadow-lg group-hover:text-blue-400 transition-colors line-clamp-2">{aiEvent1.title}</h3>
-                   </div>
-                 </div>
-
-                 {/* Content Section */}
-                 <div className="p-6 flex flex-col flex-grow bg-slate-950/50">
-                    <div className="flex items-center gap-4 mb-5 text-sm font-medium text-slate-300">
-                      <div className="flex items-center gap-1.5 bg-white/5 px-2.5 py-1 rounded">
-                         <Calendar className="w-3.5 h-3.5 text-blue-400" />
-                         {new Date(aiEvent1.eventDate).toLocaleDateString()}
-                      </div>
-                      <div className="flex items-center gap-1.5 bg-white/5 px-2.5 py-1 rounded">
-                         <MapPin className="w-3.5 h-3.5 text-emerald-400" />
-                         {aiEvent1.venue || 'Colosseum'}
-                      </div>
+              <AIThinking minHeight={420}>
+              <div className="hp2-ai__cards">
+                {aiEvent1 && (
+                  <Link href={"/events/" + buildSlug(aiEvent1.id, aiEvent1.title)} className="hp2-ai-card">
+                    <div className="hp2-ai-card__img">
+                      <ImageWithFallback
+                        src={aiEvent1.imageUrl || "https://images.unsplash.com/photo-1540039155732-68096f21bb46?q=80&w=800"}
+                        alt={aiEvent1.title}
+                        fill
+                        className="object-cover"
+                      />
+                      <span className="hp2-ai-card__badge hp2-ai-card__badge--ai">Top Match</span>
                     </div>
-
-                    <div className="bg-blue-950/20 rounded-xl p-4 border border-blue-500/10 mb-6 relative overflow-hidden">
-                       <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 blur-[40px] rounded-full mix-blend-screen"></div>
-                       <p className="text-sm text-slate-300 relative z-10 leading-relaxed line-clamp-3">
-                          {aiEvent1.description || "The Rasaswadaya neural network has detected a profound resonance between your taste profile and this event's energy signature. A highly recommended cultural convergence. Don't miss this."}
-                       </p>
+                    <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+                      <div className="hp2-ai-card__meta-row">
+                        <span className="hp2-ai-card__date">
+                          {new Date(aiEvent1.eventDate).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                        </span>
+                        {aiEvent1.aiScore != null && <span className="hp2-ai-card__score">{aiEvent1.aiScore}%</span>}
+                      </div>
+                      <h3 className="hp2-ai-card__title">{aiEvent1.title}</h3>
+                      <p className="hp2-ai-card__desc">{aiEvent1.aiReason || aiEvent1.description || "Recommended from cultural overlap"}</p>
+                      <span className="hp2-ai-card__cta">View Details →</span>
                     </div>
-
-                    <div className="mt-auto pt-4 border-t border-white/5 flex items-center justify-between">
-                       <Link href={`/events/${aiEvent1.id}`} className="text-sm font-bold text-slate-400 hover:text-white transition-colors flex items-center gap-1.5 relative z-20">
-                          Explore Event <ArrowRight className="w-4 h-4" />
-                       </Link>
-                       <Link href={`/events/${aiEvent1.id}`} className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold shadow-[0_0_15px_rgba(37,99,235,0.4)] hover:shadow-[0_0_25px_rgba(59,130,246,0.6)] transition-all flex items-center gap-2 group/btn relative z-20">
-                          Secure Spot
-                          <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-                       </Link>
-                    </div>
-                 </div>
-               </div>
-              )}
-
-              {/* Card 2: Secondary Event */}
-              {aiEvent2 && (
-              <div className="lg:col-span-1 bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-2xl overflow-hidden hover:border-purple-500/30 transition-all group flex flex-col hover:shadow-[0_0_20px_-5px_rgba(168,85,247,0.15)] ring-1 ring-white/5">
-                 {/* Tech Header */}
-                 <div className="h-1 w-full bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 opacity-70"></div>
-                 
-                 {/* Image Section - Split Layout */}
-                 <Link href={`/events/${aiEvent2.id}`} className="relative h-44 w-full overflow-hidden border-b border-white/5 block">
-                    <ImageWithFallback 
-                        src={aiEvent2.imageUrl || "https://images.unsplash.com/photo-1514525253440-b393452e8d26?w=800"}
+                  </Link>
+                )}
+                {aiEvent2 && (
+                  <Link href={"/events/" + buildSlug(aiEvent2.id, aiEvent2.title)} className="hp2-ai-card">
+                    <div className="hp2-ai-card__img">
+                      <ImageWithFallback
+                        src={aiEvent2.imageUrl || "https://images.unsplash.com/photo-1514525253440-b393452e8d26?q=80&w=800"}
                         alt={aiEvent2.title}
                         fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-700"
-                    />
-                    <div className="absolute inset-0 bg-slate-900/20 group-hover:bg-transparent transition-colors"></div>
-                    
-                    {/* Floating Badge */}
-                    <div className="absolute top-3 right-3">
-                      <span className="px-2 py-1 bg-slate-950/80 backdrop-blur border border-white/10 rounded text-[10px] font-bold text-white uppercase tracking-wider shadow-lg flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse"></span>
-                        {aiEvent2.category || 'Event'}
-                      </span>
-                   </div>
-
-                   {/* Date Pill */}
-                   <div className="absolute bottom-3 left-3">
-                      <div className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-950/90 backdrop-blur border border-white/10 rounded-full text-xs font-medium text-slate-300">
-                         <Calendar className="w-3 h-3 text-purple-400" />
-                         {new Date(aiEvent2.eventDate).toLocaleDateString()}
+                        className="object-cover"
+                      />
+                      <span className="hp2-ai-card__badge hp2-ai-card__badge--cat">{aiEvent2.category || "Event"}</span>
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+                      <div className="hp2-ai-card__meta-row">
+                        <span className="hp2-ai-card__date">
+                          {new Date(aiEvent2.eventDate).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                        </span>
                       </div>
-                   </div>
-                 </Link>
-                 
-                 {/* Content Panel */}
-                 <div className="p-5 flex flex-col flex-grow bg-gradient-to-b from-slate-900/50 to-slate-950/50">
-                    <Link href={`/events/${aiEvent2.id}`}>
-                       <h3 className="text-lg font-bold text-white mb-3 group-hover:text-purple-400 transition-colors line-clamp-2 leading-tight">{aiEvent2.title}</h3>
-                    </Link>
-                    
-                    {/* AI Tech Box */}
-                    <div className="bg-slate-950 rounded-lg p-3.5 border border-white/5 mb-4 group-hover:border-purple-500/20 transition-colors">
-                       <div className="flex items-start gap-2.5">
-                         <div className="w-4 h-4 rounded bg-purple-500/20 flex items-center justify-center shrink-0 mt-0.5">
-                            <MessageSquare className="w-2.5 h-2.5 text-purple-400" />
-                         </div>
-                         <div className="space-y-1">
-                            <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Recommendation</p>
-                            <p className="text-xs text-slate-300 leading-relaxed line-clamp-2">
-                               {aiEvent2.description || 'Recommended based on your cultural profile.'}
-                            </p>
-                         </div>
-                       </div>
+                      <h3 className="hp2-ai-card__title">{aiEvent2.title}</h3>
+                      <p className="hp2-ai-card__desc">{aiEvent2.aiReason || aiEvent2.description || "Suggested for you"}</p>
+                      <span className="hp2-ai-card__cta">Book Now →</span>
                     </div>
-
-                    <div className="mt-auto pt-4 border-t border-white/5 flex items-center justify-between">
-                       <Link href={`/events/${aiEvent2.id}`} className="text-xs font-medium text-slate-400 hover:text-white transition-colors flex items-center gap-1">
-                          Details <ArrowRight className="w-3 h-3" />
-                       </Link>
-                       <Link href={`/events/${aiEvent2.id}`} className="text-xs bg-white/5 border border-white/10 text-white px-3 py-1.5 rounded-md font-bold hover:bg-white hover:text-slate-950 transition-all relative z-20">
-                         Book Now
-                       </Link>
+                  </Link>
+                )}
+                {aiArtist && (
+                  <Link href={"/artists/" + toArtistSlug(aiArtist.name || "", aiArtist.id)} className="hp2-ai-card">
+                    <div className="hp2-ai-card__img">
+                      <ImageWithFallback
+                        src={aiArtist.photoUrl || "https://images.unsplash.com/photo-1549834125-906c85a44004?q=80&w=800"}
+                        alt={aiArtist.name}
+                        fill
+                        className="object-cover"
+                      />
+                      <span className="hp2-ai-card__badge hp2-ai-card__badge--artist">♥ Artist Match</span>
                     </div>
-                 </div>
+                    <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+                      <div className="hp2-ai-card__meta-row">
+                        <span className="hp2-ai-card__date" style={{ color: AI_CLR }}>Trending Choice</span>
+                      </div>
+                      <h3 className="hp2-ai-card__title">{aiArtist.name}</h3>
+                      <p className="hp2-ai-card__desc">{aiArtist.aiReason || "Matched from your preferences."}</p>
+                      <span className="hp2-ai-card__cta">View Profile →</span>
+                    </div>
+                  </Link>
+                )}
               </div>
-              )}
-
-              {/* Card 3: Personalized Artist Pick */}
-              {aiArtist && (
-               <div className="lg:col-span-1 bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-2xl overflow-hidden hover:border-pink-500/30 transition-all group flex flex-col hover:shadow-[0_0_20px_-5px_rgba(236,72,153,0.15)] ring-1 ring-white/5">
-                 <div className="h-1 w-full bg-gradient-to-r from-pink-500 via-rose-500 to-red-500 opacity-70"></div>
-                 
-                 <div className="relative h-44 w-full overflow-hidden border-b border-white/5">
-                    <Link href={`/artists/${aiArtist.id}`} className="block w-full h-full">
-                        <ImageWithFallback 
-                            src={aiArtist.photoUrl || "https://images.unsplash.com/photo-1549834125-906c85a44004?q=80&w=800"}
-                            alt={aiArtist.name}
-                            fill
-                            className="object-cover group-hover:scale-105 transition-transform duration-700"
-                        />
-                        <div className="absolute inset-0 bg-slate-900/20 group-hover:bg-transparent transition-colors"></div>
-                    </Link>
-                    
-                    <div className="absolute top-3 right-3 pointer-events-none">
-                      <span className="px-2 py-1 bg-slate-950/80 backdrop-blur border border-white/10 rounded text-[10px] font-bold text-white uppercase tracking-wider shadow-lg flex items-center gap-1.5">
-                        Artist Match
-                      </span>
-                    </div>
-                 </div>
-
-                 <div className="p-5 flex flex-col flex-grow bg-gradient-to-b from-slate-900/50 to-slate-950/50">
-                    <Link href={`/artists/${aiArtist.id}`}>
-                       <h3 className="text-lg font-bold text-white mb-3 group-hover:text-pink-400 transition-colors">{aiArtist.name}</h3>
-                    </Link>
-                    
-                    <div className="bg-slate-950 rounded-lg p-3.5 border border-white/5 mb-4 group-hover:border-pink-500/20 transition-colors">
-                       <div className="flex items-start gap-2.5">
-                         <div className="w-4 h-4 rounded bg-pink-500/20 flex items-center justify-center shrink-0 mt-0.5">
-                            <Heart className="w-2.5 h-2.5 text-pink-400" />
-                         </div>
-                         <div className="space-y-1">
-                            <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Trending + Taste</p>
-                            <p className="text-xs text-slate-300 leading-relaxed">
-                               Based on your recent activity, we think you'll love this artist!
-                            </p>
-                         </div>
-                       </div>
-                    </div>
-
-                    <div className="mt-auto pt-4 border-t border-white/5 flex items-center justify-between">
-                       <span className="text-xs font-medium text-pink-400/80 flex items-center gap-1.5">
-                         <span className="w-1.5 h-1.5 rounded-full bg-pink-500"></span>
-                         Rising Star
-                       </span>
-                       <Link href={`/artists/${aiArtist.id}`} className="text-xs bg-white/5 border border-white/10 text-white px-3 py-1.5 rounded-md font-bold hover:bg-white hover:text-slate-950 transition-all relative z-20">
-                         Profile
-                       </Link>
-                    </div>
-                 </div>
-               </div>
-              )}
-
+              </AIThinking>
             </div>
           </div>
+        )}
+      </section>
+
+      {/* ── 5. ARTIST MARQUEE ── */}
+      <section className="hp2-section hp2-section--tight">
+        <div className="hp2-container">
+          <Reveal>
+            <div className="hp2-row-head">
+              <div>
+                <p className="hp2-section__kicker">Voices of the island</p>
+                <h2 className="hp2-section__title hp2-section__title--sm">Artists in residence</h2>
+              </div>
+              <Link href="/artists" className="hp2-link">All artists →</Link>
+            </div>
+          </Reveal>
+        </div>
+        <div className="hp2-marquee-wrap">
+          <Marquee duration={60} gap={20}>
+            {[...artists.filter((a: any) => !!a.photoUrl), ...artists.filter((a: any) => !!a.photoUrl)].slice(0, 16).map((a: any, i: number) => (
+              <Link key={String(a.id) + "-" + i} href={"/artists/" + toArtistSlug(a.name || "", a.id)} className="hp2-art-card">
+                <div className="hp2-art-card__art" style={{ background: tintFor("a-" + String(a.id), 30) }}>
+                  {a.photoUrl && (
+                    <ImageWithFallback src={a.photoUrl} alt={a.name} fill className="object-cover" />
+                  )}
+                </div>
+                <div>
+                  <p className="hp2-art-card__name">{a.name}</p>
+                  <p className="hp2-art-card__genre">{a.genre || "Artist"}</p>
+                </div>
+              </Link>
+            ))}
+          </Marquee>
         </div>
       </section>
 
-      {/* 3) Curated / Insights Section - "Discover" */}
-      <section className="container mx-auto px-4">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
-          {/* Main Highlight: Featured Event */}
-          <div className="lg:col-span-2 space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-brand-500" />
-                Featured Events
-              </h2>
-              <Link href="/events" className="text-sm font-medium text-brand-600 hover:text-brand-700 flex items-center gap-1">
-                View Calendar <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {events.slice(0, 5).map((event: Event) => (
+      {/* ── 6. FEATURED EVENTS ── */}
+      <section className="hp2-section">
+        <div className="hp2-container">
+          <Reveal>
+            {events.length > 0 && (
+              <div className="hp2-feat-panel" style={{
+                background: "#15121D",
+                border: "1px solid rgba(196,181,253,0.10)",
+                borderRadius: 24,
+                overflow: "hidden",
+              }}>
+                {/* ── Left: hero event ── */}
                 <Link
-                  key={event.id}
-                  href={`/events/${event.id}`}
-                  className="group bg-white dark:bg-zinc-900 rounded-2xl overflow-hidden border border-slate-200 dark:border-zinc-800 hover:shadow-xl hover:shadow-brand-500/5 transition-all flex flex-col h-full"
+                  href={"/events/" + buildSlug(events[0].id, events[0].title)}
+                  className="hp2-feat-hero"
                 >
-                  <div className="relative h-48 bg-slate-100 dark:bg-zinc-800">
-                    <ImageWithFallback 
-                      src={event.imageUrl || "https://images.unsplash.com/photo-1514525253440-b393452e8d26?w=800"}
-                      alt={event.title}
+                  {/* Image */}
+                  <div className="hp2-feat-hero__img">
+                    <ImageWithFallback
+                      src={events[0].imageUrl || "https://images.unsplash.com/photo-1514525253440-b393452e8d26?w=1200"}
+                      alt={events[0].title}
                       fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      className="object-cover"
+                      style={{ transition: "transform .6s cubic-bezier(.2,.7,.2,1)" }}
                     />
+                    <span style={{
+                      position: "absolute", top: 14, left: 14,
+                      fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase",
+                      fontWeight: 700, padding: "5px 12px", borderRadius: 6,
+                      background: "rgba(11,11,12,0.78)", color: "#F5F3FA",
+                      backdropFilter: "blur(8px)",
+                    }}>{events[0].category || "Event"}</span>
                   </div>
-                  <div className="p-5 flex flex-col flex-grow">
-                    <div className="flex items-center gap-2 text-xs font-medium text-brand-600 mb-2">
-                       <span className="bg-brand-50 dark:bg-brand-950/50 px-2 py-1 rounded-md uppercase tracking-wider">
-                         {event.category || 'Event'}
-                       </span>
-                    </div>
-                    <h3 className="font-bold text-lg mb-2 group-hover:text-brand-600 transition-colors line-clamp-1">
-                      {event.title}
-                    </h3>
-                    <div className="mt-auto space-y-2 text-sm text-slate-500 dark:text-zinc-400">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4" />
-                        <span>{new Date(event.eventDate).toLocaleDateString()}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4" />
-                        <span className="line-clamp-1">{event.location}</span>
-                      </div>
+                  {/* Body */}
+                  <div style={{ padding: "20px 24px 24px" }}>
+                    <h3 style={{
+                      fontFamily: "var(--font-outfit)", fontSize: "clamp(18px, 2vw, 24px)",
+                      fontWeight: 600, letterSpacing: "-0.025em", color: "#F5F3FA",
+                      margin: "0 0 10px", lineHeight: 1.25,
+                    }}>{events[0].title}</h3>
+                    {events[0].description && (
+                      <p style={{
+                        fontSize: 14, color: "#9B95B5", lineHeight: 1.55, margin: "0 0 14px",
+                        display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
+                      }}>{events[0].description}</p>
+                    )}
+                    <div style={{ display: "flex", gap: 18, flexWrap: "wrap" }}>
+                      <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#9B95B5" }}>
+                        <Calendar size={13} strokeWidth={1.5} />
+                        {new Date(events[0].eventDate).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "long" })}
+                      </span>
+                      <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#9B95B5" }}>
+                        <MapPin size={13} strokeWidth={1.5} />
+                        {events[0].location || "Sri Lanka"}
+                      </span>
                     </div>
                   </div>
                 </Link>
-              ))}
-            </div>
-          </div>
 
-          {/* Sidebar: Cultural Insights & Trending */}
-          <div className="space-y-8">
-            
-            {/* Cultural Insight Card */}
-            <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/10 rounded-2xl p-6 border border-amber-100 dark:border-amber-900/30">
-              <div className="flex items-center gap-2 mb-4 text-amber-800 dark:text-amber-500">
-                <Info className="w-5 h-5" />
-                <h3 className="font-bold">Did You Know?</h3>
-              </div>
-              <p className="text-sm text-slate-700 dark:text-zinc-300 mb-4 leading-relaxed">
-                The <strong>Kandyan Dance</strong> (Udarata Natum) originates from the central hill country of Sri Lanka. Originally performed by dancers who were identified as a separate caste, it is now a national icon.
-              </p>
-              <Link href="/about" className="text-xs font-bold text-amber-700 hover:underline">
-                Learn more about our heritage →
-              </Link>
-            </div>
-
-            {/* Trending / Top Artists */}
-            <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 p-6">
-              <h3 className="font-bold text-lg mb-4">Trending Artists</h3>
-              <div className="space-y-4">
-                {artists.slice(0, 3).map((artist: Artist, i: number) => (
-                  <Link key={artist.id} href={`/artists/${artist.id}`} className="flex items-center gap-3 group">
-                    <div className="relative w-12 h-12 rounded-full overflow-hidden bg-slate-100 flex-shrink-0">
-                      <ImageWithFallback 
-                        src={artist.photoUrl} 
-                        alt={artist.name}
-                        fill
-                        className="object-cover"
-                        unoptimized={artist.photoUrl?.includes('wikimedia.org')}
-                      />
+                {/* ── Right panel: header + stacked rows ── */}
+                <div>
+                  {/* Panel header */}
+                  <div style={{
+                    display: "flex", alignItems: "center", justifyContent: "space-between",
+                    padding: "20px 24px 16px",
+                    borderBottom: "1px solid rgba(196,181,253,0.10)",
+                  }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <span style={{ width: 3, height: 20, borderRadius: 2, background: "#A78BFA", flexShrink: 0 }} />
+                      <span style={{
+                        fontFamily: "var(--font-outfit)", fontSize: 17, fontWeight: 600,
+                        letterSpacing: "-0.015em", color: "#F5F3FA",
+                      }}>On the horizon</span>
                     </div>
-                    <div>
-                      <h4 className="font-semibold text-sm group-hover:text-brand-600 transition-colors">{artist.name}</h4>
-                      <p className="text-xs text-slate-500">{artist.genre}</p>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-              <Link href="/artists" className="block w-full mt-4 text-xs font-medium text-center text-slate-500 hover:text-brand-600 transition-colors">
-                View all artists
-              </Link>
-            </div>
+                    <Link href="/events" className="hp2-link" style={{ fontSize: 13 }}>View all →</Link>
+                  </div>
 
-            {/* Ad Space */}
-            <AdPlaceholder size="medium" label="Sponsor" placement="home-sidebar" ad={sidebarAds[1] || null} />
-          </div>
+                  {/* Stacked event rows */}
+                  {events.slice(1, 4).map((ev: any, i: number) => (
+                    <Link
+                      key={ev.id}
+                      href={"/events/" + buildSlug(ev.id, ev.title)}
+                      className="hp2-feat-row"
+                      style={{
+                        padding: "16px 24px",
+                        borderBottom: i < 2 ? "1px solid rgba(196,181,253,0.07)" : "none",
+                      }}
+                    >
+                      {/* Thumbnail */}
+                      <div style={{
+                        position: "relative", width: 80, height: 56,
+                        borderRadius: 10, overflow: "hidden", flexShrink: 0,
+                        background: "#1E1A2B",
+                      }}>
+                        <ImageWithFallback
+                          src={ev.imageUrl || "https://images.unsplash.com/photo-1540039155732-68096f21bb46?w=300"}
+                          alt={ev.title}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                      {/* Text */}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{
+                          fontFamily: "var(--font-outfit)", fontSize: 15, fontWeight: 500,
+                          letterSpacing: "-0.01em", color: "#F5F3FA",
+                          margin: "0 0 5px", lineHeight: 1.3,
+                          whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                        }}>{ev.title}</p>
+                        <p style={{ fontSize: 12, color: "#9B95B5", margin: 0, lineHeight: 1.4 }}>
+                          {ev.category || "Event"} · {new Date(ev.eventDate).toLocaleDateString("en-GB", { day: "numeric", month: "short" })} · {ev.location || "Sri Lanka"}
+                        </p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+          </Reveal>
         </div>
       </section>
 
-      {/* Ad Section: Mid-Page Break */}
-      <section className="container mx-auto px-4 py-4">
-         <AdPlaceholder size="leaderboard" label="Seasonal Promotion" placement="home-seasonal" ad={seasonalAds[0] || null} className="bg-gradient-to-r from-violet-50 to-brand-50 dark:from-violet-950/30 dark:to-brand-950/30" />
-      </section>
-
-      {/* 4) Market / Products Section */}
-      <section className="py-12">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">Marketplace Highlights</h2>
-              <p className="text-sm text-slate-500">Support local artisans and creators</p>
+      {/* ── 9. MARKETPLACE ── */}
+      <section className="hp2-section">
+        <div className="hp2-container">
+          <Reveal>
+            <div className="hp2-row-head">
+              <div>
+                <p className="hp2-section__kicker">Shop · Direct from makers</p>
+                <h2 className="hp2-section__title hp2-section__title--sm">The marketplace</h2>
+              </div>
+              <Link href="/marketplace" className="hp2-link">View all →</Link>
             </div>
-            <Link href="/marketplace" className="px-4 py-2 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-full text-sm font-medium hover:bg-slate-50 dark:hover:bg-zinc-700 transition-colors">
-              Shop All
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {products.slice(0, 4).map((product: any) => (
-              <Link 
-                key={product.id}
-                href={`/products/${product.id}`}
-                className="bg-white dark:bg-zinc-900 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow group"
-              >
-                <div className="aspect-square relative bg-slate-200 dark:bg-zinc-800">
-                  <ImageWithFallback
-                    src="https://images.unsplash.com/photo-1606760227091-3dd870d97f1d?w=500" // Fallback placeholder logic
-                    alt={product.name}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform"
-                  />
-                  <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur text-white text-xs px-2 py-1 rounded">
-                    {product.storeName}
+          </Reveal>
+          <Reveal delay={80}>
+            <div className="hp2-market__filters">
+              <Link href="/marketplace" className="hp2-market__chip hp2-market__chip--active">All items</Link>
+              <Link href="/marketplace?listing=sale" className="hp2-market__chip">For sale</Link>
+              <Link href="/marketplace?listing=rent" className="hp2-market__chip">For rent</Link>
+            </div>
+          </Reveal>
+          <div className="hp2-market-grid">
+            {products.slice(0, 4).map((p: any, i: number) => (
+              <Reveal key={p.id} delay={i * 60}>
+                <Link href={"/products/" + buildSlug(p.id, p.name)} className="hp2-product">
+                  <div className="hp2-product__art">
+                    {p.createdAt && (Date.now() - new Date(p.createdAt).getTime() < 14 * 86400_000) && (
+                      <span className="hp2-product__badge">New</span>
+                    )}
+                    {p.category && (
+                      <span className="hp2-product__badge" style={{ left: "auto", right: 10 }}>{p.category}</span>
+                    )}
+                    <span className="hp2-product__heart" aria-hidden>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/></svg>
+                    </span>
+                    <ImageWithFallback
+                      src={p.imageUrl || "https://images.unsplash.com/photo-1606760227091-3dd870d97f1d?w=600"}
+                      alt={p.name}
+                      fill
+                      className="object-cover"
+                    />
+                    <span className="hp2-product__quick">Quick view →</span>
                   </div>
-                </div>
-                <div className="p-4">
-                  <h4 className="font-semibold text-sm mb-1 line-clamp-1">{product.name}</h4>
-                </div>
-              </Link>
+                  <div className="hp2-product__info">
+                    <span className="hp2-product__store">{p.storeName || "Independent maker"}</span>
+                    <p className="hp2-product__name">{p.name}</p>
+                    <div className="hp2-product__price-row">
+                      <span className="hp2-product__price">
+                        {p.price != null && Number(p.price) > 0 ? (
+                          <><span className="hp2-product__price-cur">Rs.</span>{Number(p.price).toLocaleString()}</>
+                        ) : (
+                          <span style={{ color: MUTED, fontWeight: 500 }}>Enquire</span>
+                        )}
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              </Reveal>
             ))}
           </div>
         </div>
       </section>
 
-      {/* 5) Call to Action - Join Community */}
-      <section className="container mx-auto px-4">
-        <div className="rounded-3xl bg-gradient-to-r from-brand-600 to-violet-600 p-8 md:p-12 text-center text-white relative overflow-hidden">
-           {/* Abstract shapes */}
-           <div className="absolute top-0 left-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
-           <div className="absolute bottom-0 right-0 w-64 h-64 bg-black/10 rounded-full blur-3xl translate-x-1/2 translate-y-1/2"></div>
-           
-           <div className="relative z-10 max-w-2xl mx-auto">
-             <h2 className="text-3xl font-bold mb-4">Join the Rasasvada Community</h2>
-             <p className="text-brand-100 mb-8 text-lg">
-               Connect with artists, discover exclusive events, and support the Sri Lankan arts community directly.
-             </p>
-             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-               <Link href="/signup" className="px-8 py-3 bg-white text-brand-700 font-bold rounded-full hover:bg-brand-50 transition-colors w-full sm:w-auto">
-                 Get Started
-               </Link>
-               <Link href="/about" className="px-8 py-3 bg-brand-700/50 text-white font-medium rounded-full hover:bg-brand-700/70 backdrop-blur transition-colors w-full sm:w-auto">
-                 Learn More
-               </Link>
-             </div>
-           </div>
+      {/* ── 10. CTA ── */}
+      <section className="hp2-cta">
+        <div className="hp2-container">
+          <Reveal>
+            <div className="hp2-cta__inner">
+              {isLoggedIn ? (
+                <>
+                  <h2 className="hp2-cta__title">
+                    What&apos;s next?{" "}
+                    <span>Explore.</span>
+                  </h2>
+                  <p className="hp2-cta__lede">
+                    Your AI recommendations are live. Discover artists, book events, and shop from local makers.
+                  </p>
+                  <div className="hp2-cta-row hp2-cta-row--center">
+                    <Link href="/events"      className="hp2-btn hp2-btn--primary">Browse events</Link>
+                    <Link href="/artists"     className="hp2-btn hp2-btn--ghost">Discover artists →</Link>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <h2 className="hp2-cta__title">
+                    Sound good?<br />
+                    <span>Come in.</span>
+                  </h2>
+                  <p className="hp2-cta__lede">
+                    One account. Personal recommendations from our AI engine.
+                    No spam, no dark patterns.
+                  </p>
+                  <div className="hp2-cta-row hp2-cta-row--center">
+                    <Link href="/auth?tab=signup" className="hp2-btn hp2-btn--primary">Create your account</Link>
+                    <Link href="/about"           className="hp2-btn hp2-btn--ghost">How it works →</Link>
+                  </div>
+                </>
+              )}
+            </div>
+          </Reveal>
         </div>
       </section>
 
-    </div>
+      {/* ── 11. FOOTER ── */}
+      <footer className="hp2-footer">
+        <div className="hp2-container">
+          <div className="hp2-footer__top">
+
+            {/* Brand column */}
+            <div>
+              <div className="hp2-footer__brand-mark">
+                <span className="hp2-footer__brand-inner" />
+              </div>
+              <p className="hp2-footer__brand-name">Rasaswadaya</p>
+              <p className="hp2-footer__tagline">
+                Sri Lanka&apos;s home for music, dance, theatre,
+                visual arts and craft. Discover, support, celebrate.
+              </p>
+              <div className="hp2-footer__social">
+                <Link href="https://instagram.com" className="hp2-footer__social-link" aria-label="Instagram" target="_blank" rel="noopener noreferrer">Ig</Link>
+                <Link href="https://facebook.com"  className="hp2-footer__social-link" aria-label="Facebook"  target="_blank" rel="noopener noreferrer">Fb</Link>
+                <Link href="https://youtube.com"   className="hp2-footer__social-link" aria-label="YouTube"   target="_blank" rel="noopener noreferrer">Yt</Link>
+                <Link href="https://twitter.com"   className="hp2-footer__social-link" aria-label="X / Twitter" target="_blank" rel="noopener noreferrer">X</Link>
+              </div>
+            </div>
+
+            {/* Discover */}
+            <div>
+              <p className="hp2-footer__col-title">Discover</p>
+              <ul className="hp2-footer__links">
+                <li><Link href="/events"                    className="hp2-footer__link">All Events</Link></li>
+                <li><Link href="/events?category=music"     className="hp2-footer__link">Music</Link></li>
+                <li><Link href="/events?category=dance"     className="hp2-footer__link">Dance</Link></li>
+                <li><Link href="/events?category=theater"   className="hp2-footer__link">Theatre</Link></li>
+                <li><Link href="/events?category=visual"    className="hp2-footer__link">Visual Arts</Link></li>
+                <li><Link href="/artists"                   className="hp2-footer__link">Artists</Link></li>
+              </ul>
+            </div>
+
+            {/* Platform */}
+            <div>
+              <p className="hp2-footer__col-title">Platform</p>
+              <ul className="hp2-footer__links">
+                <li><Link href="/marketplace"               className="hp2-footer__link">Marketplace</Link></li>
+                <li><Link href="/profile"                   className="hp2-footer__link">My Profile</Link></li>
+                <li><Link href="/auth?tab=signup"           className="hp2-footer__link">Create Account</Link></li>
+                <li><Link href="/auth?tab=login"            className="hp2-footer__link">Sign In</Link></li>
+                <li><Link href="/dashboard"                 className="hp2-footer__link">Artist Dashboard</Link></li>
+                <li><Link href="/admin"                     className="hp2-footer__link">Admin</Link></li>
+              </ul>
+            </div>
+
+            {/* Company */}
+            <div>
+              <p className="hp2-footer__col-title">Company</p>
+              <ul className="hp2-footer__links">
+                <li><Link href="/about"                     className="hp2-footer__link">About Us</Link></li>
+                <li><Link href="/about#mission"             className="hp2-footer__link">Our Mission</Link></li>
+                <li><Link href="/about#team"                className="hp2-footer__link">The Team</Link></li>
+                <li><Link href="/contact"                   className="hp2-footer__link">Contact</Link></li>
+                <li><Link href="/blog"                      className="hp2-footer__link">Blog</Link></li>
+                <li><Link href="/press"                     className="hp2-footer__link">Press Kit</Link></li>
+              </ul>
+            </div>
+
+          </div>{/* /top */}
+
+          <div className="hp2-footer__bottom">
+            <p className="hp2-footer__legal">
+              &copy; {new Date().getFullYear()} Rasaswadaya. All rights reserved.
+            </p>
+            <p className="hp2-footer__legal">
+              <Link href="/privacy">Privacy Policy</Link>
+              {" · "}
+              <Link href="/terms">Terms of Use</Link>
+              {" · "}
+              <Link href="/cookies">Cookie Settings</Link>
+            </p>
+            <p className="hp2-footer__locale">🇱🇰 Sri Lanka · English</p>
+          </div>
+        </div>
+      </footer>
+
+      <style dangerouslySetInnerHTML={{ __html: css }} />
+    </main>
   );
 }

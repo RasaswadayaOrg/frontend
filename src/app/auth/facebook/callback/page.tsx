@@ -31,7 +31,7 @@ export default function FacebookCallbackPage() {
     // Exchange code for token via our backend
     const exchangeCode = async () => {
       try {
-        const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
 
         const res = await fetch(`${API_URL}/artists/facebook/callback`, {
           method: "POST",
@@ -81,7 +81,7 @@ export default function FacebookCallbackPage() {
       <div className="text-center p-8 bg-white dark:bg-zinc-900 rounded-2xl shadow-lg border border-neutral-200 dark:border-zinc-800 max-w-sm w-full">
         {status === "loading" && (
           <>
-            <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <div className="w-10 h-10 border-4 border-brand-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
             <p className="text-sm text-neutral-600 dark:text-neutral-400">{message}</p>
           </>
         )}

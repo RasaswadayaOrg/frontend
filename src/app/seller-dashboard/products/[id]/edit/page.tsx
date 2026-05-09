@@ -17,7 +17,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
       setLoading(true);
       const res = await apiFetch<any>(`/products/${id}`);
       if (!res.ok || !res.data) {
-        setError(res.error || "Product not found");
+        setError(res.ok ? "Product not found" : res.error || "Product not found");
         setLoading(false);
         return;
       }
@@ -51,7 +51,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
 
       {loading ? (
         <div className="flex justify-center py-20">
-          <div className="w-8 h-8 rounded-full border-b-2 border-violet-600 animate-spin" />
+          <div className="w-8 h-8 rounded-full border-b-2 border-brand-600 animate-spin" />
         </div>
       ) : error ? (
         <div className="rounded-xl border border-rose-200 bg-rose-50 text-rose-700 px-4 py-3 text-sm dark:bg-rose-950/30 dark:border-rose-900 dark:text-rose-300">

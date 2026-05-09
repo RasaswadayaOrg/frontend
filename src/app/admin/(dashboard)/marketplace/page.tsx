@@ -22,7 +22,7 @@ export default async function AdminMarketplacePage() {
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Marketplace Management</h1>
           <p className="text-sm text-slate-500">Manage products, stores, and orders.</p>
         </div>
-        <Link href="/admin/marketplace/new" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium">
+        <Link href="/admin/marketplace/new" className="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium">
           <Plus className="w-4 h-4" />
           Add Product
         </Link>
@@ -33,7 +33,7 @@ export default async function AdminMarketplacePage() {
         <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl p-5">
           <div className="flex items-center gap-3">
             <div className="p-3 rounded-lg bg-blue-100 dark:bg-blue-900/20">
-              <Package className="w-5 h-5 text-blue-600" />
+              <Package className="w-5 h-5 text-brand-600" />
             </div>
             <div>
               <p className="text-sm text-slate-500">Total Products</p>
@@ -43,8 +43,8 @@ export default async function AdminMarketplacePage() {
         </div>
         <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl p-5">
           <div className="flex items-center gap-3">
-            <div className="p-3 rounded-lg bg-purple-100 dark:bg-purple-900/20">
-              <Store className="w-5 h-5 text-purple-600" />
+            <div className="p-3 rounded-lg bg-brand-100 dark:bg-brand-900/20">
+              <Store className="w-5 h-5 text-brand-600" />
             </div>
             <div>
               <p className="text-sm text-slate-500">Active Stores</p>
@@ -74,7 +74,7 @@ export default async function AdminMarketplacePage() {
             <input 
               type="text" 
               placeholder="Search products..." 
-              className="w-full pl-9 pr-4 py-2 text-sm border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full pl-9 pr-4 py-2 text-sm border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
           </div>
         </div>
@@ -132,7 +132,7 @@ export default async function AdminMarketplacePage() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <Link href={`/admin/marketplace/${product.id}/edit`} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors">
+                      <Link href={`/admin/marketplace/${product.id}/edit`} className="p-2 text-slate-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-lg transition-colors">
                         <Pencil className="w-4 h-4" />
                       </Link>
                       <DeleteProductButton productId={product.id} productName={product.name} />
@@ -156,7 +156,7 @@ export default async function AdminMarketplacePage() {
       <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-sm">
         <div className="p-4 border-b border-slate-200 dark:border-zinc-800 flex items-center justify-between">
           <h2 className="font-semibold text-slate-900 dark:text-white">Recent Orders</h2>
-          <Link href="/admin/marketplace/orders" className="text-sm text-blue-600 hover:text-blue-500 font-medium">
+          <Link href="/admin/marketplace/orders" className="text-sm text-brand-600 hover:text-blue-500 font-medium">
             View All
           </Link>
         </div>

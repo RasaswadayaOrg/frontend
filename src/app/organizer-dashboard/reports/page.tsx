@@ -14,8 +14,8 @@ import {
 export default function OrganizerReportsPage() {
   const stats = [
     { label: "Ticket Revenue", value: "LKR 1.24M", change: "+12.5%", positive: true, icon: DollarSign, accent: "text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20" },
-    { label: "Total Attendance", value: "3,450", change: "+8.2%", positive: true, icon: Users, accent: "text-blue-600 bg-blue-50 dark:bg-blue-900/20" },
-    { label: "Completion Rate", value: "98%", change: "-2.1%", positive: false, icon: Calendar, accent: "text-violet-600 bg-violet-50 dark:bg-violet-900/20" },
+    { label: "Total Attendance", value: "3,450", change: "+8.2%", positive: true, icon: Users, accent: "text-brand-600 bg-blue-50 dark:bg-blue-900/20" },
+    { label: "Completion Rate", value: "98%", change: "-2.1%", positive: false, icon: Calendar, accent: "text-brand-600 bg-brand-50 dark:bg-brand-900/20" },
     { label: "Artist Payouts", value: "LKR 450k", change: "+5.4%", positive: true, icon: ArrowUpRight, accent: "text-amber-600 bg-amber-50 dark:bg-amber-900/20" },
   ];
 
@@ -126,7 +126,7 @@ export default function OrganizerReportsPage() {
                 </div>
                 <div className="text-right flex-shrink-0">
                   <div className="text-sm font-bold text-neutral-900 dark:text-white">{event.revenue}</div>
-                  <div className={`text-[10px] font-semibold ${event.status === "Sold Out" ? "text-emerald-600" : "text-blue-600"}`}>
+                  <div className={`text-[10px] font-semibold ${event.status === "Sold Out" ? "text-emerald-600" : "text-brand-600"}`}>
                     {event.status}
                   </div>
                 </div>

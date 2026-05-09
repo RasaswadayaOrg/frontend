@@ -46,7 +46,7 @@ export function FloatingChatBot() {
         <div className="w-[350px] h-[500px] bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-zinc-800 flex flex-col overflow-hidden animate-in slide-in-from-bottom-10 fade-in duration-200">
           
           {/* Header */}
-          <div className="bg-gradient-to-r from-violet-600 to-indigo-600 p-4 flex items-center justify-between shrink-0">
+          <div className="bg-gradient-to-r from-brand-600 to-indigo-600 p-4 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm border border-white/20">
                 <Bot className="w-5 h-5 text-white" />
@@ -55,7 +55,7 @@ export function FloatingChatBot() {
                 <h3 className="font-bold text-white text-sm">Rasas Assistant</h3>
                 <div className="flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                  <span className="text-[10px] text-violet-100 font-medium tracking-wide opacity-80">ONLINE</span>
+                  <span className="text-[10px] text-brand-100 font-medium tracking-wide opacity-80">ONLINE</span>
                 </div>
               </div>
             </div>
@@ -78,7 +78,7 @@ export function FloatingChatBot() {
                   className={`
                     max-w-[85%] rounded-2xl p-3 text-sm leading-relaxed
                     ${msg.type === 'user' 
-                      ? 'bg-violet-600 text-white rounded-tr-none' 
+                      ? 'bg-brand-600 text-white rounded-tr-none' 
                       : 'bg-white dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 border border-slate-200 dark:border-zinc-700 rounded-tl-none shadow-sm'
                     }
                   `}
@@ -101,7 +101,7 @@ export function FloatingChatBot() {
                         setInputValue(suggestion);
                         // Optional: auto-send
                      }}
-                     className="whitespace-nowrap px-3 py-1.5 rounded-full bg-slate-100 dark:bg-zinc-800 text-xs font-medium text-slate-600 dark:text-zinc-400 hover:bg-violet-100 dark:hover:bg-violet-900/30 hover:text-violet-600 dark:hover:text-violet-300 transition-colors border border-transparent hover:border-violet-200 dark:hover:border-violet-800"
+                     className="whitespace-nowrap px-3 py-1.5 rounded-full bg-slate-100 dark:bg-zinc-800 text-xs font-medium text-slate-600 dark:text-zinc-400 hover:bg-brand-100 dark:hover:bg-brand-900/30 hover:text-brand-600 dark:hover:text-brand-300 transition-colors border border-transparent hover:border-brand-200 dark:hover:border-brand-800"
                    >
                      {suggestion}
                    </button>
@@ -114,12 +114,12 @@ export function FloatingChatBot() {
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 placeholder="Ask about events, artists..."
-                className="w-full bg-slate-100 dark:bg-zinc-800 text-slate-900 dark:text-white rounded-full pl-4 pr-12 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:bg-white dark:focus:bg-zinc-900 transition-all border border-transparent focus:border-violet-200 dark:focus:border-violet-800"
+                className="w-full bg-slate-100 dark:bg-zinc-800 text-slate-900 dark:text-white rounded-full pl-4 pr-12 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:bg-white dark:focus:bg-zinc-900 transition-all border border-transparent focus:border-brand-200 dark:focus:border-brand-800"
               />
               <button 
                 type="submit"
                 disabled={!inputValue.trim()}
-                className="absolute right-1.5 p-1.5 rounded-full bg-violet-600 text-white disabled:bg-slate-300 dark:disabled:bg-zinc-700 disabled:cursor-not-allowed hover:bg-violet-700 transition-colors shadow-sm"
+                className="absolute right-1.5 p-1.5 rounded-full bg-brand-600 text-white disabled:bg-slate-300 dark:disabled:bg-zinc-700 disabled:cursor-not-allowed hover:bg-brand-700 transition-colors shadow-sm"
               >
                 <Send className="w-4 h-4" />
               </button>
@@ -135,7 +135,7 @@ export function FloatingChatBot() {
           group relative flex items-center justify-center w-14 h-14 rounded-full shadow-xl transition-all duration-300 hover:scale-105 active:scale-95
           ${isOpen 
             ? 'bg-slate-800 dark:bg-zinc-800 text-white rotate-90' 
-            : 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:shadow-violet-500/25'
+            : 'bg-gradient-to-r from-brand-600 to-indigo-600 text-white hover:shadow-brand-500/25'
           }
         `}
       >

@@ -36,8 +36,8 @@ export function Footer() {
           <div>
             <h4 className="text-white font-semibold mb-4">For Creators</h4>
             <ul className="space-y-2 text-sm">
-              <li><Link href="/auth/register?type=artist" className="hover:text-white transition-colors">Become an Artist</Link></li>
-              <li><Link href="/auth/register?type=seller" className="hover:text-white transition-colors">List your Store</Link></li>
+              <li><Link href="/auth?tab=signup&type=artist" className="hover:text-white transition-colors">Become an Artist</Link></li>
+              <li><Link href="/auth?tab=signup&type=seller" className="hover:text-white transition-colors">List your Store</Link></li>
               <li><Link href="/dashboard" className="hover:text-white transition-colors">Creator Dashboard</Link></li>
             </ul>
           </div>

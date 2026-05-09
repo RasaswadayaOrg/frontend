@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 
 // Since this is a server component, we can fetch data directly here
 async function getEvent(id: string) {
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
   // Use public endpoint for fetching data to populate the form
   const res = await fetch(`${API_URL}/events/${id}`, { cache: 'no-store' });
   

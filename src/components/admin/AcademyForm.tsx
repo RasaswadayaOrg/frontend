@@ -63,7 +63,7 @@ export function AcademyForm({ initialData, isEdit = false }: AcademyFormProps) {
                 name="name"
                 required
                 defaultValue={initialData?.name}
-                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white"
+                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-white"
                 placeholder="e.g. Royal Academy of Dance"
               />
             </div>
@@ -76,7 +76,7 @@ export function AcademyForm({ initialData, isEdit = false }: AcademyFormProps) {
                 name="type"
                 required
                 defaultValue={initialData?.type}
-                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white"
+                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-white"
                 placeholder="e.g. Dance School, Music Institute"
               />
             </div>
@@ -88,7 +88,7 @@ export function AcademyForm({ initialData, isEdit = false }: AcademyFormProps) {
                 name="description"
                 rows={4}
                 defaultValue={initialData?.description}
-                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white"
+                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-white"
                 placeholder="About the academy..."
               />
             </div>
@@ -101,7 +101,7 @@ export function AcademyForm({ initialData, isEdit = false }: AcademyFormProps) {
                 name="location"
                 required
                 defaultValue={initialData?.location}
-                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white"
+                className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-white"
                 placeholder="e.g. Colombo 07"
               />
             </div>
@@ -121,7 +121,7 @@ export function AcademyForm({ initialData, isEdit = false }: AcademyFormProps) {
                   id="phone"
                   name="phone"
                   defaultValue={initialData?.phone}
-                  className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white"
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-white"
                   placeholder="+94 77..."
                 />
               </div>
@@ -133,7 +133,7 @@ export function AcademyForm({ initialData, isEdit = false }: AcademyFormProps) {
                   id="email"
                   name="email"
                   defaultValue={initialData?.email}
-                  className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white"
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-white"
                   placeholder="contact@academy.com"
                 />
               </div>
@@ -145,7 +145,7 @@ export function AcademyForm({ initialData, isEdit = false }: AcademyFormProps) {
                   id="website"
                   name="website"
                   defaultValue={initialData?.website}
-                  className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white"
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-white"
                   placeholder="https://..."
                 />
               </div>
@@ -176,7 +176,7 @@ export function AcademyForm({ initialData, isEdit = false }: AcademyFormProps) {
         <button
           type="submit"
           disabled={loading}
-          className="flex items-center gap-2 px-6 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-2 px-6 py-2 text-sm font-medium text-white bg-brand-600 hover:bg-brand-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? (
             <>

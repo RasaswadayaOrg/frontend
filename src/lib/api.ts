@@ -7,12 +7,14 @@
  * Safe to use from client components only (reads localStorage).
  */
 
+import { getAuthToken } from "@/lib/token-storage";
+
 const API_URL =
   typeof window === "undefined"
     ? process.env.API_URL ||
       process.env.NEXT_PUBLIC_API_URL ||
-      "http://localhost:3001/api"
-    : process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+      "/api"
+    : process.env.NEXT_PUBLIC_API_URL || "/api";
 
 export type ApiResult<T> =
   | { ok: true; data: T; status: number }
@@ -28,12 +30,7 @@ interface ApiOptions extends RequestInit {
 }
 
 function getStoredToken(): string | null {
-  if (typeof window === "undefined") return null;
-  try {
-    return localStorage.getItem("rasas_token");
-  } catch {
-    return null;
-  }
+  return getAuthToken();
 }
 
 export async function apiFetch<T = any>(
@@ -79,7 +76,7 @@ export async function apiFetch<T = any>(
         ok: false,
         status: res.status,
         error:
-          payload?.error?.message ||
+          (typeof payload?.error === "string" ? payload.error : payload?.error?.message) ||
           payload?.message ||
           `Request failed with ${res.status}`,
         data: payload,

@@ -45,7 +45,7 @@ interface SongDetailModalProps {
   onLikeUpdate: (songId: string, isLiked: boolean, likesCount: number) => void;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
 
 function getAuthHeaders(): HeadersInit {
   const token = typeof window !== "undefined" ? localStorage.getItem("rasas_token") : null;

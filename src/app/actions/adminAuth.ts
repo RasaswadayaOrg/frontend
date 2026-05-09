@@ -20,8 +20,9 @@ export async function adminLogin(prevState: any, formData: FormData) {
     const data = await response.json();
 
     if (response.ok && data.success) {
-      // Set cookie with user info
-      (await cookies()).set("admin_session", JSON.stringify({
+      const cookieStore = await cookies();
+      // Session cookie (role info, for server-side route guards)
+      cookieStore.set("admin_session", JSON.stringify({
         userId: data.user.id,
         email: data.user.email,
         role: data.user.role
@@ -30,6 +31,13 @@ export async function adminLogin(prevState: any, formData: FormData) {
         secure: process.env.NODE_ENV === "production",
         path: "/",
         maxAge: 60 * 60 * 24, // 1 day
+      });
+      // Token cookie (for server actions that proxy to the backend)
+      cookieStore.set("admin_token", data.token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
+        maxAge: 60 * 60 * 24,
       });
       
       // Return token to be stored in localStorage by client
@@ -44,7 +52,9 @@ export async function adminLogin(prevState: any, formData: FormData) {
 }
 
 export async function adminLogout() {
-  (await cookies()).delete("admin_session");
+  const cookieStore = await cookies();
+  cookieStore.delete("admin_session");
+  cookieStore.delete("admin_token");
   redirect("/admin/login");
 }
 

@@ -67,7 +67,7 @@ export function FeedPost({ post }: PostProps) {
                 />
               </div>
               {post.collaborator && (
-                <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-violet-100 dark:bg-violet-900/30 rounded-full border-2 border-white dark:border-zinc-900 flex items-center justify-center text-[10px]">
+                <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-brand-100 dark:bg-brand-900/30 rounded-full border-2 border-white dark:border-zinc-900 flex items-center justify-center text-[10px]">
                   🤝
                 </div>
               )}
@@ -79,7 +79,7 @@ export function FeedPost({ post }: PostProps) {
                   {post.author.name}
                 </h3>
                 {post.author.isVerified && (
-                  <BadgeCheck className="w-4 h-4 text-violet-500" />
+                  <BadgeCheck className="w-4 h-4 text-brand-500" />
                 )}
                 {post.collaborator && (
                   <span className="text-xs text-neutral-500">
@@ -123,7 +123,7 @@ export function FeedPost({ post }: PostProps) {
               </div>
             ) : post.video && (
               <div className="rounded-xl overflow-hidden border border-neutral-100 dark:border-neutral-800/60 p-4 bg-neutral-50 dark:bg-neutral-800/30 text-center text-sm text-neutral-500">
-                <a href={post.video} target="_blank" rel="noopener noreferrer" className="text-violet-600 hover:underline">
+                <a href={post.video} target="_blank" rel="noopener noreferrer" className="text-brand-600 hover:underline">
                   Watch Video on YouTube
                 </a>
               </div>
@@ -159,7 +159,7 @@ export function FeedPost({ post }: PostProps) {
           <Heart className={`w-[18px] h-[18px] ${liked ? "fill-current" : ""}`} />
           <span className="text-xs font-medium">{likeCount}</span>
         </button>
-        <button className="flex items-center gap-1.5 text-sm text-neutral-500 hover:text-violet-500 transition-colors duration-200">
+        <button className="flex items-center gap-1.5 text-sm text-neutral-500 hover:text-brand-500 transition-colors duration-200">
           <MessageCircle className="w-[18px] h-[18px]" />
           <span className="text-xs font-medium">{post.comments}</span>
         </button>

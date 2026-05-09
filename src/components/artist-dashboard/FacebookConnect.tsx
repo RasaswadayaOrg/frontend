@@ -16,7 +16,7 @@ export function FacebookConnect({ artistId, isConnected = false }: FacebookConne
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
   
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
   const FB_APP_ID = process.env.NEXT_PUBLIC_FACEBOOK_APP_ID;
 
   // 1. Handle OAuth Redirect Callback
@@ -150,7 +150,7 @@ export function FacebookConnect({ artistId, isConnected = false }: FacebookConne
   return (
     <div className="mt-8 border-t border-neutral-200 dark:border-neutral-800 pt-6">
       <h3 className="text-sm font-semibold mb-3 text-neutral-900 dark:text-white flex items-center gap-2">
-        <Facebook className="w-4 h-4 text-blue-600" /> Facebook Integration
+        <Facebook className="w-4 h-4 text-brand-600" /> Facebook Integration
       </h3>
 
       <div className="bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 rounded-xl p-4">
@@ -159,7 +159,7 @@ export function FacebookConnect({ artistId, isConnected = false }: FacebookConne
             <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
               {isConnected && !success ? "Connected to Facebook Page" : "Connect Your Facebook Page"}
             </p>
-            <p className="text-xs text-blue-600 dark:text-blue-300 mt-1">
+            <p className="text-xs text-brand-600 dark:text-blue-300 mt-1">
               {isConnected
                 ? "Posts from your Facebook Page are automatically synced."
                 : "Authorize with Facebook to auto-sync your page posts."}
@@ -177,13 +177,13 @@ export function FacebookConnect({ artistId, isConnected = false }: FacebookConne
                 </div>
                  <button 
                   onClick={handleConnect}
-                  className="text-xs text-blue-600 hover:text-blue-800 underline ml-2"
+                  className="text-xs text-brand-600 hover:text-blue-800 underline ml-2"
                 >
                   Reconnect
                 </button>
                 <button 
                   onClick={handleSync}
-                  className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 underline ml-2"
+                  className="flex items-center gap-1 text-xs text-brand-600 hover:text-blue-800 underline ml-2"
                   disabled={loading}
                 >
                   <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} /> Sync

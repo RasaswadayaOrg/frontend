@@ -27,7 +27,7 @@ export function TrendAnalytics() {
     <div className="space-y-6">
       {/* Overview Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-gradient-to-br from-violet-500 to-fuchsia-600 rounded-2xl p-6 text-white relative overflow-hidden">
+        <div className="bg-gradient-to-br from-brand-500 to-fuchsia-600 rounded-2xl p-6 text-white relative overflow-hidden">
           <div className="relative z-10">
             <div className="flex justify-between items-start mb-4">
               <div className="p-2.5 bg-white/20 rounded-xl backdrop-blur-sm">
@@ -38,7 +38,7 @@ export function TrendAnalytics() {
               </span>
             </div>
             <div className="text-3xl font-bold tracking-tight mb-0.5">1,240</div>
-            <div className="text-violet-100 text-sm font-medium">Profile Views</div>
+            <div className="text-brand-100 text-sm font-medium">Profile Views</div>
           </div>
           <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-white/5 rounded-full" />
         </div>
@@ -69,7 +69,7 @@ export function TrendAnalytics() {
         <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-neutral-200/60 dark:border-neutral-800/60 overflow-hidden">
           <div className="px-6 py-5 border-b border-neutral-100 dark:border-neutral-800/60">
             <h3 className="font-semibold text-neutral-900 dark:text-white flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-violet-600" />
+              <TrendingUp className="w-4 h-4 text-brand-600" />
               Trending Genres
             </h3>
           </div>
@@ -90,7 +90,7 @@ export function TrendAnalytics() {
                 </div>
                 <div className="h-1.5 bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-violet-500 rounded-full transition-all duration-700"
+                    className="h-full bg-brand-500 rounded-full transition-all duration-700"
                     style={{ width: `${genre.percentage}%` }}
                   />
                 </div>
@@ -103,14 +103,14 @@ export function TrendAnalytics() {
         <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-neutral-200/60 dark:border-neutral-800/60 overflow-hidden">
           <div className="px-6 py-5 border-b border-neutral-100 dark:border-neutral-800/60">
             <h3 className="font-semibold text-neutral-900 dark:text-white flex items-center gap-2">
-              <ArrowUpRight className="w-4 h-4 text-violet-600" />
+              <ArrowUpRight className="w-4 h-4 text-brand-600" />
               Market Insights
             </h3>
           </div>
           <div className="p-6 space-y-5">
-            <div className="p-4 bg-violet-50 dark:bg-violet-900/10 rounded-xl border border-violet-100/80 dark:border-violet-800/30">
+            <div className="p-4 bg-brand-50 dark:bg-brand-900/10 rounded-xl border border-brand-100/80 dark:border-brand-800/30">
               <div className="flex items-start gap-3">
-                <ArrowUpRight className="w-4 h-4 text-violet-600 mt-0.5 flex-shrink-0" />
+                <ArrowUpRight className="w-4 h-4 text-brand-600 mt-0.5 flex-shrink-0" />
                 <div>
                   <h4 className="font-semibold text-sm text-neutral-900 dark:text-white">
                     Surge in Corporate Events
@@ -133,7 +133,7 @@ export function TrendAnalytics() {
                     className="flex items-center justify-between px-3.5 py-3 rounded-xl hover:bg-neutral-50 dark:hover:bg-zinc-800/30 transition-colors duration-200"
                   >
                     <span className="flex items-center gap-2 text-sm text-neutral-700 dark:text-neutral-300">
-                      <MapPin className="w-3.5 h-3.5 text-violet-500" />
+                      <MapPin className="w-3.5 h-3.5 text-brand-500" />
                       {venue.name}
                     </span>
                     <span className="text-xs font-semibold text-neutral-500">

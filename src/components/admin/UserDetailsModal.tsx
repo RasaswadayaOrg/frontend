@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { X, User, Mail, Phone, MapPin, Calendar, Shield, FileText, CheckCircle, XCircle, Clock, ExternalLink } from 'lucide-react';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
+
 interface RoleApplication {
   id: string;
   role: string;
@@ -58,7 +60,7 @@ export default function UserDetailsModal({ userId, isOpen, onClose }: UserDetail
     
     try {
       const token = localStorage.getItem('admin_token');
-      const response = await fetch(`http://localhost:3001/api/v1/admin/users/${userId}`, {
+      const response = await fetch(`${API_URL}/v1/admin/users/${userId}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -82,7 +84,7 @@ export default function UserDetailsModal({ userId, isOpen, onClose }: UserDetail
     
     try {
       const token = localStorage.getItem('admin_token');
-      const response = await fetch(`http://localhost:3001/api/v1/role-requests/${applicationId}/approve`, {
+      const response = await fetch(`${API_URL}/v1/role-requests/${applicationId}/approve`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -123,7 +125,7 @@ export default function UserDetailsModal({ userId, isOpen, onClose }: UserDetail
     
     try {
       const token = localStorage.getItem('admin_token');
-      const response = await fetch(`http://localhost:3001/api/v1/role-requests/${selectedApplicationId}/reject`, {
+      const response = await fetch(`${API_URL}/v1/role-requests/${selectedApplicationId}/reject`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -176,7 +178,7 @@ export default function UserDetailsModal({ userId, isOpen, onClose }: UserDetail
   const getRoleBadge = (role: string) => {
     const colors = {
       USER: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300',
-      ARTIST: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400',
+      ARTIST: 'bg-brand-100 text-brand-800 dark:bg-brand-900/30 dark:text-brand-400',
       ORGANIZER: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
       STORE_OWNER: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
       TEACHER: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
@@ -231,7 +233,7 @@ export default function UserDetailsModal({ userId, isOpen, onClose }: UserDetail
           <div className="p-6 max-h-[calc(100vh-200px)] overflow-y-auto">
             {loading ? (
               <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600" />
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600" />
               </div>
             ) : error ? (
               <div className="text-center py-12">
@@ -239,7 +241,7 @@ export default function UserDetailsModal({ userId, isOpen, onClose }: UserDetail
                 <p className="text-red-600 dark:text-red-400">{error}</p>
                 <button
                   onClick={fetchUserDetails}
-                  className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                  className="mt-4 px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700"
                 >
                   Retry
                 </button>
@@ -247,7 +249,7 @@ export default function UserDetailsModal({ userId, isOpen, onClose }: UserDetail
             ) : userDetails ? (
               <div className="space-y-6">
                 {/* User Profile Section */}
-                <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-xl p-6">
+                <div className="bg-gradient-to-r from-brand-50 to-blue-50 dark:from-brand-900/20 dark:to-blue-900/20 rounded-xl p-6">
                   <div className="flex items-start gap-6">
                     {/* Avatar */}
                     <div className="flex-shrink-0">
@@ -258,7 +260,7 @@ export default function UserDetailsModal({ userId, isOpen, onClose }: UserDetail
                           className="w-24 h-24 rounded-full object-cover border-4 border-white dark:border-gray-800 shadow-lg"
                         />
                       ) : (
-                        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center border-4 border-white dark:border-gray-800 shadow-lg">
+                        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-brand-500 to-blue-500 flex items-center justify-center border-4 border-white dark:border-gray-800 shadow-lg">
                           <User className="w-12 h-12 text-white" />
                         </div>
                       )}
@@ -399,7 +401,7 @@ export default function UserDetailsModal({ userId, isOpen, onClose }: UserDetail
                                   href={application.portfolioUrl}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-2 text-purple-600 dark:text-purple-400 hover:underline text-sm"
+                                  className="inline-flex items-center gap-2 text-brand-600 dark:text-brand-400 hover:underline text-sm"
                                 >
                                   {application.portfolioUrl}
                                   <ExternalLink className="w-3 h-3" />
@@ -417,7 +419,7 @@ export default function UserDetailsModal({ userId, isOpen, onClose }: UserDetail
                                   href={application.proofDocumentUrl}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-2 px-3 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded-lg hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors text-sm"
+                                  className="inline-flex items-center gap-2 px-3 py-2 bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-400 rounded-lg hover:bg-brand-200 dark:hover:bg-brand-900/50 transition-colors text-sm"
                                 >
                                   <FileText className="w-4 h-4" />
                                   View Document

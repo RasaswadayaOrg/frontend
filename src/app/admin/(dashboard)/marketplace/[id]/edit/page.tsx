@@ -4,7 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 async function getProduct(id: string) {
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
   const res = await fetch(`${API_URL}/products/${id}`, { cache: 'no-store' });
   
   if (!res.ok) return null;

@@ -32,7 +32,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
 
   useEffect(() => {
     // Fetch artist profile on mount to get ID
@@ -172,7 +172,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
         <input
             type="text"
             placeholder="Post Title (Optional)"
-            className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white placeholder-zinc-400 focus:outline-none focus:border-purple-500 transition-colors"
+            className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white placeholder-zinc-400 focus:outline-none focus:border-brand-500 transition-colors"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
         />
@@ -180,7 +180,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
         {/* Content Input */}
         <textarea
           placeholder="What on your mind?"
-          className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 min-h-[120px] text-white placeholder-zinc-400 focus:outline-none focus:border-purple-500 transition-colors resize-none"
+          className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 min-h-[120px] text-white placeholder-zinc-400 focus:outline-none focus:border-brand-500 transition-colors resize-none"
           value={content}
           onChange={(e) => setContent(e.target.value)}
         />
@@ -193,7 +193,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
                 <input
                   type="text"
                   placeholder="Paste YouTube Link"
-                  className="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-purple-500"
+                  className="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-brand-500"
                   value={youtubeLink}
                   onChange={(e) => setYoutubeLink(e.target.value)}
                 />
@@ -254,7 +254,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
               type="button"
               onClick={() => fileInputRef.current?.click()}
               className={`p-2 rounded-lg transition-colors flex items-center gap-2 ${
-                selectedImage ? "text-purple-400 bg-purple-400/10" : "text-zinc-400 hover:bg-zinc-800 hover:text-white"
+                selectedImage ? "text-brand-400 bg-brand-400/10" : "text-zinc-400 hover:bg-zinc-800 hover:text-white"
               }`}
               title="Add Image"
             >
@@ -293,7 +293,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
           <button
             type="submit"
             disabled={loading || !content.trim()}
-            className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-brand-600 hover:bg-brand-700 text-white px-6 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
               <>
