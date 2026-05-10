@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Check, Loader2, AlertTriangle, ArrowRight, ShieldCheck } from "lucide-react";
@@ -12,7 +12,7 @@ import { HP2Footer } from "@/components/hp2/Footer";
 
 type PollState = "checking" | "paid" | "pending" | "failed" | "missing";
 
-export default function CheckoutSuccessPage() {
+function CheckoutSuccessContent() {
   const params = useSearchParams();
   const router = useRouter();
   const { clearCart } = useCart();
@@ -112,6 +112,14 @@ export default function CheckoutSuccessPage() {
       <HP2Footer />
       <style>{`.hp2-spin{animation:hp2-spin 1s linear infinite;}@keyframes hp2-spin{to{transform:rotate(360deg)}}`}</style>
     </main>
+  );
+}
+
+export default function CheckoutSuccessPage() {
+  return (
+    <Suspense fallback={null}>
+      <CheckoutSuccessContent />
+    </Suspense>
   );
 }
 

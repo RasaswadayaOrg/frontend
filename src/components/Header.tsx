@@ -350,7 +350,7 @@ export function Header() {
             ) : (
               <>
                 <button 
-                  onClick={openAuthModal}
+                  onClick={() => openAuthModal()}
                   className="flex items-center gap-2 px-4 py-1.5 bg-white text-brand-700 hover:bg-brand-50 rounded-full font-medium transition-colors text-xs"
                 >
                   <LogIn className="w-4 h-4" />

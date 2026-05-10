@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { XCircle, ArrowRight } from "lucide-react";
@@ -7,7 +8,7 @@ import { DesignStyles } from "@/components/hp2/design";
 import { HP2Nav, DEFAULT_NAV_LINKS } from "@/components/hp2/Nav";
 import { HP2Footer } from "@/components/hp2/Footer";
 
-export default function CheckoutCancelPage() {
+function CheckoutCancelContent() {
   const params = useSearchParams();
   const orderId = params.get("order");
 
@@ -43,5 +44,13 @@ export default function CheckoutCancelPage() {
       </section>
       <HP2Footer />
     </main>
+  );
+}
+
+export default function CheckoutCancelPage() {
+  return (
+    <Suspense fallback={null}>
+      <CheckoutCancelContent />
+    </Suspense>
   );
 }

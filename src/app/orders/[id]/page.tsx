@@ -120,7 +120,10 @@ export default function OrderDetailPage(props: { params: Promise<{ id: string }>
 
   const handleRetryPayment = async () => {
     const r = await apiFetch<any>(`/payments/payhere/initiate/${id}`, { method: "POST" });
-    if (!r.ok || !r.data?.checkoutUrl) { alert(r.error || "Could not start PayHere checkout."); return; }
+    if (!r.ok || !r.data?.checkoutUrl) {
+      alert((!r.ok && r.error) || "Could not start PayHere checkout.");
+      return;
+    }
     const form = document.createElement("form");
     form.method = "POST"; form.action = r.data.checkoutUrl;
     Object.entries(r.data.fields as Record<string, string>).forEach(([k, v]) => {
