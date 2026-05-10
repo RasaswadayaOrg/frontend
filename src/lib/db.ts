@@ -121,11 +121,12 @@ export interface EventType {
   [key: string]: any;
 }
 
-export async function getEvents(limit = 4, page = 1, city?: string, search?: string, category?: string): Promise<EventType[]> {
+export async function getEvents(limit = 4, page = 1, city?: string, search?: string, category?: string, featured?: boolean): Promise<EventType[]> {
   const params: any = { limit, page };
   if (city) params.city = city;
   if (search) params.search = search;
   if (category) params.category = category;
+    if (featured !== undefined) params.featured = featured ? 'true' : 'false';
   
   const data = await fetchData('/events', params);
   if (!data || !data.success) return [];
@@ -141,10 +142,11 @@ export async function getEvents(limit = 4, page = 1, city?: string, search?: str
   });
 }
 
-export async function getEventsCount(search?: string, category?: string) {
+export async function getEventsCount(search?: string, category?: string, featured?: boolean) {
     const params: any = { limit: 1 };
     if (search) params.search = search;
     if (category) params.category = category;
+    if (featured !== undefined) params.featured = featured ? 'true' : 'false';
 
     const data = await fetchData('/events', params);
     return data?.pagination?.total || 0;

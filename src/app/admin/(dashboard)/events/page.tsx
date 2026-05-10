@@ -8,16 +8,29 @@ import { FeaturedToggle } from "@/app/admin/(dashboard)/events/FeaturedToggle";
 
 export const dynamic = 'force-dynamic';
 
-export default async function AdminEventsPage() {
-  const events = await getEvents(50, 1); // Fetch up to 50 events (backend max limit)
-  const totalCount = await getEventsCount();
+export default async function AdminEventsPage(props: {
+  searchParams: Promise<{ featured?: string }>;
+}) {
+  const searchParams = await props.searchParams;
+  const featuredOnly = searchParams.featured === 'true';
+
+  const [events, visibleCount, allCount] = await Promise.all([
+    getEvents(50, 1, undefined, undefined, undefined, featuredOnly ? true : undefined),
+    getEventsCount(undefined, undefined, featuredOnly ? true : undefined),
+    featuredOnly ? getEventsCount() : Promise.resolve(0),
+  ]);
+  const totalCount = featuredOnly ? allCount : visibleCount;
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Events Management</h1>
-           <p className="text-sm text-slate-500">{totalCount} total events in the system.</p>
+           <p className="text-sm text-slate-500">
+             {featuredOnly
+               ? `${visibleCount} featured events shown from ${totalCount} total events.`
+               : `${visibleCount} total events in the system.`}
+           </p>
         </div>
         <Link href="/admin/events/new" className="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium">
           <Plus className="w-4 h-4" />
@@ -26,7 +39,7 @@ export default async function AdminEventsPage() {
       </div>
 
       <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-sm">
-         <div className="p-4 border-b border-slate-200 dark:border-zinc-800 flex gap-4">
+         <div className="p-4 border-b border-slate-200 dark:border-zinc-800 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="relative flex-1 max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input 
@@ -34,6 +47,20 @@ export default async function AdminEventsPage() {
                 placeholder="Search events..." 
                 className="w-full pl-9 pr-4 py-2 text-sm border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
+            </div>
+            <div className="flex items-center gap-2 rounded-lg bg-slate-100 p-1 dark:bg-zinc-800">
+              <Link
+                href="/admin/events"
+                className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${!featuredOnly ? 'bg-white text-slate-900 shadow-sm dark:bg-zinc-700 dark:text-white' : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'}`}
+              >
+                All events
+              </Link>
+              <Link
+                href="/admin/events?featured=true"
+                className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${featuredOnly ? 'bg-white text-slate-900 shadow-sm dark:bg-zinc-700 dark:text-white' : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'}`}
+              >
+                Featured only
+              </Link>
             </div>
          </div>
          
@@ -102,8 +129,8 @@ export default async function AdminEventsPage() {
                ))}
                {events.length === 0 && (
                  <tr>
-                   <td colSpan={5} className="px-6 py-12 text-center text-slate-500">
-                     No events found. Create one to get started.
+                   <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
+                     {featuredOnly ? 'No featured events found.' : 'No events found. Create one to get started.'}
                    </td>
                  </tr>
                )}
