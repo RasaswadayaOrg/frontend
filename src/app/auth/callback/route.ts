@@ -7,6 +7,7 @@ export const runtime = "nodejs";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
 const TAG = "[auth/callback]";
+const SUPABASE_COOKIE_NAME = "rasaswadaya-supabase-auth";
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
@@ -16,11 +17,34 @@ export async function GET(request: NextRequest) {
 
   console.log(TAG, "hit", { hasCode: !!code, errCode, origin });
 
+  const clearPkceCookies = (target: NextResponse) => {
+    const namesToClear = new Set<string>([
+      `${SUPABASE_COOKIE_NAME}-code-verifier`,
+      ...request.cookies
+        .getAll()
+        .map((cookie) => cookie.name)
+        .filter((name) => name.includes("code-verifier")),
+    ]);
+
+    namesToClear.forEach((name) => {
+      target.cookies.set({
+        name,
+        value: "",
+        path: "/",
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 0,
+      });
+    });
+  };
+
   const failure = (reason: string) => {
     console.error(TAG, "FAILURE:", reason);
-    return NextResponse.redirect(
+    const redirect = NextResponse.redirect(
       `${origin}/auth?tab=signin&error=${encodeURIComponent(reason)}`
     );
+    clearPkceCookies(redirect);
+    return redirect;
   };
 
   if (errCode) return failure(errDesc || errCode);
@@ -37,6 +61,11 @@ export async function GET(request: NextRequest) {
   const response = NextResponse.redirect(`${origin}/`);
 
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookieOptions: {
+      name: SUPABASE_COOKIE_NAME,
+      path: "/",
+      sameSite: "lax",
+    },
     cookies: {
       getAll() {
         return request.cookies.getAll();
@@ -138,6 +167,7 @@ export async function GET(request: NextRequest) {
   // 5. Decide where to land.
   const dest = backendUser.city ? "/" : "/auth/complete-profile";
   console.log(TAG, "redirecting to", dest);
+  clearPkceCookies(response);
   response.headers.set("location", `${origin}${dest}`);
   return response;
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
+import { clearSupabaseOAuthState, supabase } from "@/lib/supabase";
 import { loginUser, logoutUser } from "@/app/actions/auth";
 import { clearAuthToken, getAuthToken, storeAuthToken } from "@/lib/token-storage";
 
@@ -168,6 +168,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!isSupabaseConfigured()) {
       throw new Error("Google sign-in isn't configured. Missing Supabase credentials.");
     }
+
+    clearSupabaseOAuthState();
 
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
     const redirectTo = `${siteUrl.replace(/\/$/, "")}/auth/callback`;
