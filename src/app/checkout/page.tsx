@@ -91,7 +91,7 @@ export default function CheckoutPage() {
       method: "POST",
     });
     if (!initRes.ok || !initRes.data?.checkoutUrl) {
-      setError(initRes.error || "Could not start PayHere checkout.");
+      setError((!initRes.ok && initRes.error) || "Could not start PayHere checkout.");
       setSubmitting(false);
       return;
     }
