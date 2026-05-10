@@ -113,13 +113,14 @@ export default async function HomeTwo() {
   };
 
   // Hero frames — events only
-  type RF = { id: string; href: string; category: string; role: string };
+  type RF = { id: string; href: string; category: string; role: string; imageUrl?: string };
   const heroSrc: RF[] = [
     ...trending.map((e: any) => ({
       id:       "e-" + String(e.id),
       href:     "/events/" + buildSlug(e.id, e.title),
       category: (e.category || "Event").toUpperCase(),
       role:     e.title,
+      imageUrl:  e.imageUrl,
     })),
   ];
   const fallbackFrames: RF[] = Array.from({ length: 4 }, (_, i) => ({
@@ -127,7 +128,7 @@ export default async function HomeTwo() {
   }));
   const frames: HeroFrame[] = (heroSrc.length >= 4 ? heroSrc : [...heroSrc, ...fallbackFrames])
     .slice(0, 6)
-    .map((f) => ({ ...f, tone: cinemaTone(f.id), imageUrl: CONCERT_IMG[f.id] }));
+    .map((f) => ({ ...f, tone: cinemaTone(f.id), imageUrl: f.imageUrl || CONCERT_IMG[f.id] }));
 
   // ── CSS ─────────────────────────────────────────────────────────────────
   const css = (

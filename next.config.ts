@@ -26,6 +26,11 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
+        hostname: '*.up.railway.app',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
         hostname: 'ui-avatars.com',
       },
       {

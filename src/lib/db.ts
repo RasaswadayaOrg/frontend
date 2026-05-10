@@ -1,3 +1,5 @@
+import { resolveMediaUrl } from "@/lib/media";
+
 // Use internal API URL for server-side rendering, public URL for client-side
 const API_URL = typeof window === 'undefined' 
   ? (process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || '/api')
@@ -121,6 +123,17 @@ export interface EventType {
   [key: string]: any;
 }
 
+function mapEvent(event: any): EventType {
+    const fixedEvent = overrideEventData(event);
+    return {
+        ...fixedEvent,
+        imageUrl: fixedEvent.imageUrl ? resolveMediaUrl(fixedEvent.imageUrl) : fixedEvent.imageUrl,
+        eventDate: new Date(fixedEvent.eventDate),
+        startTime: fixedEvent.startTime ? fixedEvent.startTime : undefined,
+        endTime: fixedEvent.endTime ? fixedEvent.endTime : undefined,
+    };
+}
+
 export async function getEvents(limit = 4, page = 1, city?: string, search?: string, category?: string, featured?: boolean): Promise<EventType[]> {
   const params: any = { limit, page };
   if (city) params.city = city;
@@ -131,15 +144,7 @@ export async function getEvents(limit = 4, page = 1, city?: string, search?: str
   const data = await fetchData('/events', params);
   if (!data || !data.success) return [];
   
-  return data.data.map((event: any) => {
-    const fixedEvent = overrideEventData(event);
-    return {
-      ...fixedEvent,
-      eventDate: new Date(fixedEvent.eventDate),
-      startTime: fixedEvent.startTime ? fixedEvent.startTime : undefined,
-      endTime: fixedEvent.endTime ? fixedEvent.endTime : undefined
-    };
-  });
+    return data.data.map(mapEvent);
 }
 
 export async function getEventsCount(search?: string, category?: string, featured?: boolean) {
@@ -158,12 +163,7 @@ export async function getEvent(id: string) {
     
     const fixedEvent = overrideEventData(data.data);
     
-    return {
-        ...fixedEvent,
-        eventDate: new Date(fixedEvent.eventDate),
-        startTime: fixedEvent.startTime ? fixedEvent.startTime : undefined,
-        endTime: fixedEvent.endTime ? fixedEvent.endTime : undefined
-    };
+    return mapEvent(fixedEvent);
 }
 
 export async function getTrendingEvents(limit = 3, city?: string) {
@@ -182,15 +182,7 @@ export async function getTrendingEvents(limit = 3, city?: string) {
    }
 
    if (!data || !data.success) return [];
-   return data.data.map((event: any) => {
-    const fixedEvent = overrideEventData(event);
-    return {
-      ...fixedEvent,
-      eventDate: new Date(fixedEvent.eventDate),
-      startTime: fixedEvent.startTime,
-      endTime: fixedEvent.endTime
-    };
-  });
+     return data.data.map(mapEvent);
 }
 
 export async function getMyReminders(token: string) {
