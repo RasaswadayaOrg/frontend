@@ -21,6 +21,8 @@ import { CartProvider } from "@/context/CartContext";
 import { SiteLayout } from "../components/SiteLayout";
 import { FloatingCartButton } from "../components/FloatingCartButton";
 import { ThemeProvider } from "next-themes";
+import AuthModal from "../components/AuthModal";
+import { AuthGate } from "../components/AuthGate";
 
 export const metadata: Metadata = {
   title: "Rasaswadaya | Arts & Culture Hub",
@@ -45,9 +47,10 @@ export default function RootLayout({
           <AuthProvider>
             <CartProvider>
               <SiteLayout>
-                {children}
+                <AuthGate>{children}</AuthGate>
               </SiteLayout>
               <FloatingCartButton />
+              <AuthModal />
             </CartProvider>
           </AuthProvider>
         </ThemeProvider>

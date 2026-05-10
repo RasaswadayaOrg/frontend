@@ -207,6 +207,9 @@ export default function ProfilePage() {
       localStorage.setItem("rasas_user", JSON.stringify(u));
       refreshUser();
     }
+    // Bust cached server-component pages (homepage AI section, /events, etc.)
+    // so freshly saved preferences are reflected on next navigation.
+    try { router.refresh(); } catch { /* no-op */ }
     setEditing(false);
   };
 

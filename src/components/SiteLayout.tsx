@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { Header } from "./Header";
 import { Footer } from "./Footer";
 import { FloatingChatBot } from "./FloatingChatBot";
-import AuthModal from "./AuthModal";
 
 export function SiteLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -59,7 +58,6 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
       </main>
       <Footer />
       <FloatingChatBot />
-      <AuthModal />
     </>
   );
 }

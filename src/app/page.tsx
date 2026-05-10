@@ -95,8 +95,8 @@ export default async function HomeTwo() {
   const recs              = recResult?.data || [];
   // Scores from AI model are 0–1 decimals; convert to whole-number percent for display
   const toPercent = (s: number | undefined) => s != null ? Math.round(s * 100) : null;
-  const recEvents         = recs.filter((r: any) => r.type === "event").map((r: any) => ({ ...r.item, aiScore: toPercent(r.score) }));
-  const recArtists        = recs.filter((r: any) => r.type === "artist").map((r: any) => ({ ...r.item, aiScore: toPercent(r.score) }));
+  const recEvents         = recs.filter((r: any) => r.type === "event").map((r: any) => ({ ...r.item, aiScore: toPercent(r.score), aiReason: r.reason }));
+  const recArtists        = recs.filter((r: any) => r.type === "artist").map((r: any) => ({ ...r.item, aiScore: toPercent(r.score), aiReason: r.reason }));
   const featuredArtist    = artists.length > 0 ? (artists[3] || artists[0]) : null;
   const aiEvent1          = recEvents.length  > 0 ? recEvents[0]  : (events.length  > 0 ? events[0]  : null);
   const aiEvent2          = recEvents.length  > 1 ? recEvents[1]  : (events.length  > 1 ? events[1]  : null);
@@ -488,7 +488,6 @@ export default async function HomeTwo() {
                   </span>
                   <h2 className="hp2-ai__title"><span className="hp2-grad">Made for You.</span></h2>
                   <p className="hp2-ai__sub">
-                    {topMatchPct != null && <><span>{topMatchPct}% Match</span>{" · "}</>}
                     <span style={{ color: AI_CLR }}>Personalised</span>
                   </p>
                 </div>
@@ -513,10 +512,9 @@ export default async function HomeTwo() {
                         <span className="hp2-ai-card__date">
                           {new Date(aiEvent1.eventDate).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
                         </span>
-                        {aiEvent1.aiScore != null && <span className="hp2-ai-card__score">{aiEvent1.aiScore}%</span>}
                       </div>
                       <h3 className="hp2-ai-card__title">{aiEvent1.title}</h3>
-                      <p className="hp2-ai-card__desc">{aiEvent1.aiReason || aiEvent1.description || "Recommended from cultural overlap"}</p>
+                      <p className="hp2-ai-card__desc">{aiEvent1.description || "Recommended from cultural overlap"}</p>
                       <span className="hp2-ai-card__cta">View Details →</span>
                     </div>
                   </Link>
@@ -539,7 +537,7 @@ export default async function HomeTwo() {
                         </span>
                       </div>
                       <h3 className="hp2-ai-card__title">{aiEvent2.title}</h3>
-                      <p className="hp2-ai-card__desc">{aiEvent2.aiReason || aiEvent2.description || "Suggested for you"}</p>
+                      <p className="hp2-ai-card__desc">{aiEvent2.description || "Suggested for you"}</p>
                       <span className="hp2-ai-card__cta">Book Now →</span>
                     </div>
                   </Link>
