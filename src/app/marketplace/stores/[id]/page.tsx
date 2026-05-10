@@ -212,7 +212,7 @@ export default async function StorePage(props: {
                         </span>
                         {product.listingType === 'rent' ? (
                           <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, padding: "5px 10px", borderRadius: 6, background: "#3B1F7A", color: "#C4B5FD", whiteSpace: "nowrap" }}>
-                            <MessageCircle size={11} /> Enquire
+                            <MessageSquare size={11} /> Enquire
                           </span>
                         ) : (
                           <AddToCartButton product={{ ...product, store: { id: storeId, name: store.name } }} />
