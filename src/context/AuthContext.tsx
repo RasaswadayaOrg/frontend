@@ -169,7 +169,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       throw new Error("Google sign-in isn't configured. Missing Supabase credentials.");
     }
 
-    const redirectTo = window.location.origin + "/auth/callback";
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+    const redirectTo = `${siteUrl.replace(/\/$/, "")}/auth/callback`;
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
