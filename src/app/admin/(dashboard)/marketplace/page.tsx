@@ -1,19 +1,51 @@
 import { getProducts, getProductsCount, getStores, getAdminOrders, getAdminOrdersCount } from "@/lib/db";
 import Link from "next/link";
-import { Plus, Pencil, Search, Package, Store, ShoppingCart } from "lucide-react";
+import { Plus, Pencil, Search, Package, Store, ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react";
 import { ImageWithFallback } from "@/components/ImageWithFallback";
 import { DeleteProductButton } from "@/app/admin/(dashboard)/marketplace/DeleteProductButton";
 
 export const dynamic = 'force-dynamic';
 
-export default async function AdminMarketplacePage() {
+const PAGE_SIZE = 20;
+
+export default async function AdminMarketplacePage(
+  { searchParams }: { searchParams: Promise<{ page?: string; q?: string }> }
+) {
+  const sp = await searchParams;
+  const page = Math.max(1, Number(sp?.page ?? 1) || 1);
+  const search = (sp?.q || "").trim() || undefined;
+
   const [products, stores, orders, productsCount, ordersCount] = await Promise.all([
-    getProducts(50, 1),
+    getProducts(PAGE_SIZE, page, search),
     getStores(50),
     getAdminOrders(20, 1),
-    getProductsCount(),
+    getProductsCount(search),
     getAdminOrdersCount()
   ]);
+
+  const totalPages = Math.max(1, Math.ceil(productsCount / PAGE_SIZE));
+  const startIdx = (page - 1) * PAGE_SIZE + 1;
+  const endIdx = Math.min(page * PAGE_SIZE, productsCount);
+  const buildHref = (p: number) => {
+    const qs = new URLSearchParams();
+    if (p > 1) qs.set("page", String(p));
+    if (search) qs.set("q", search);
+    const s = qs.toString();
+    return s ? `/admin/marketplace?${s}` : `/admin/marketplace`;
+  };
+  // Compact page window: current ±2, with edges + ellipses
+  const windowed: (number | "…")[] = (() => {
+    const items: (number | "…")[] = [];
+    const pushRange = (a: number, b: number) => { for (let i = a; i <= b; i++) items.push(i); };
+    const radius = 2;
+    if (totalPages <= 7) { pushRange(1, totalPages); return items; }
+    items.push(1);
+    if (page - radius > 2) items.push("…");
+    pushRange(Math.max(2, page - radius), Math.min(totalPages - 1, page + radius));
+    if (page + radius < totalPages - 1) items.push("…");
+    items.push(totalPages);
+    return items;
+  })();
 
   return (
     <div className="space-y-8">
@@ -67,16 +99,25 @@ export default async function AdminMarketplacePage() {
 
       {/* Products Table */}
       <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-sm">
-        <div className="p-4 border-b border-slate-200 dark:border-zinc-800 flex items-center justify-between">
-          <h2 className="font-semibold text-slate-900 dark:text-white">Products</h2>
-          <div className="relative max-w-sm">
+        <div className="p-4 border-b border-slate-200 dark:border-zinc-800 flex items-center justify-between gap-3 flex-wrap">
+          <div>
+            <h2 className="font-semibold text-slate-900 dark:text-white">Products</h2>
+            <p className="text-xs text-slate-500 mt-0.5">
+              {productsCount > 0
+                ? `Showing ${startIdx}–${endIdx} of ${productsCount}`
+                : "No products"}
+            </p>
+          </div>
+          <form action="/admin/marketplace" method="get" className="relative max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input 
-              type="text" 
-              placeholder="Search products..." 
+            <input
+              type="text"
+              name="q"
+              defaultValue={search ?? ""}
+              placeholder="Search products..."
               className="w-full pl-9 pr-4 py-2 text-sm border border-slate-300 dark:border-zinc-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
-          </div>
+          </form>
         </div>
          
         <div className="overflow-x-auto">
@@ -143,13 +184,75 @@ export default async function AdminMarketplacePage() {
               {products.length === 0 && (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
-                    No products found. Add one to get started.
+                    {search
+                      ? `No products match "${search}".`
+                      : "No products found. Add one to get started."}
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between gap-3 px-4 py-3 border-t border-slate-200 dark:border-zinc-800 flex-wrap">
+            <p className="text-xs text-slate-500">
+              Page {page} of {totalPages}
+            </p>
+            <nav className="flex items-center gap-1" aria-label="Products pagination">
+              {page > 1 ? (
+                <Link
+                  href={buildHref(page - 1)}
+                  className="inline-flex items-center gap-1 px-3 h-9 text-sm rounded-lg border border-slate-300 dark:border-zinc-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors"
+                  aria-label="Previous page"
+                >
+                  <ChevronLeft className="w-4 h-4" /> Prev
+                </Link>
+              ) : (
+                <span className="inline-flex items-center gap-1 px-3 h-9 text-sm rounded-lg border border-slate-200 dark:border-zinc-800 text-slate-300 dark:text-zinc-700">
+                  <ChevronLeft className="w-4 h-4" /> Prev
+                </span>
+              )}
+
+              {windowed.map((it, i) =>
+                it === "…" ? (
+                  <span key={`gap-${i}`} className="px-2 text-slate-400 text-sm">…</span>
+                ) : it === page ? (
+                  <span
+                    key={it}
+                    aria-current="page"
+                    className="inline-flex items-center justify-center w-9 h-9 text-sm rounded-lg bg-brand-600 text-white font-medium"
+                  >
+                    {it}
+                  </span>
+                ) : (
+                  <Link
+                    key={it}
+                    href={buildHref(it)}
+                    className="inline-flex items-center justify-center w-9 h-9 text-sm rounded-lg border border-slate-300 dark:border-zinc-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors"
+                  >
+                    {it}
+                  </Link>
+                )
+              )}
+
+              {page < totalPages ? (
+                <Link
+                  href={buildHref(page + 1)}
+                  className="inline-flex items-center gap-1 px-3 h-9 text-sm rounded-lg border border-slate-300 dark:border-zinc-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors"
+                  aria-label="Next page"
+                >
+                  Next <ChevronRight className="w-4 h-4" />
+                </Link>
+              ) : (
+                <span className="inline-flex items-center gap-1 px-3 h-9 text-sm rounded-lg border border-slate-200 dark:border-zinc-800 text-slate-300 dark:text-zinc-700">
+                  Next <ChevronRight className="w-4 h-4" />
+                </span>
+              )}
+            </nav>
+          </div>
+        )}
       </div>
 
       {/* Recent Orders */}
