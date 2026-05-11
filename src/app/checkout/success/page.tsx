@@ -22,7 +22,49 @@ function CheckoutSuccessContent() {
   const [order, setOrder] = useState<any>(null);
   const [payment, setPayment] = useState<any>(null);
   const [polls, setPolls] = useState(0);
+  const [verifying, setVerifying] = useState(false);
+  const [verifyError, setVerifyError] = useState<string | null>(null);
   const cleared = useRef(false);
+  const fallbackTriggered = useRef(false);
+
+  // Apply a response payload (from poll or verify) and return whether the
+  // flow is now in a terminal state (paid / failed) so callers can stop.
+  const applyResult = (payload: any): boolean => {
+    const o = payload?.order ?? payload?.data?.order;
+    const p = payload?.payment ?? payload?.data?.payment;
+    setOrder(o); setPayment(p);
+    if (o?.status === "PAID") {
+      setState("paid");
+      if (!cleared.current) { cleared.current = true; clearCart().catch(() => {}); }
+      return true;
+    }
+    if (p?.status === "FAILED" || p?.status === "CANCELLED") {
+      setState("failed");
+      return true;
+    }
+    setState("pending");
+    return false;
+  };
+
+  // Manual / automatic fallback: ask the backend to query PayHere directly.
+  // Works even when the IPN webhook can't reach us (typical in local dev).
+  const verifyNow = async () => {
+    if (!orderId || verifying) return;
+    setVerifying(true);
+    setVerifyError(null);
+    try {
+      const res = await apiFetch<any>(`/payments/payhere/verify/${orderId}`, { method: "POST" });
+      if (!res.ok) {
+        setVerifyError(res.error || "Couldn't reach PayHere. Please try again.");
+      } else {
+        applyResult(res.data);
+      }
+    } catch {
+      setVerifyError("Couldn't reach PayHere. Please try again.");
+    } finally {
+      setVerifying(false);
+    }
+  };
 
   useEffect(() => {
     if (!orderId) { setState("missing"); return; }
@@ -32,24 +74,24 @@ function CheckoutSuccessContent() {
       const res = await apiFetch<any>(`/payments/order/${orderId}`);
       if (!alive) return;
       if (!res.ok) { setState("failed"); return; }
-      const o = res.data?.order ?? res.data?.data?.order;
-      const p = res.data?.payment ?? res.data?.data?.payment;
-      setOrder(o); setPayment(p);
-      if (o?.status === "PAID") {
-        setState("paid");
-        if (!cleared.current) { cleared.current = true; clearCart().catch(() => {}); }
-        return;
-      }
-      if (p?.status === "FAILED" || p?.status === "CANCELLED") {
-        setState("failed"); return;
-      }
-      setState("pending");
-      setPolls((n) => n + 1);
+      const done = applyResult(res.data);
+      if (done) return;
+      setPolls((n) => {
+        const next = n + 1;
+        // After ~10s of polling with no IPN update, fall back to the Retrieval
+        // API once. This handles the localhost-no-webhook case automatically.
+        if (next === 4 && !fallbackTriggered.current) {
+          fallbackTriggered.current = true;
+          verifyNow();
+        }
+        return next;
+      });
     };
 
     tick();
     const id = setInterval(tick, 2500);
     return () => { alive = false; clearInterval(id); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderId, clearCart]);
 
   return (
@@ -94,11 +136,27 @@ function CheckoutSuccessContent() {
                     Track order <ArrowRight size={14} style={{ marginLeft: 8 }} />
                   </button>
                 )}
+                {state === "pending" && (
+                  <button
+                    type="button"
+                    onClick={verifyNow}
+                    disabled={verifying}
+                    className="hp2-btn hp2-btn--primary"
+                    style={{ height: 44, padding: "0 22px", display: "inline-flex", alignItems: "center", gap: 8, opacity: verifying ? 0.6 : 1 }}
+                  >
+                    {verifying ? <Loader2 size={14} className="hp2-spin" /> : <ShieldCheck size={14} />}
+                    {verifying ? "Checking PayHere…" : "Verify now"}
+                  </button>
+                )}
                 {state === "failed" && (
                   <Link href="/checkout" className="hp2-btn hp2-btn--primary" style={{ height: 44, padding: "0 22px", display: "inline-flex", alignItems: "center" }}>Retry payment</Link>
                 )}
                 <Link href="/orders" className="hp2-btn hp2-btn--ghost" style={{ height: 44, padding: "0 22px", display: "inline-flex", alignItems: "center" }}>My orders</Link>
               </div>
+
+              {verifyError && state === "pending" && (
+                <p style={{ marginTop: 16, fontSize: 12, color: "#F472B6" }}>{verifyError}</p>
+              )}
 
               {state === "paid" && (
                 <p style={{ marginTop: 22, fontSize: 11, color: "#9B95B5", display: "inline-flex", alignItems: "center", gap: 6 }}>
