@@ -24,13 +24,16 @@ export default function CheckoutPage() {
   const vatAmount = Math.round(totalPrice * VAT_RATE);
   const grandTotal = totalPrice + vatAmount + DELIVERY_FEE;
 
-  const [addr, setAddr] = useState({ line1: "", line2: "", city: "", province: "", postalCode: "", contactPhone: "" });
+  const [addr, setAddr] = useState({ fullName: "", line1: "", line2: "", city: "", province: "", postalCode: "", contactPhone: "" });
   const [method, setMethod] = useState<PayMethod>("payhere");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
   useEffect(() => { if (!user) router.push("/cart"); }, [user, router]);
+  useEffect(() => {
+    if (user?.name) setAddr((p) => ({ ...p, fullName: p.fullName || user.name }));
+  }, [user?.name]);
   useEffect(() => { if (!isLoading && itemCount === 0 && !success) router.push("/cart"); }, [isLoading, itemCount, success, router]);
 
   /** Construct + auto-submit a hidden form to PayHere with the signed fields. */
@@ -52,11 +55,12 @@ export default function CheckoutPage() {
 
   const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!addr.line1.trim() || !addr.city.trim() || !addr.contactPhone.trim()) {
-      setError("Please fill in address line 1, city and contact number.");
+    if (!addr.fullName.trim() || !addr.line1.trim() || !addr.city.trim() || !addr.contactPhone.trim()) {
+      setError("Please fill in your full name, address line 1, city and contact number.");
       return;
     }
     const address = [
+      addr.fullName,
       addr.line1,
       addr.line2,
       addr.city,
@@ -142,8 +146,16 @@ export default function CheckoutPage() {
             <div className="hp2-surf__body" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               {error && <div className="hp2-alert hp2-alert--error">{error}</div>}
               <div className="hp2-field">
-                <label className="hp2-label">Full Name</label>
-                <input type="text" readOnly value={user?.name || ""} className="hp2-input hp2-input--readonly" />
+                <label className="hp2-label" htmlFor="deliveryName">Full Name *</label>
+                <input
+                  id="deliveryName"
+                  type="text"
+                  required
+                  value={addr.fullName ?? (user?.name || "")}
+                  onChange={(e) => setAddr((p) => ({ ...p, fullName: e.target.value }))}
+                  placeholder="Enter your full name"
+                  className="hp2-input"
+                />
               </div>
               <div className="hp2-field">
                 <label className="hp2-label" htmlFor="contactPhone">Contact Number *</label>

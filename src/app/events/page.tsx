@@ -216,7 +216,7 @@ export default async function EventsPage(props: {
             }
 
             .hp2-evcard__img {
-              position: relative; aspect-ratio: 16 / 10; overflow: hidden;
+              position: relative; aspect-ratio: 1 / 1; overflow: hidden;
               background: #1E1A2B;
             }
             .hp2-evcard__img img { transition: transform .6s cubic-bezier(0.22,1,0.36,1); }
