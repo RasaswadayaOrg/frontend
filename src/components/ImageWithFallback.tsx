@@ -17,13 +17,28 @@ export function ImageWithFallback({
   alt, 
   ...props 
 }: ImageWithFallbackProps) {
+  // If the src is a third-party /_next/image?url=... proxy URL, extract the
+  // underlying image URL so our own optimizer can handle it directly.
+  function unwrapNextImageUrl(s: string): string {
+    try {
+      const parsed = new URL(s);
+      if (parsed.pathname === "/_next/image") {
+        const inner = parsed.searchParams.get("url");
+        if (inner) return decodeURIComponent(inner);
+      }
+    } catch { /* not a valid URL — fall through */ }
+    return s;
+  }
+
   // Hardcoded image override for Nanda Malini
-  const rawSrc = (typeof src === 'string' && src.includes('nettv4u.com/imagine/21-05-2023/nanda-malani.jpg')) 
+  const rawSrc = (typeof src === 'string' && src.includes('nettv4u.com/imagine/21-05-2023/nanda-malani.jpg'))
     ? '/nanda_malini.jpeg'
     : (typeof src === 'string' && src.includes('sinhabahu.jpg'))
       ? '/sinhabahu.jpg'
       : (src || fallbackSrc);
-  const effectiveSrc = typeof rawSrc === "string" ? resolveMediaUrl(rawSrc) : rawSrc;
+
+  const unwrapped = typeof rawSrc === "string" ? unwrapNextImageUrl(rawSrc) : rawSrc;
+  const effectiveSrc = typeof unwrapped === "string" ? resolveMediaUrl(unwrapped) : unwrapped;
 
   const [imgSrc, setImgSrc] = useState(effectiveSrc);
 
