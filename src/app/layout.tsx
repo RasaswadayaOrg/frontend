@@ -24,9 +24,49 @@ import { ThemeProvider } from "next-themes";
 import AuthModal from "../components/AuthModal";
 import { AuthGate } from "../components/AuthGate";
 
+const SITE_URL = "https://rasaswadaya.vercel.app";
+
 export const metadata: Metadata = {
-  title: "Rasaswadaya | Arts & Culture Hub",
-  description: "Discover Sri Lankan events and artists.",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "Rasaswadaya | Arts & Culture Hub",
+    template: "%s | Rasaswadaya",
+  },
+  description:
+    "Sri Lanka's premier cultural platform. Discover music, dance, theatre, visual arts, and creative makers. Book events, follow artists, shop local.",
+  keywords: ["Sri Lanka", "arts", "culture", "events", "music", "dance", "theatre", "artists"],
+  authors: [{ name: "Rasaswadaya", url: SITE_URL }],
+  creator: "Rasaswadaya",
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: SITE_URL,
+    siteName: "Rasaswadaya",
+    title: "Rasaswadaya — Sri Lanka's Home for Arts & Culture",
+    description:
+      "Discover music, dance, theatre, visual arts and craft from Sri Lanka. Book events, follow artists, shop from local makers.",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "Rasaswadaya — Sri Lanka's Home for Arts & Culture",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Rasaswadaya — Sri Lanka's Home for Arts & Culture",
+    description:
+      "Discover music, dance, theatre, visual arts and craft from Sri Lanka.",
+    images: ["/twitter-image"],
+    creator: "@rasaswadaya",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true },
+  },
 };
 
 export default function RootLayout({
