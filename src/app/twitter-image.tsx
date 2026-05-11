@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
-export const alt = "Rasaswadaya — Sri Lanka's home for arts, events & culture";
+export const alt = "Rasaswadaya — Discover Sri Lankan Music, Events & Culture, Personalised for You";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 

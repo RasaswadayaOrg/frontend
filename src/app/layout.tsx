@@ -29,12 +29,12 @@ const SITE_URL = "https://rasaswadaya.vercel.app";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Rasaswadaya | Arts & Culture Hub",
+    default: "Rasaswadaya — Sri Lanka's Arts, Events & Entertainment",
     template: "%s | Rasaswadaya",
   },
   description:
-    "Sri Lanka's premier cultural platform. Discover music, dance, theatre, visual arts, and creative makers. Book events, follow artists, shop local.",
-  keywords: ["Sri Lanka", "arts", "culture", "events", "music", "dance", "theatre", "artists"],
+    "Your personalised window into Sri Lankan arts and entertainment. Discover live music, dance, theatre and cultural events — curated just for you by AI.",
+  keywords: ["Sri Lanka", "arts", "culture", "events", "music", "dance", "theatre", "artists", "entertainment", "personalised"],
   authors: [{ name: "Rasaswadaya", url: SITE_URL }],
   creator: "Rasaswadaya",
   openGraph: {
@@ -42,23 +42,23 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: SITE_URL,
     siteName: "Rasaswadaya",
-    title: "Rasaswadaya — Sri Lanka's Home for Arts & Culture",
+    title: "Rasaswadaya — Discover Sri Lankan Music, Events & Culture, Personalised for You",
     description:
-      "Discover music, dance, theatre, visual arts and craft from Sri Lanka. Book events, follow artists, shop from local makers.",
+      "Your personalised window into Sri Lankan arts and entertainment. Live music, dance, theatre, and cultural events — curated by AI, made for you.",
     images: [
       {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "Rasaswadaya — Sri Lanka's Home for Arts & Culture",
+        alt: "Rasaswadaya — Discover Sri Lankan Music, Events & Culture, Personalised for You",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Rasaswadaya — Sri Lanka's Home for Arts & Culture",
+    title: "Rasaswadaya — Discover Sri Lankan Music, Events & Culture, Personalised for You",
     description:
-      "Discover music, dance, theatre, visual arts and craft from Sri Lanka.",
+      "Your personalised window into Sri Lankan arts and entertainment. Live music, dance, theatre and cultural events — curated just for you.",
     images: ["/twitter-image"],
     creator: "@rasaswadaya",
   },
