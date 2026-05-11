@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Instagram, Facebook, Youtube, Twitter } from "lucide-react";
 
 // Full site footer used across all HP2-redesigned pages.
 export function HP2Footer() {
@@ -7,19 +8,16 @@ export function HP2Footer() {
       <div className="hp2-container">
         <div className="hp2-footer__top">
           <div>
-            <div className="hp2-footer__brand-mark">
-              <span className="hp2-footer__brand-inner" />
-            </div>
-            <p className="hp2-footer__brand-name">Rasaswadaya</p>
+            <img src="/logo.svg" alt="Rasaswadaya" className="hp2-footer__brand-logo" />
             <p className="hp2-footer__tagline">
               Sri Lanka&apos;s home for music, dance, theatre, visual arts and craft.
               Discover, support, celebrate.
             </p>
             <div className="hp2-footer__social">
-              <Link href="https://instagram.com" className="hp2-footer__social-link" aria-label="Instagram" target="_blank" rel="noopener noreferrer">Ig</Link>
-              <Link href="https://facebook.com"  className="hp2-footer__social-link" aria-label="Facebook"  target="_blank" rel="noopener noreferrer">Fb</Link>
-              <Link href="https://youtube.com"   className="hp2-footer__social-link" aria-label="YouTube"   target="_blank" rel="noopener noreferrer">Yt</Link>
-              <Link href="https://twitter.com"   className="hp2-footer__social-link" aria-label="X / Twitter" target="_blank" rel="noopener noreferrer">X</Link>
+              <Link href="https://instagram.com" className="hp2-footer__social-link" aria-label="Instagram" target="_blank" rel="noopener noreferrer"><Instagram size={16} strokeWidth={1.75} /></Link>
+              <Link href="https://facebook.com"  className="hp2-footer__social-link" aria-label="Facebook"  target="_blank" rel="noopener noreferrer"><Facebook size={16} strokeWidth={1.75} /></Link>
+              <Link href="https://youtube.com"   className="hp2-footer__social-link" aria-label="YouTube"   target="_blank" rel="noopener noreferrer"><Youtube size={16} strokeWidth={1.75} /></Link>
+              <Link href="https://twitter.com"   className="hp2-footer__social-link" aria-label="X / Twitter" target="_blank" rel="noopener noreferrer"><Twitter size={16} strokeWidth={1.75} /></Link>
             </div>
           </div>
 

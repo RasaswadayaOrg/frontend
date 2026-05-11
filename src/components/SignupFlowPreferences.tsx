@@ -24,10 +24,8 @@ const ONBOARD_CSS = `
   border-radius:20px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
   box-shadow:0 32px 80px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.06);}
 .ob-head{padding:28px 28px 20px;border-bottom:1px solid rgba(196,181,253,0.08);}
-.ob-logo{display:flex;align-items:center;gap:10px;margin-bottom:20px;}
-.ob-logo-dot{width:32px;height:32px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;}
-.ob-logo-mark{width:12px;height:12px;border-radius:50%;background:#07060a;}
-.ob-logo-name{font-size:14px;font-weight:600;color:#F5F3FA;letter-spacing:-0.02em;}
+.ob-logo{display:flex;align-items:center;margin-bottom:20px;}
+.ob-logo-img{height:48px;width:auto;display:block;}
 .ob-title{font-size:20px;font-weight:700;color:#F5F3FA;letter-spacing:-0.03em;margin:0 0 4px;}
 .ob-sub{font-size:13px;color:#9B95B5;margin:0;}
 .ob-steps{display:flex;align-items:center;gap:0;padding:20px 28px;border-bottom:1px solid rgba(196,181,253,0.08);}
@@ -151,8 +149,7 @@ export function SignupFlowPreferences({ onComplete }: SignupFlowPreferencesProps
       <div className="ob-card">
         <div className="ob-head">
           <div className="ob-logo">
-            <div className="ob-logo-dot"><div className="ob-logo-mark" /></div>
-            <span className="ob-logo-name">Rasaswadaya</span>
+            <img src="/logo.svg" alt="Rasaswadaya" className="ob-logo-img" />
           </div>
           <h1 className="ob-title">Set up your profile</h1>
           <p className="ob-sub">Personalise your experience in 3 quick steps</p>
@@ -189,8 +186,7 @@ export function SignupFlowPreferences({ onComplete }: SignupFlowPreferencesProps
       <div className="ob-card">
         <div className="ob-head">
           <div className="ob-logo">
-            <div className="ob-logo-dot"><div className="ob-logo-mark" /></div>
-            <span className="ob-logo-name">Rasaswadaya</span>
+            <img src="/logo.svg" alt="Rasaswadaya" className="ob-logo-img" />
           </div>
           <h1 className="ob-title">What moves you?</h1>
           <p className="ob-sub">Pick the art forms you love</p>
@@ -241,8 +237,7 @@ export function SignupFlowPreferences({ onComplete }: SignupFlowPreferencesProps
         <div className="ob-card">
           <div className="ob-head">
             <div className="ob-logo">
-              <div className="ob-logo-dot"><div className="ob-logo-mark" /></div>
-              <span className="ob-logo-name">Rasaswadaya</span>
+              <img src="/logo.svg" alt="Rasaswadaya" className="ob-logo-img" />
             </div>
             <h1 className="ob-title">Fine-tune your taste</h1>
             <p className="ob-sub">Pick specific styles for better AI recommendations</p>

@@ -112,7 +112,7 @@ export default async function MarketplacePage(props: {
                 return (
                 <Reveal key={p.id} delay={i * 45}>
                   <div className="hp2-card">
-                    <Link href={"/products/" + buildSlug(p.id, p.name)} className="hp2-card__img" aria-label={p.name}>
+                    <Link href={"/marketplace/" + p.id} className="hp2-card__img" aria-label={p.name}>
                       <ImageWithFallback
                         src={p.imageUrl || "https://images.unsplash.com/photo-1524117074681-31bd4de22ad3?q=80&w=600"}
                         alt={p.name}
@@ -125,7 +125,7 @@ export default async function MarketplacePage(props: {
                       </div>
                     </Link>
                     <div className="hp2-card__body">
-                      <Link href={"/products/" + buildSlug(p.id, p.name)}>
+                      <Link href={"/marketplace/" + p.id}>
                         <h3 className="hp2-card__title">{p.name}</h3>
                       </Link>
                       {p.store?.name && (

@@ -58,12 +58,13 @@ export function AdminSidebar() {
           {/* Logo */}
           <div className="flex items-center gap-3 h-16 px-6 border-b border-slate-200 dark:border-zinc-800">
             <Link href="/admin" className="flex items-center gap-2">
-              <Image 
-                src="/logo.png" 
-                alt="Rasaswadaya" 
-                width={32} 
-                height={32} 
-                className="w-8 h-8 dark:brightness-0 dark:invert"
+              <Image
+                src="/logo.svg"
+                alt="Rasaswadaya"
+                width={192}
+                height={108}
+                className="h-12 w-auto"
+                unoptimized
               />
               <div className="flex flex-col">
                 <span className="font-bold text-lg leading-none tracking-tight text-slate-900 dark:text-white font-sinhala">රසාස්වාදය</span>

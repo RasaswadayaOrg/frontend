@@ -17,11 +17,12 @@ export function SellerHeader() {
         {/* Brand */}
         <Link href="/seller-dashboard" className="flex items-center gap-2.5 flex-shrink-0 group">
           <Image
-            src="/logo.png"
+            src="/logo.svg"
             alt="Rasaswadaya"
-            width={32}
-            height={32}
-            className="w-8 h-8 dark:invert transition-transform duration-300 group-hover:scale-105"
+            width={192}
+            height={108}
+            className="h-12 w-auto transition-transform duration-300 group-hover:scale-105"
+            unoptimized
           />
           <div className="hidden md:flex flex-col">
             <span className="font-bold text-base tracking-tight font-sinhala leading-none">

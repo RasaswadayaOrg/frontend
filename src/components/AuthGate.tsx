@@ -31,7 +31,6 @@ const PROTECTED_ROUTES: string[] = [
   "/artist-dashboard",
   "/organizer-dashboard",
   "/seller-dashboard",
-  "/admin",
   "/dashboard",
 ];
 

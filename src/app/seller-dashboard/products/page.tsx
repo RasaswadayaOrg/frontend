@@ -134,7 +134,7 @@ export default function SellerProductsPage() {
             >
               <div className="aspect-square relative bg-neutral-100 dark:bg-zinc-800">
                 <ImageWithFallback
-                  src={p.imageUrl || "/logo.png"}
+                  src={p.imageUrl || "/logo.svg"}
                   alt={p.name}
                   fill
                   className="object-cover"

@@ -9,12 +9,10 @@ import { FloatingChatBot } from "./FloatingChatBot";
 export function SiteLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
-  // usePathname() can return null on the initial client render before the
-  // Next.js router fully initialises. window.location.pathname is always
-  // available synchronously on the client and matches the server's routing
-  // decision — using it as a fallback prevents a hydration DOM mismatch.
-  const effectivePath =
-    pathname ?? (typeof window !== "undefined" ? window.location.pathname : "");
+  // Fall back to "/" so the homepage always lands in the HP2 branch on both
+  // server and client. Using typeof window here would produce different values
+  // on server vs client and trigger a React hydration mismatch.
+  const effectivePath = pathname ?? "/";
 
   // Routes that bring their own full chrome (nav + footer) via HP2Frame
   // or via a self-contained layout. SiteLayout should NOT add Header/Footer

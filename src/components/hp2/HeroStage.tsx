@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Search, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, X, ChevronLeft, ChevronRight, Menu } from "lucide-react";
 import { toArtistSlug } from "../../lib/slugs";
 import { buildSlug } from "../../lib/slug";
 import { NavCta } from "./NavCta";
@@ -29,6 +29,7 @@ type SuggestResult = {
 const STAGE_CSS =
   ".stage { position: relative; width: 100%; min-height: 100vh;" +
   " padding: 24px 24px 40px; background: #07060a; overflow: hidden; isolation: isolate; }" +
+  "@media (max-width: 720px) { .stage { padding: 16px 16px 32px; } }" +
 
   // Nav — starts hidden above viewport; slides down + fades in when carousel reveals
   ".stage__nav { position: relative; z-index: 10; display: flex; align-items: center;" +
@@ -37,14 +38,70 @@ const STAGE_CSS =
   " transition: opacity 700ms ease 160ms, transform 700ms cubic-bezier(.2,.7,.2,1) 160ms; }" +
   ".stage__nav.is-revealed { opacity: 1; transform: translateY(0); }" +
   "@media (prefers-reduced-motion: reduce) { .stage__nav { transition: opacity 200ms ease; } }" +
-  ".stage__brand { width: 36px; height: 36px; border-radius: 50%; background: #fff;" +
-  " display: flex; align-items: center; justify-content: center; flex-shrink: 0; }" +
-  ".stage__brand-mark { width: 14px; height: 14px; border-radius: 50%; background: #07060a; }" +
+  ".stage__brand { display: flex; align-items: center; flex-shrink: 0; }" +
+  ".stage__brand-img { height: 44px; width: auto; display: block; }" +
+  "@media (min-width: 720px) { .stage__brand-img { height: 56px; } }" +
   ".stage__pills { display: flex; gap: 6px; padding: 6px; border-radius: 999px;" +
   " background: rgba(20,18,28,0.55); backdrop-filter: blur(20px) saturate(140%);" +
   " -webkit-backdrop-filter: blur(20px) saturate(140%);" +
   " box-shadow: 0 0 0 1px rgba(255,255,255,0.06) inset; }" +
   "@media (max-width: 720px) { .stage__pills { display: none; } }" +
+
+  // Hide the right-side CTA on mobile (drawer already has its own CTA)
+  ".stage__nav-cta-wrap { display: inline-flex; align-items: center; }" +
+  "@media (max-width: 720px) { .stage__nav-cta-wrap { display: none; } }" +
+
+  // Mobile menu button — appears when pills hide
+  ".stage__menu-btn { display: none; width: 42px; height: 42px; border-radius: 999px;" +
+  " align-items: center; justify-content: center; flex-shrink: 0;" +
+  " background: rgba(20,18,28,0.55); backdrop-filter: blur(20px) saturate(140%);" +
+  " -webkit-backdrop-filter: blur(20px) saturate(140%);" +
+  " box-shadow: 0 0 0 1px rgba(255,255,255,0.06) inset;" +
+  " color: #f5f3fa; border: 0; cursor: pointer;" +
+  " transition: background .25s ease, color .25s ease; }" +
+  ".stage__menu-btn:hover { background: rgba(167,139,250,0.22); color: #c4b5fd; }" +
+  "@media (max-width: 720px) { .stage__menu-btn { display: inline-flex; } }" +
+
+  // Mobile drawer (HeroStage)
+  ".stage__drawer { position: fixed; inset: 0; z-index: 120; pointer-events: none;" +
+  " visibility: hidden; transition: visibility 0s linear .3s; }" +
+  ".stage__drawer.is-open { pointer-events: auto; visibility: visible; transition: visibility 0s linear 0s; }" +
+  ".stage__drawer-bg { position: absolute; inset: 0; background: rgba(7,6,10,0.75);" +
+  " backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);" +
+  " opacity: 0; transition: opacity .3s ease; }" +
+  ".stage__drawer.is-open .stage__drawer-bg { opacity: 1; }" +
+  ".stage__drawer-panel { position: absolute; top: 0; right: 0; bottom: 0;" +
+  " width: min(360px, 86%); background: #15121d;" +
+  " border-left: 1px solid rgba(196,181,253,0.10);" +
+  " padding: 20px 22px 32px; transform: translateX(100%);" +
+  " transition: transform .35s cubic-bezier(.2,.7,.2,1);" +
+  " display: flex; flex-direction: column; }" +
+  ".stage__drawer.is-open .stage__drawer-panel { transform: translateX(0); }" +
+  ".stage__drawer-head { display: flex; justify-content: flex-end; margin-bottom: 20px; }" +
+  ".stage__drawer-close { width: 38px; height: 38px; border-radius: 10px;" +
+  " background: #1e1a2b; border: 1px solid rgba(196,181,253,0.10);" +
+  " color: #f5f3fa; cursor: pointer;" +
+  " display: inline-flex; align-items: center; justify-content: center; }" +
+  ".stage__drawer-links { display: flex; flex-direction: column; gap: 4px; }" +
+  ".stage__drawer-link { display: block; padding: 16px 16px; border-radius: 12px;" +
+  " font-family: var(--font-outfit); font-size: 17px; font-weight: 500;" +
+  " letter-spacing: -0.01em; color: #f5f3fa; text-decoration: none;" +
+  " transition: background .2s ease; }" +
+  ".stage__drawer-link:hover, .stage__drawer-link:focus-visible { background: #1e1a2b; outline: none; }" +
+  ".stage__drawer-cta { margin-top: 24px; display: inline-flex; align-items: center;" +
+  " justify-content: center; gap: 6px; height: 46px;" +
+  " border-radius: 999px; background: #fff; color: #1a1530;" +
+  " font-size: 15px; font-weight: 600; text-decoration: none;" +
+  " transition: background .25s ease; }" +
+  ".stage__drawer-cta:hover { background: #ede9fe; }" +
+  ".stage__drawer-search { margin-top: 14px; display: flex; align-items: center;" +
+  " gap: 8px; height: 46px; padding: 0 14px; border-radius: 999px;" +
+  " background: #1e1a2b; border: 1px solid rgba(196,181,253,0.10);" +
+  " color: #c4b5fd; }" +
+  ".stage__drawer-search:focus-within { border-color: rgba(167,139,250,0.45); background: #25212f; }" +
+  ".stage__drawer-search input { flex: 1; min-width: 0; background: transparent; border: 0; outline: none;" +
+  " color: #f5f3fa; font-size: 14px; font-family: inherit; }" +
+  ".stage__drawer-search input::placeholder { color: rgba(155,149,181,0.7); }" +
   ".stage__pill { display: inline-flex; align-items: center; height: 36px; padding: 0 18px;" +
   " border-radius: 999px; color: #f5f3fa; font-size: 14px; font-weight: 500;" +
   " letter-spacing: -0.005em; text-decoration: none;" +
@@ -55,8 +112,9 @@ const STAGE_CSS =
 
   // Scene
   ".stage__scene { position: relative; width: 100%; height: calc(100vh - 120px);" +
-  " min-height: 540px; max-height: 880px;" +
+  " min-height: 420px; max-height: 880px;" +
   " perspective: 1600px; perspective-origin: 50% 50%; }" +
+  "@media (min-width: 720px) { .stage__scene { min-height: 540px; } }" +
   ".stage__deck { position: absolute; inset: 0; transform-style: preserve-3d; }" +
 
   // Cards
@@ -133,7 +191,8 @@ const STAGE_CSS =
 
   // Pills bar — fixed intrinsic width; position:relative for dropdown + inner absolute layers
   ".stage__pills { position: relative !important; overflow: visible !important;" +
-  " display: flex !important; align-items: center !important; }" +
+  " align-items: center !important; }" +
+  "@media (min-width: 721px) { .stage__pills { display: flex !important; } }" +
 
   // Links group — fills bar normally; fades + shrinks out when searching
   ".stage__pills-links { display: flex; align-items: center; gap: 2px; flex-shrink: 0;" +
@@ -200,6 +259,7 @@ export function HeroStage({
   const [query, setQuery]         = useState("");
   const [results, setResults]     = useState<SuggestResult | null>(null);
   const [loading, setLoading]     = useState(false);
+  const [menuOpen, setMenuOpen]   = useState(false);
   const inputRef    = useRef<HTMLInputElement>(null);
   const searchbarRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -324,7 +384,7 @@ export function HeroStage({
       {/* Floating top nav — fades in from top once carousel zoom-out completes */}
       <header className={"stage__nav" + (revealed ? " is-revealed" : "")} style={{ position: "relative" }}>
         <Link href="/" className="stage__brand" aria-label="Rasaswadaya home">
-          <span className="stage__brand-mark" />
+          <img src="/logo.svg" alt="Rasaswadaya" className="stage__brand-img" />
         </Link>
         {/* Pills nav — search expands inline within the same bar */}
         <nav
@@ -427,8 +487,76 @@ export function HeroStage({
           )}
         </nav>
 
-        <NavCta label={ctaLabel} href={ctaHref} variant="stage" />
+        <span className="stage__nav-cta-wrap">
+          <NavCta label={ctaLabel} href={ctaHref} variant="stage" />
+        </span>
+
+        <button
+          type="button"
+          className="stage__menu-btn"
+          aria-label="Open menu"
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen(true)}
+        >
+          <Menu size={20} />
+        </button>
       </header>
+
+      {/* Mobile drawer */}
+      <div className={"stage__drawer" + (menuOpen ? " is-open" : "")} aria-hidden={!menuOpen}>
+        <div className="stage__drawer-bg" onClick={() => setMenuOpen(false)} />
+        <aside className="stage__drawer-panel" role="dialog" aria-label="Menu">
+          <div className="stage__drawer-head">
+            <button
+              type="button"
+              className="stage__drawer-close"
+              aria-label="Close menu"
+              onClick={() => setMenuOpen(false)}
+            >
+              <X size={18} />
+            </button>
+          </div>
+          <nav className="stage__drawer-links" aria-label="Mobile navigation">
+            {navLinks.map((l) => (
+              <Link
+                key={l.href}
+                href={l.href}
+                className="stage__drawer-link"
+                onClick={() => setMenuOpen(false)}
+              >
+                {l.label}
+              </Link>
+            ))}
+          </nav>
+          <form
+            className="stage__drawer-search"
+            onSubmit={(e) => {
+              e.preventDefault();
+              const q = (e.currentTarget.elements.namedItem("q") as HTMLInputElement)?.value?.trim();
+              if (!q) return;
+              setMenuOpen(false);
+              router.push("/search?q=" + encodeURIComponent(q));
+            }}
+            role="search"
+          >
+            <Search size={15} strokeWidth={1.5} aria-hidden />
+            <input
+              type="search"
+              name="q"
+              placeholder="Search artists, events, songs…"
+              aria-label="Search"
+              autoComplete="off"
+            />
+          </form>
+          <Link
+            href={ctaHref}
+            className="stage__drawer-cta"
+            onClick={() => setMenuOpen(false)}
+          >
+            {ctaLabel}
+          </Link>
+        </aside>
+      </div>
 
       {/* Carousel scene */}
       <div className="stage__scene">

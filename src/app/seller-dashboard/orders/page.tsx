@@ -166,7 +166,7 @@ export default function SellerOrdersPage() {
                   <div key={item.id} className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-lg overflow-hidden bg-neutral-100 dark:bg-zinc-800 flex-shrink-0">
                       <ImageWithFallback
-                        src={item.product.imageUrl || "/logo.png"}
+                        src={item.product.imageUrl || "/logo.svg"}
                         alt={item.product.name}
                         width={48}
                         height={48}

@@ -10,6 +10,7 @@ import { useState, useEffect, useRef } from "react";
 import { getSearchSuggestions, type SearchSuggestionsResult } from "@/app/actions/search";
 import { ImageWithFallback } from "./ImageWithFallback";
 import { ThemeToggle } from "./ThemeToggle";
+import { RoleSwitcher } from "./RoleSwitcher";
 
 export function Header() {
   const pathname = usePathname();
@@ -148,12 +149,13 @@ export function Header() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center text-sm font-ui">
           <div className="flex items-center gap-4 shrink-0">
             <Link href="/" className="flex items-center gap-2">
-              <Image 
-                src="/logo.png" 
-                alt="Rasaswadaya" 
-                width={32} 
-                height={32} 
-                className="w-8 h-8 brightness-0 invert"
+              <Image
+                src="/logo.svg"
+                alt="Rasaswadaya"
+                width={192}
+                height={108}
+                className="h-14 w-auto"
+                unoptimized
               />
               <span className="font-bold text-2xl tracking-tight text-white font-sinhala">රසාස්වාදය</span>
             </Link>
@@ -300,33 +302,7 @@ export function Header() {
           <div className="flex items-center gap-4 shrink-0">
             {user ? (
               <>
-                {(user.role === 'artist' || user.role === 'ARTIST') && (
-                  <Link 
-                    href="/artist-dashboard" 
-                    className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-brand-800/50 hover:bg-brand-800 rounded-full transition-colors text-brand-100 text-xs font-medium mr-2 border border-brand-500/30"
-                  >
-                    <LayoutDashboard className="w-3.5 h-3.5" />
-                    Switch to Artist Mode
-                  </Link>
-                )}
-                {(user.role === 'organizer' || user.role === 'ORGANIZER') && (
-                  <Link 
-                    href="/organizer-dashboard" 
-                    className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-brand-800/50 hover:bg-brand-800 rounded-full transition-colors text-brand-100 text-xs font-medium mr-2 border border-brand-500/30"
-                  >
-                    <LayoutDashboard className="w-3.5 h-3.5" />
-                    Switch to Organizer Mode
-                  </Link>
-                )}
-                {(user.role === 'store_owner' || user.role === 'STORE_OWNER') && (
-                  <Link 
-                    href="/seller-dashboard" 
-                    className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-brand-800/50 hover:bg-brand-800 rounded-full transition-colors text-brand-100 text-xs font-medium mr-2 border border-brand-500/30"
-                  >
-                    <LayoutDashboard className="w-3.5 h-3.5" />
-                    Switch to Store Owner Mode
-                  </Link>
-                )}
+                <RoleSwitcher variant="header" />
                 <Link href="/cart" className="relative p-2 hover:bg-brand-500 rounded-full transition-colors flex items-center justify-center" aria-label="Shopping cart">
                   <ShoppingBag className="w-5 h-5 text-white" />
                   {itemCount > 0 && (
@@ -419,7 +395,7 @@ export function Header() {
           >
             <div className="mb-5 flex items-center justify-between">
               <Link href="/" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2">
-                <Image src="/logo.png" alt="Rasaswadaya" width={28} height={28} className="h-7 w-7" />
+                <Image src="/logo.svg" alt="Rasaswadaya" width={192} height={108} className="h-12 w-auto" unoptimized />
                 <span className="font-sinhala text-xl font-bold text-brand-700 dark:text-brand-300">රසාස්වාදය</span>
               </Link>
               <button

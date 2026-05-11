@@ -154,18 +154,22 @@ export default async function HomeTwo() {
     "}" +
     "@media (prefers-reduced-motion: reduce) { .hp2::before, .hp2::after { animation: none; } }" +
 
-    ".hp2-container { max-width: 1280px; margin: 0 auto; padding: 0 28px; }" +
+    ".hp2-container { max-width: 1280px; margin: 0 auto; padding: 0 20px; }" +
+    "@media (min-width: 640px) { .hp2-container { padding: 0 28px; } }" +
     "@media (min-width: 768px) { .hp2-container { padding: 0 48px; } }" +
 
     /* ── INTRO BAND ── */
-    ".hp2-intro { padding: 100px 0 88px; }" +
-    ".hp2-intro__layout { display: flex; align-items: center; justify-content: space-between; gap: 64px; }" +
+    ".hp2-intro { padding: 64px 0 56px; }" +
+    "@media (min-width: 768px) { .hp2-intro { padding: 100px 0 88px; } }" +
+    ".hp2-intro__layout { display: flex; align-items: center; justify-content: space-between; gap: 32px; flex-wrap: wrap; }" +
+    "@media (min-width: 900px) { .hp2-intro__layout { gap: 64px; flex-wrap: nowrap; } }" +
     ".hp2-intro__content { flex: 1 1 0; min-width: 0; }" +
     ".hp2-intro__map { flex: 0 0 auto; width: clamp(200px, 22vw, 320px); display: flex; align-items: center; justify-content: center; opacity: 0; animation: hp2-map-in 1.2s ease forwards 0.4s; }" +
     "@media (max-width: 640px) { .hp2-intro__map { display: none; } }" +
     "@keyframes hp2-map-in { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }" +
     ".hp2-intro__map svg { width: 100%; height: auto; filter: drop-shadow(0 0 28px rgba(167,139,250,0.45)) drop-shadow(0 0 8px rgba(196,181,253,0.25)); }" +
-    ".hp2-intro__title { font-family: var(--font-outfit); font-size: clamp(48px, 7.5vw, 104px); line-height: 0.98; letter-spacing: -0.04em; font-weight: 600; margin: 22px 0 28px; max-width: 14ch; }" +
+    ".hp2-intro__title { font-family: var(--font-outfit); font-size: clamp(36px, 8vw, 104px); line-height: 1; letter-spacing: -0.04em; font-weight: 600; margin: 18px 0 22px; max-width: 14ch; }" +
+    "@media (min-width: 768px) { .hp2-intro__title { margin: 22px 0 28px; } }" +
     ".hp2-intro__title em { font-style: normal; color: " + ACCENT + "; }" +
     ".hp2-intro__lede { color: " + MUTED + "; font-size: clamp(17px, 1.4vw, 20px); line-height: 1.55; max-width: 560px; margin-bottom: 36px; }" +
 
@@ -202,8 +206,9 @@ export default async function HomeTwo() {
     ".hp2-ai__guest-title span { color: " + MUTED + "; }" +
     ".hp2-ai__guest-lede { color: " + MUTED + "; font-size: 18px; max-width: 540px; margin: 0 auto 36px; line-height: 1.6; }" +
     ".hp2-ai--loggedin { padding: 64px 0 80px; }" +
-    ".hp2-ai__header { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 40px; padding-bottom: 32px; border-bottom: 1px solid " + LINE + "; flex-wrap: wrap; }" +
-    ".hp2-ai__title { font-family: var(--font-outfit); font-size: clamp(36px, 5.5vw, 72px); font-weight: 700; letter-spacing: -0.04em; line-height: 1; margin: 8px 0 12px; }" +
+    ".hp2-ai__header { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid " + LINE + "; flex-wrap: wrap; }" +
+    "@media (min-width: 768px) { .hp2-ai__header { margin-bottom: 40px; padding-bottom: 32px; } }" +
+    ".hp2-ai__title { font-family: var(--font-outfit); font-size: clamp(30px, 6.5vw, 72px); font-weight: 700; letter-spacing: -0.04em; line-height: 1.02; margin: 8px 0 12px; }" +
     ".hp2-grad { background: linear-gradient(110deg, #C4B5FD 0%, #A78BFA 35%, #818CF8 70%, #C084FC 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }" +
     ".hp2-ai__sub { font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: " + MUTED + "; }" +
     ".hp2-ai__sub span { color: " + TEXT + "; }" +
@@ -213,7 +218,7 @@ export default async function HomeTwo() {
     ".hp2-ai-card:last-child { border-bottom: none; }" +
     "@media (min-width: 900px) { .hp2-ai-card { border-bottom: none; border-right: 1px solid " + LINE + "; } .hp2-ai-card:last-child { border-right: none; } }" +
     ".hp2-ai-card:hover { background: " + SURF2 + "; }" +
-    ".hp2-ai-card__img { position: relative; aspect-ratio: 16/9; overflow: hidden; border-radius: 12px; background: " + SURF2 + "; margin-bottom: 16px; }" +
+    ".hp2-ai-card__img { position: relative; aspect-ratio: 1/1; overflow: hidden; border-radius: 12px; background: " + SURF2 + "; margin-bottom: 16px; }" +
     ".hp2-ai-card__badge { position: absolute; top: 10px; left: 10px; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 700; padding: 4px 10px; border-radius: 6px; }" +
     ".hp2-ai-card__badge--ai { background: " + AI_CLR + "; color: #fff; }" +
     ".hp2-ai-card__badge--cat { background: rgba(20,20,22,0.8); color: " + TEXT + "; border: 1px solid " + LINE + "; }" +
@@ -227,10 +232,12 @@ export default async function HomeTwo() {
     ".hp2-ai-card:hover .hp2-ai-card__cta { color: " + TEXT + "; }" +
 
     /* ── SECTIONS ── */
-    ".hp2-section { padding: 88px 0; border-top: 1px solid " + LINE + "; }" +
+    ".hp2-section { padding: 56px 0; border-top: 1px solid " + LINE + "; }" +
+    "@media (min-width: 768px) { .hp2-section { padding: 88px 0; } }" +
     ".hp2-section--tight { padding: 88px 0 64px; }" +
     ".hp2-section__kicker { font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: " + MUTED + "; margin: 0 0 16px; font-weight: 500; }" +
-    ".hp2-section__title { font-family: var(--font-outfit); font-size: clamp(32px, 4.8vw, 64px); line-height: 1.02; letter-spacing: -0.035em; font-weight: 500; margin: 0 0 48px; max-width: 16ch; }" +
+    ".hp2-section__title { font-family: var(--font-outfit); font-size: clamp(28px, 6vw, 64px); line-height: 1.04; letter-spacing: -0.035em; font-weight: 500; margin: 0 0 32px; max-width: 16ch; }" +
+    "@media (min-width: 768px) { .hp2-section__title { margin: 0 0 48px; } }" +
     ".hp2-section__title--sm { font-size: clamp(26px, 3.2vw, 44px); margin-bottom: 0; max-width: none; }" +
     ".hp2-row-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 40px; flex-wrap: wrap; }" +
     ".hp2-link { font-size: 14px; color: " + MUTED + "; transition: color .2s ease; text-decoration: none; }" +
@@ -243,7 +250,7 @@ export default async function HomeTwo() {
     "@media (min-width: 600px) { .hp2-events-grid { grid-template-columns: repeat(2, 1fr); } }" +
     ".hp2-event-card { display: flex; flex-direction: column; border-radius: 16px; overflow: hidden; background: " + SURF + "; border: 1px solid " + LINE + "; text-decoration: none; transition: transform .3s ease, border-color .3s ease; }" +
     ".hp2-event-card:hover { transform: translateY(-4px); border-color: rgba(255,255,255,0.16); }" +
-    ".hp2-event-card__img { position: relative; height: 180px; overflow: hidden; background: " + SURF2 + "; }" +
+    ".hp2-event-card__img { position: relative; aspect-ratio: 1/1; overflow: hidden; background: " + SURF2 + "; }" +
     ".hp2-event-card__cat { position: absolute; top: 10px; left: 10px; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 700; padding: 4px 10px; border-radius: 6px; background: rgba(11,11,12,0.75); color: " + TEXT + "; backdrop-filter: blur(8px); }" +
     ".hp2-event-card__body { padding: 16px 18px 20px; display: flex; flex-direction: column; gap: 8px; flex: 1; }" +
     ".hp2-event-card__title { font-family: var(--font-outfit); font-size: 17px; font-weight: 500; letter-spacing: -0.01em; color: " + TEXT + "; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }" +
@@ -311,7 +318,8 @@ export default async function HomeTwo() {
     /* ── MARKETPLACE ── */
     ".hp2-market { border-top: 1px solid " + LINE + "; }" +
     ".hp2-market__inner { padding: 72px 0 88px; }" +
-    ".hp2-market-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }" +
+    ".hp2-market-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }" +
+    "@media (min-width: 420px) { .hp2-market-grid { grid-template-columns: repeat(2, 1fr); } }" +
     "@media (min-width: 720px) { .hp2-market-grid { grid-template-columns: repeat(3, 1fr); gap: 16px; } }" +
     "@media (min-width: 1080px) { .hp2-market-grid { grid-template-columns: repeat(4, 1fr); gap: 18px; } }" +
     ".hp2-product { position: relative; display: flex; flex-direction: column; text-decoration: none; background: " + SURF + "; border-radius: 14px; overflow: hidden; border: 1px solid " + LINE + "; transition: border-color .2s, transform .2s; }" +
@@ -371,11 +379,7 @@ export default async function HomeTwo() {
     ".hp2-footer { border-top: 1px solid " + LINE + "; background: " + SURF + "; }" +
     ".hp2-footer__top { padding: 72px 0 56px; display: grid; grid-template-columns: 1fr; gap: 48px; }" +
     "@media (min-width: 768px) { .hp2-footer__top { grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; } }" +
-    ".hp2-footer__brand-mark { display: inline-flex; align-items: center; justify-content: center;" +
-    " width: 40px; height: 40px; border-radius: 50%; background: " + ACCENT + "; margin-bottom: 20px; }" +
-    ".hp2-footer__brand-inner { width: 16px; height: 16px; border-radius: 50%; background: " + BG + "; }" +
-    ".hp2-footer__brand-name { font-family: var(--font-outfit); font-size: 22px; font-weight: 600;" +
-    " letter-spacing: -0.025em; color: " + TEXT + "; margin-bottom: 12px; }" +
+    ".hp2-footer__brand-logo { height: 48px; width: auto; display: block; margin-bottom: 20px; }" +
     ".hp2-footer__tagline { font-size: 14px; color: " + MUTED + "; line-height: 1.65; max-width: 280px; margin-bottom: 28px; }" +
     ".hp2-footer__social { display: flex; gap: 10px; }" +
     ".hp2-footer__social-link { display: flex; align-items: center; justify-content: center;" +
@@ -833,10 +837,7 @@ export default async function HomeTwo() {
 
             {/* Brand column */}
             <div>
-              <div className="hp2-footer__brand-mark">
-                <span className="hp2-footer__brand-inner" />
-              </div>
-              <p className="hp2-footer__brand-name">Rasaswadaya</p>
+              <img src="/logo.svg" alt="Rasaswadaya" className="hp2-footer__brand-logo" />
               <p className="hp2-footer__tagline">
                 Sri Lanka&apos;s home for music, dance, theatre,
                 visual arts and craft. Discover, support, celebrate.

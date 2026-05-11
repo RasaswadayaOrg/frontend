@@ -12,6 +12,7 @@ type User = {
   avatarUrl?: string;
   role?: string;
   city?: string;
+  approvedRoles?: string[];
 };
 
 type AuthContextType = {
@@ -70,6 +71,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         avatarUrl: userData.avatarUrl,
         role: userData.role,
         city: userData.city,
+        approvedRoles: Array.isArray(userData.approvedRoles) ? userData.approvedRoles : undefined,
       };
       localStorage.setItem("rasas_user", JSON.stringify(updated));
       setUser(updated);

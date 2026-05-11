@@ -32,7 +32,7 @@ export function HP2Nav({
       <div className="hp2-nav-wrap">
         <header className="hp2-nav" aria-label="Primary">
           <Link href="/" className="hp2-nav__brand" aria-label="Rasaswadaya home">
-            <span className="hp2-nav__brand-mark" />
+            <img src="/logo.svg" alt="Rasaswadaya" className="hp2-nav__brand-img" />
           </Link>
 
           <nav className="hp2-nav__pills">

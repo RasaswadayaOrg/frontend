@@ -128,7 +128,7 @@ export function StoreProfileEditor() {
           <div className="relative">
             <div className="w-28 h-28 rounded-2xl border-4 border-white dark:border-zinc-900 overflow-hidden bg-neutral-200 shadow-lg">
               <ImageWithFallback
-                src={form.imageUrl || "/logo.png"}
+                src={form.imageUrl || "/logo.svg"}
                 alt="Store logo"
                 width={112}
                 height={112}

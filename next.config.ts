@@ -4,6 +4,9 @@ const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
   images: {
+    dangerouslyAllowSVG: true,
+    contentDispositionType: 'attachment',
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     localPatterns: [
       {
         pathname: '/api/avatar',
@@ -40,6 +43,18 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.ticketsministry.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.ticketsministry.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'ticketsministry.s3.ap-south-1.amazonaws.com',
       },
       {
         protocol: 'https',

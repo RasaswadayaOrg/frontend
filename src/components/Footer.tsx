@@ -9,12 +9,13 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div className="space-y-4">
             <Link href="/" className="flex items-center gap-2">
-              <Image 
-                src="/logo.png" 
-                alt="Rasaswadaya" 
-                width={32} 
-                height={32} 
-                className="w-8 h-8 brightness-0 invert opacity-80"
+              <Image
+                src="/logo.svg"
+                alt="Rasaswadaya"
+                width={192}
+                height={108}
+                className="h-14 w-auto"
+                unoptimized
               />
               <span className="text-white font-bold text-2xl font-sinhala">රසාස්වාදය</span>
             </Link>
@@ -45,13 +46,13 @@ export function Footer() {
           <div>
             <h4 className="text-white font-semibold mb-4">Newsletter</h4>
             <p className="text-sm mb-4">Stay updated with the latest cultural events.</p>
-            <div className="flex gap-2">
-              <input 
-                type="email" 
-                placeholder="Enter your email" 
-                className="bg-brand-900/50 text-white placeholder:text-brand-300/50 border border-brand-800 rounded-lg px-3 py-2 text-sm w-full focus:ring-2 focus:ring-brand-500 focus:outline-none"
+            <div className="flex flex-col sm:flex-row gap-2">
+              <input
+                type="email"
+                placeholder="Enter your email"
+                className="bg-brand-900/50 text-white placeholder:text-brand-300/50 border border-brand-800 rounded-lg px-3 py-2.5 text-sm w-full focus:ring-2 focus:ring-brand-500 focus:outline-none"
               />
-              <button className="bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-500 transition-colors">
+              <button className="bg-brand-600 text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-brand-500 transition-colors whitespace-nowrap">
                 Subscribe
               </button>
             </div>
@@ -60,11 +61,11 @@ export function Footer() {
 
         <div className="border-t border-brand-900 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-xs text-brand-200/60">© 2025 <span className="font-sinhala">රසාස්වාදය</span>. All rights reserved.</p>
-          <div className="flex gap-4 text-brand-200/80">
-            <a href="#" className="hover:text-white transition-colors"><Facebook className="w-5 h-5" /></a>
-            <a href="#" className="hover:text-white transition-colors"><Twitter className="w-5 h-5" /></a>
-            <a href="#" className="hover:text-white transition-colors"><Instagram className="w-5 h-5" /></a>
-            <a href="#" className="hover:text-white transition-colors"><Youtube className="w-5 h-5" /></a>
+          <div className="flex gap-1 text-brand-200/80">
+            <a href="#" aria-label="Facebook" className="inline-flex items-center justify-center w-11 h-11 rounded-full hover:bg-brand-900/60 hover:text-white transition-colors"><Facebook className="w-5 h-5" /></a>
+            <a href="#" aria-label="Twitter" className="inline-flex items-center justify-center w-11 h-11 rounded-full hover:bg-brand-900/60 hover:text-white transition-colors"><Twitter className="w-5 h-5" /></a>
+            <a href="#" aria-label="Instagram" className="inline-flex items-center justify-center w-11 h-11 rounded-full hover:bg-brand-900/60 hover:text-white transition-colors"><Instagram className="w-5 h-5" /></a>
+            <a href="#" aria-label="YouTube" className="inline-flex items-center justify-center w-11 h-11 rounded-full hover:bg-brand-900/60 hover:text-white transition-colors"><Youtube className="w-5 h-5" /></a>
           </div>
         </div>
       </div>
